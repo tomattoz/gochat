@@ -1,5 +1,6 @@
 package red.tel.chat;
 
+import android.util.Base64;
 import android.util.Log;
 
 import com.cossacklabs.themis.ISessionCallbacks;
@@ -13,6 +14,7 @@ import com.cossacklabs.themis.SecureCellData;
 import com.cossacklabs.themis.SecureSession;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -87,18 +89,21 @@ class Crypto {
 
         @Override
         public PublicKey getPublicKeyForId(SecureSession session, byte[] id) {
-            if (Arrays.equals(id, peerId.getBytes())) {
+            Log.d(TAG, "getPublicKeyForId: " + Arrays.toString(id) + " " + Arrays.toString(peerId.getBytes(Charset.forName("UTF-16"))));
+
+            /*if (Arrays.equals(id, peerId.getBytes(Charset.defaultCharset()))) {
                 return serverPublicKey;
             } else {
                 Log.e(TAG, "key id mismatch");
                 return null;
-            }
+            }*/
+            return serverPublicKey;
         }
 
         @Override
         public void stateChanged(SecureSession session) {
             // todo: update UI: for example, draw a nice padlock indicating to the user that his/her communication is now secured
-            Log.d(TAG, "Peer " + peerId + " state changed to " + session);
+            Log.d(TAG, "Peer " + peerId + " state changed to " + session.getState().name());
         }
     }
 
@@ -112,7 +117,7 @@ class Crypto {
 
     private class Peer {
 
-        Status status  = Status.BEGUN;
+        Status status = Status.BEGUN;
 
         private Transport transport = new Transport();
         private SecureSession session;
@@ -150,7 +155,8 @@ class Crypto {
             SecureSession.UnwrapResult result = session.unwrap(receiveBuffer);
             if (session.isEstablished()) {
                 status = Status.SESSION_ESTABLISHED;
-                Backend.shared().handshook(peerId);        }
+                Backend.shared().handshook(peerId);
+            }
             switch (result.getDataType()) {
                 case USER_DATA:
                     // this is the actual data that was encrypted by your peer using SecureSession.wrap

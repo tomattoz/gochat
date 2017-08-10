@@ -35,6 +35,7 @@
             android:name=".ui.ItemDetailActivity"
             android:label="@string/title_item_detail"
             android:parentActivityName=".ui.ItemListActivity"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -49,6 +50,17 @@
             android:exported="false" />
 
         <activity android:name=".ui.BaseActivity"/>
+
+        <activity android:name="net.openid.appauth.RedirectUriReceiverActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https"/>
+                <data android:host="login.microsoftonline.com"/>
+                <data android:path="/common/oauth2/nativeclient"/>
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

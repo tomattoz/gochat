@@ -126,6 +126,7 @@ public class Backend extends IntentService {
         }
         this.sessionId = sessionId;
         EventBus.announce(EventBus.Event.AUTHENTICATED);
+        Log.d(TAG, "authenticated: ");
     }
 
     private class Hold {
@@ -143,6 +144,7 @@ public class Backend extends IntentService {
         }
         Hold hold = new Hold(data, peerId);
         queue.get(peerId).add(hold);
+        Log.d(TAG, "enqueue: ");
     }
 
     private void send(byte[] data, String peerId) {
@@ -158,8 +160,9 @@ public class Backend extends IntentService {
             ByteString encrypted = ByteString.of(crypto.encrypt(data, peerId));
             Wire.Builder payloadBuilder = new Wire.Builder().payload(encrypted).which(PAYLOAD).to(peerId);
             buildAndSend(payloadBuilder);
+            Log.d(TAG, "encryptAndSend: ");
         } catch (Exception exception) {
-            Log.e(TAG, exception.getLocalizedMessage());
+            Log.e(TAG, exception.getMessage());
         }
     }
 

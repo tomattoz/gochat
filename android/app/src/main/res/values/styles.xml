@@ -18,7 +18,7 @@
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <style name="Transcript">
-        <item name="android:layout_margin">@dimen/generic_margin</item>
+        <item name="android:padding">@dimen/generic_margin</item>
         <item name="android:textSize">@dimen/transcript_text_size</item>
     </style>
 
