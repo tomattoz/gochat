@@ -4,10 +4,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 
 public class EventBus {
-
+    private static BroadcastReceiver broadcastReceiver;
     public enum Event {
         CONNECTED,
         DISCONNECTED,
@@ -30,7 +31,7 @@ public class EventBus {
     public static BroadcastReceiver listenFor(Context context, Event event, Listener listener) {
         IntentFilter intentFilter = new IntentFilter(event.toString());
 
-        BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        broadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 listener.onEvent();
@@ -39,5 +40,11 @@ public class EventBus {
 
         LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
         return broadcastReceiver;
+    }
+
+    public static void unRegisterEvent(Context context) {
+        if (broadcastReceiver != null) {
+            LocalBroadcastManager.getInstance(context).unregisterReceiver(broadcastReceiver);
+        }
     }
 }

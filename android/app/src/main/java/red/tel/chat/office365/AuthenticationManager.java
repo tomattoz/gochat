@@ -70,7 +70,7 @@ public class AuthenticationManager {
      */
     public void startAuthorizationFlow() {
         Intent intent = new Intent(mContextActivity, LoginActivity.class);
-
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent redirectIntent = PendingIntent.getActivity(mContextActivity, mAuthorizationRequest.hashCode(), intent, 0);
 
         mAuthorizationService.performAuthorizationRequest(

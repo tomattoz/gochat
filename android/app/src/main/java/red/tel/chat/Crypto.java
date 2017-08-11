@@ -1,6 +1,5 @@
 package red.tel.chat;
 
-import android.util.Base64;
 import android.util.Log;
 
 import com.cossacklabs.themis.ISessionCallbacks;
@@ -76,7 +75,6 @@ class Crypto {
     }
 
     /////// Transport
-
     private class Transport implements ISessionCallbacks {
 
         private String peerId;

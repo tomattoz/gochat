@@ -4,21 +4,21 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.util.Log;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import okio.ByteString;
 import red.tel.chat.generated_protobuf.Contact;
 import red.tel.chat.generated_protobuf.Store;
-import red.tel.chat.generated_protobuf.Wire;
 import red.tel.chat.generated_protobuf.Voip;
+import red.tel.chat.generated_protobuf.Wire;
 
 import static red.tel.chat.generated_protobuf.Wire.Which.CONTACTS;
 import static red.tel.chat.generated_protobuf.Wire.Which.HANDSHAKE;
-import static red.tel.chat.generated_protobuf.Wire.Which.PAYLOAD;
 import static red.tel.chat.generated_protobuf.Wire.Which.LOGIN;
+import static red.tel.chat.generated_protobuf.Wire.Which.PAYLOAD;
 import static red.tel.chat.generated_protobuf.Wire.Which.PUBLIC_KEY;
 import static red.tel.chat.generated_protobuf.Wire.Which.PUBLIC_KEY_RESPONSE;
 
@@ -27,9 +27,11 @@ public class Backend extends IntentService {
 
     private static final String TAG = "Backend";
     private static Backend instance;
+
     public Backend() {
         super(TAG);
     }
+
     private Network network;
     private String sessionId;
     private Crypto crypto;
@@ -48,6 +50,7 @@ public class Backend extends IntentService {
             String username = Model.shared().getUsername();
             if (username != null) {
                 Backend.this.login(username);
+                Log.d(TAG, "re login: ");
             }
         });
     }
@@ -77,6 +80,8 @@ public class Backend extends IntentService {
                 case PUBLIC_KEY:
                 case PUBLIC_KEY_RESPONSE:
                     onPublicKey(wire);
+                    break;
+                default:
                     break;
             }
         } catch (Exception exception) {
@@ -144,7 +149,6 @@ public class Backend extends IntentService {
         }
         Hold hold = new Hold(data, peerId);
         queue.get(peerId).add(hold);
-        Log.d(TAG, "enqueue: ");
     }
 
     private void send(byte[] data, String peerId) {
@@ -176,7 +180,6 @@ public class Backend extends IntentService {
     }
 
     // send to Network
-
     public void login(String username) {
         Wire.Builder wire = new Wire.Builder().which(LOGIN).login(username);
         instance.buildAndSend(wire);
@@ -213,7 +216,7 @@ public class Backend extends IntentService {
         if (list == null) {
             return;
         }
-        for (Hold hold: list) {
+        for (Hold hold : list) {
             encryptAndSend(hold.data, hold.peerId);
         }
     }

@@ -4,7 +4,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.content.Context;
 import android.support.design.widget.Snackbar;
 
-public class BaseActivity extends AppCompatActivity {
+public abstract class BaseActivity extends AppCompatActivity {
 
     private static BaseActivity current;
 

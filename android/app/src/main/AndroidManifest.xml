@@ -49,8 +49,6 @@
             android:name=".Backend"
             android:exported="false" />
 
-        <activity android:name=".ui.BaseActivity"/>
-
         <activity android:name="net.openid.appauth.RedirectUriReceiverActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>

@@ -2,6 +2,7 @@ package red.tel.chat.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -11,7 +12,7 @@ import red.tel.chat.EventBus.Event;
 import red.tel.chat.R;
 
 public class SplashActivity extends BaseActivity {
-
+    private static final String TAG = SplashActivity.class.getSimpleName();
     private static final int SPLASH_DURATION = 3000;
 
     @Override
@@ -20,6 +21,7 @@ public class SplashActivity extends BaseActivity {
         setContentView(R.layout.activity_splash);
 
         EventBus.listenFor(this, Event.AUTHENTICATED, () -> {
+            Log.d(TAG, "onCreate: ");
             timerTask.cancel();
             start(ItemListActivity.class);
         });
@@ -30,6 +32,7 @@ public class SplashActivity extends BaseActivity {
     private TimerTask timerTask = new TimerTask() {
         @Override
         public void run() {
+            Log.d(TAG, "run: ");
             start(LoginActivity.class);
             finish();
         }
@@ -40,5 +43,11 @@ public class SplashActivity extends BaseActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_TASK_ON_HOME);
         startActivity(intent);
         this.finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        EventBus.unRegisterEvent(this);
     }
 }

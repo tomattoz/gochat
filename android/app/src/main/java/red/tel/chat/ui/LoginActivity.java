@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -27,6 +28,7 @@ import red.tel.chat.Model;
 import red.tel.chat.Backend;
 import red.tel.chat.R;
 import red.tel.chat.office365.AuthenticationManager;
+import red.tel.chat.office365.TokenNotFoundException;
 
 public class LoginActivity extends BaseActivity implements AuthorizationService.TokenResponseCallback {
 
@@ -40,6 +42,7 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        AuthenticationManager.getInstance().setContextActivity(this);
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             AuthenticationManager.getInstance().processAuthorizationCode(getIntent(), this);
@@ -54,22 +57,17 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
             return false;
         });
 
-//        Button signInButton = (Button) findViewById(R.id.sign_in_button);
-//        signInButton.setOnClickListener((View view) -> { didClickSignIn(); });
-
         loginFormView = findViewById(R.id.login_form);
         progressView = findViewById(R.id.login_progress);
-        AuthenticationManager.getInstance().setContextActivity(this);
-        EventBus.listenFor(this, EventBus.Event.AUTHENTICATED, () -> {
-            startActivity(new Intent(this, ItemListActivity.class));
-            this.finish();
-        });
+        EventBus.listenFor(this, EventBus.Event.AUTHENTICATED, this::finish);
     }
+
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         AuthenticationManager.getInstance().onDestroyService();
+        EventBus.unRegisterEvent(this);
     }
 
     private void connect() {
@@ -165,7 +163,6 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
                     Toast.LENGTH_LONG).show();
             return;
         }
-
         connect();
     }
 
@@ -174,13 +171,16 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
         if(tokenResponse != null) {
             // get the UserInfo from the auth response
             JsonObject claims = AuthenticationManager.getInstance().getClaims(tokenResponse.idToken);
-            String name = claims.get("name").getAsString();// claims.getString("name");
+            String name = claims.get("name").getAsString();
             String tid = claims.get("tid").getAsString();
             login(name, tid);
-
-
+            try {
+                Log.d(TAG, "onTokenRequestCompleted: " + AuthenticationManager.getInstance().getAccessToken());
+            } catch (TokenNotFoundException e) {
+                e.printStackTrace();
+            }
         } else if (authorizationException != null) {
-
+            snackbar(getString(R.string.connect_toast_text_error));
         }
     }
 }

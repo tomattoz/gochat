@@ -22,8 +22,8 @@ public class SoftKeyboard implements View.OnFocusChangeListener {
     private boolean isKeyboardShow;
     private SoftKeyboardChangesThread softKeyboardThread;
     private List<EditText> editTextList;
-
-    private View tempView; // reference to a focused EditText
+    // This handler will clear focus of selected EditText
+    private Handler mHandler;
 
     public SoftKeyboard(ViewGroup layout, InputMethodManager im) {
         this.layout = layout;
@@ -109,7 +109,7 @@ public class SoftKeyboard implements View.OnFocusChangeListener {
     @Override
     public void onFocusChange(View v, boolean hasFocus) {
         if (hasFocus) {
-            tempView = v;
+            mHandler = new HandlerCall(v);
             if (!isKeyboardShow) {
                 layoutBottom = getLayoutCoordinates();
                 softKeyboardThread.keyboardOpened();
@@ -118,11 +118,16 @@ public class SoftKeyboard implements View.OnFocusChangeListener {
         }
     }
 
-    // This handler will clear focus of selected EditText
-    private final Handler mHandler = new Handler() {
+    private static class HandlerCall extends Handler {
+        private View tempView;
+
+        public HandlerCall(View tempView) {
+            this.tempView = tempView;
+        }
+
         @Override
-        public void handleMessage(Message m) {
-            switch (m.what) {
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
                 case CLEAR_FOCUS:
                     if (tempView != null) {
                         tempView.clearFocus();
@@ -131,7 +136,7 @@ public class SoftKeyboard implements View.OnFocusChangeListener {
                     break;
             }
         }
-    };
+    }
 
     private class SoftKeyboardChangesThread extends Thread {
         private AtomicBoolean started;

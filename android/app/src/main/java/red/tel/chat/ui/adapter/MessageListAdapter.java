@@ -14,6 +14,8 @@ import java.util.Locale;
 import red.tel.chat.R;
 import red.tel.chat.generated_protobuf.Text;
 
+import static android.text.Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL;
+
 
 public class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.ViewHolderMessageText> {
     private static final int MESSAGE_TYPE_OUTGOING = 1;
@@ -43,13 +45,11 @@ public class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.
     @Override
     public void onBindViewHolder(ViewHolderMessageText holder, int position) {
         Text text = textList.get(position);
-        if (text.to.equals(callBackMessage.getWhom()) || text.from.equals(callBackMessage.getWhom())) {
-            String line = String.format(Locale.US, "%1$s:\n %2$s", "<b>" + text.from + "</b>", text.body.utf8());
-            switch (getItemViewType(position)) {
-                default:
-                    holder.tvMessage.setText(Html.fromHtml(line));
-                    break;
-            }
+        String line = String.format(Locale.US, "%1$s:\n %2$s", "<b>" + text.from + "</b>", text.body.utf8());
+        switch (getItemViewType(position)) {
+            default:
+                holder.tvMessage.setText(Html.fromHtml(line, TO_HTML_PARAGRAPH_LINES_INDIVIDUAL));
+                break;
         }
     }
 
@@ -68,10 +68,10 @@ public class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.
         }
     }
 
-    protected static class ViewHolderMessageText extends RecyclerView.ViewHolder {
+    static class ViewHolderMessageText extends RecyclerView.ViewHolder {
         private TextView tvMessage;
 
-        public ViewHolderMessageText(View itemView) {
+        ViewHolderMessageText(View itemView) {
             super(itemView);
             tvMessage = (TextView) itemView.findViewById(R.id.tvMessage);
         }

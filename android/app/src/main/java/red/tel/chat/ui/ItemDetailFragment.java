@@ -76,7 +76,7 @@ public class ItemDetailFragment extends Fragment implements MessageListAdapter.C
 
         EditText messageEdit = (EditText) rootView.findViewById(R.id.messageEdit);
         ImageButton messageSend = (ImageButton) rootView.findViewById(R.id.chatSendButton);
-        LinearLayout content = (LinearLayout)rootView.findViewById(R.id.container);
+        LinearLayout content = (LinearLayout) rootView.findViewById(R.id.container);
         recyclerView = (RecyclerView) rootView.findViewById(R.id.chat_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         listAdapter = new MessageListAdapter(this);
@@ -119,13 +119,15 @@ public class ItemDetailFragment extends Fragment implements MessageListAdapter.C
     }
 
     private void scrollListMessage() {
-        int position = textList.size() - 1;
-        recyclerView.scrollToPosition(position);
+        if (textList.size() > 0) {
+            int position = textList.size() - 1;
+            recyclerView.scrollToPosition(position);
+        }
     }
 
     private void updateTexts() {
         for (Text text : Model.shared().getTexts()) {
-            if (text.to.equals(whom) || text.from.equals(whom)) {
+            if (text != null && (text.to.equals(whom) || text.from.equals(whom))) {
                 textList.remove(text);
                 textList.add(text);
             }

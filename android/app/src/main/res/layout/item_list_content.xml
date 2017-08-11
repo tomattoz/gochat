@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     style="@style/ContactListItem"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    >
+    android:layout_height="?actionBarSize"
+    android:orientation="horizontal">
 
     <TextView
         android:id="@+id/contactName"
@@ -15,20 +13,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
-        android:layout_centerVertical="true"
-        />
+        android:layout_centerVertical="true" />
 
     <ImageButton
         android:id="@+id/deleteButton"
-        android:background="@null"
-        android:contentDescription="@string/image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
+        android:background="@null"
+        android:contentDescription="@string/image"
         android:src="@android:drawable/ic_menu_delete"
         android:visibility="gone"
-        tools:visibility="visible"
-        />
+        tools:visibility="visible" />
 
 </RelativeLayout>

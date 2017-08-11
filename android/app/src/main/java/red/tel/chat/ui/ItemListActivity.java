@@ -7,6 +7,8 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -56,6 +58,9 @@ public class ItemListActivity extends BaseActivity {
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setHasFixedSize(true);
+        recyclerView.addItemDecoration(new DividerItemDecoration(this, RecyclerView.VERTICAL));
         this.recyclerViewAdapter = new SimpleItemRecyclerViewAdapter();
         recyclerView.setAdapter(this.recyclerViewAdapter);
     }

@@ -26,4 +26,5 @@
     <string name="disconnected_message">Cannot connect to server</string>
     <string name="action_sign_in_with_office">Login with Microsoft Graph</string>
     <string name="warning_client_id_redirect_uri_incorrect">The client ID or redirect URI is not valid. Enter a valid client ID and redirect URI in the Constants.java file and run again</string>
+    <string name="connect_toast_text_error">Error connecting to Microsoft Graph\\nCheck logcat for details</string>
 </resources>
