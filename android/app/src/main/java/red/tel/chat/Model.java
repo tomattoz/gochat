@@ -3,6 +3,10 @@ package red.tel.chat;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +26,7 @@ public class Model {
     private static final String TEXTS = "texts";
     private static final String USERNAME = "username";
     private static final String PASSWORD = "password";
+    private static final String AUTHOR = "authorization";
     private Map<String, Contact> roster = new HashMap<>();
     private List<red.tel.chat.generated_protobuf.Text> texts = new ArrayList<>();
     private static Model instance;
@@ -59,12 +64,20 @@ public class Model {
         return getSharedPreferences().getString(PASSWORD, null);
     }
 
+    public String getAccessToken() {
+        return getSharedPreferences().getString(AUTHOR, null);
+    }
+
     public void setUsername(String username) {
         getSharedPreferences().edit().putString(USERNAME, username).apply();
     }
 
     public void setPassword(String username) {
         getSharedPreferences().edit().putString(PASSWORD, username).apply();
+    }
+
+    public void setAccessToken(String author) {
+        getSharedPreferences().edit().putString(AUTHOR, author).apply();
     }
 
     void incomingFromServer(Wire wire) {
@@ -117,5 +130,13 @@ public class Model {
                         roster.get(id) :
                         new Contact.Builder().id(id).build()));
         Backend.shared().sendContacts(new ArrayList<>(roster.values()));
+    }
+
+    public static String parseJsonUser(String username, String accessToken) {
+        Gson gson = new Gson();
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("name", username);
+        jsonObject.addProperty("token", accessToken);
+        return gson.toJson(jsonObject);
     }
 }

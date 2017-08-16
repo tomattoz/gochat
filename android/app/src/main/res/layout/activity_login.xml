@@ -19,8 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginBottom="8dp"
-        android:visibility="gone"
-        tools:visibility="visible" />
+        android:visibility="gone"/>
 
     <ScrollView
         android:id="@+id/login_form"

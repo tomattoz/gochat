@@ -4,8 +4,9 @@
     <working_directory value="$PROJECT_DIR$" />
     <go_parameters value="-i" />
     <filePath value="$PROJECT_DIR$/src/main/main.go" />
-    <kind value="PACKAGE" />
+    <kind value="DIRECTORY" />
     <package value="main" />
+    <directory value="$PROJECT_DIR$/src/main" />
     <method />
   </configuration>
 </component>

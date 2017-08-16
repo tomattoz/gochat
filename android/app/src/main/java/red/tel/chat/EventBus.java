@@ -15,7 +15,8 @@ public class EventBus {
         AUTHENTICATED,
         CONTACTS,
         PRESENCE,
-        TEXT
+        TEXT,
+        LOGIN_RESPONSE
     }
 
     public interface Listener {

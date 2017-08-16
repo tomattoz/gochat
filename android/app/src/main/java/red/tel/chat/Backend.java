@@ -15,6 +15,7 @@ import red.tel.chat.generated_protobuf.Store;
 import red.tel.chat.generated_protobuf.Voip;
 import red.tel.chat.generated_protobuf.Wire;
 
+import static red.tel.chat.Model.parseJsonUser;
 import static red.tel.chat.generated_protobuf.Wire.Which.CONTACTS;
 import static red.tel.chat.generated_protobuf.Wire.Which.HANDSHAKE;
 import static red.tel.chat.generated_protobuf.Wire.Which.LOGIN;
@@ -48,8 +49,9 @@ public class Backend extends IntentService {
 
         EventBus.listenFor(this, EventBus.Event.CONNECTED, () -> {
             String username = Model.shared().getUsername();
+            String token = Model.shared().getAccessToken();
             if (username != null) {
-                Backend.this.login(username);
+                Backend.this.login(parseJsonUser(username, token));
                 Log.d(TAG, "re login: ");
             }
         });
@@ -63,6 +65,8 @@ public class Backend extends IntentService {
 
             if (sessionId == null && wire.sessionId != null) {
                 authenticated(wire.sessionId);
+            } else {
+                Log.d(TAG, "onReceiveFromServer: Error");
             }
 
             switch (wire.which) {
@@ -80,6 +84,9 @@ public class Backend extends IntentService {
                 case PUBLIC_KEY:
                 case PUBLIC_KEY_RESPONSE:
                     onPublicKey(wire);
+                    break;
+                case LOGIN_RESPONSE:
+                    RxBus.getInstance().sendEvent(EventBus.Event.LOGIN_RESPONSE);
                     break;
                 default:
                     break;

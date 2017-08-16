@@ -1,13 +1,15 @@
 package red.tel.chat;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.multidex.MultiDexApplication;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
 import red.tel.chat.ui.BaseActivity;
 
-public class ChatApp extends android.app.Application {
+public class ChatApp extends MultiDexApplication {
 
     private static final String TAG = "ChatApp";
     private static Context context;
@@ -34,7 +36,10 @@ public class ChatApp extends android.app.Application {
             AlertDialog.Builder alert = new AlertDialog.Builder(context);
             alert.setTitle(R.string.disconnected_title);
             alert.setMessage(R.string.disconnected_message);
-            alert.setPositiveButton(R.string.ok, (dialog, whichButton) -> dialog.cancel());
+            alert.setPositiveButton(R.string.ok, (dialogInterface, i) -> {
+                dialogInterface.cancel();
+                RxBus.getInstance().sendEvent(EventBus.Event.DISCONNECTED);
+            });
             alert.create().show();
         });
     }
