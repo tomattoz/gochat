@@ -1,4 +1,4 @@
-package red.tel.chat.ui;
+package red.tel.chat.ui.activitys;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -26,7 +26,6 @@ import red.tel.chat.Backend;
 import red.tel.chat.EventBus;
 import red.tel.chat.Model;
 import red.tel.chat.R;
-import red.tel.chat.RxBus;
 import red.tel.chat.office365.AuthenticationManager;
 import red.tel.chat.office365.Constants;
 import red.tel.chat.office365.TokenNotFoundException;
@@ -165,6 +164,7 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
         String password = passwordView.getText().toString();
         Model.shared().setAccessToken("");
         login(username, password, "");
+        Model.shared().setTypeLogin(Constants.TYPE_LOGIN_NORMAL);
     }
 
     private void login(String username, String password, String accessToken) {
@@ -201,6 +201,7 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
                 String accessToken = AuthenticationManager.getInstance().getAccessToken();
                 Model.shared().setAccessToken(accessToken);
                 login(name, tid, accessToken);
+                Model.shared().setTypeLogin(Constants.TYPE_LOGIN_MS);
                 Log.d(TAG, "onTokenRequestCompleted: " + accessToken);
             } catch (TokenNotFoundException e) {
                 e.printStackTrace();

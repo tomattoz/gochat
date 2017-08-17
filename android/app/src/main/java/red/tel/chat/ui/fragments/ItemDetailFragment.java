@@ -1,4 +1,4 @@
-package red.tel.chat.ui;
+package red.tel.chat.ui.fragments;
 
 import android.app.Activity;
 import android.app.Service;
@@ -26,6 +26,9 @@ import red.tel.chat.EventBus;
 import red.tel.chat.Model;
 import red.tel.chat.R;
 import red.tel.chat.generated_protobuf.Text;
+import red.tel.chat.ui.SoftKeyboard;
+import red.tel.chat.ui.activitys.ItemDetailActivity;
+import red.tel.chat.ui.activitys.ItemListActivity;
 import red.tel.chat.ui.adapter.MessageListAdapter;
 
 /**

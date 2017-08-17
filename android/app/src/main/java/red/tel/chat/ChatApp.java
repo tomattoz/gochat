@@ -1,13 +1,12 @@
 package red.tel.chat;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.multidex.MultiDexApplication;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
-import red.tel.chat.ui.BaseActivity;
+import red.tel.chat.ui.activitys.BaseActivity;
 
 public class ChatApp extends MultiDexApplication {
 

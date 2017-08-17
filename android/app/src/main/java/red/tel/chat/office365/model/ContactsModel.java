@@ -19,7 +19,11 @@ public class ContactsModel {
         return dataContacts;
     }
 
-    private static class DataContacts {
+    public int getNexPage() {
+        return Integer.parseInt(getNextLink().substring(getNextLink().indexOf("=")+1));
+    }
+
+    public static class DataContacts {
         @SerializedName("id")
         private String id;
         @SerializedName("createdDateTime")

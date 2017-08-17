@@ -11,6 +11,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import okio.ByteString;
@@ -27,6 +30,7 @@ public class Model {
     private static final String USERNAME = "username";
     private static final String PASSWORD = "password";
     private static final String AUTHOR = "authorization";
+    private static final String TYPE_LOGIN = "type_login";
     private Map<String, Contact> roster = new HashMap<>();
     private List<red.tel.chat.generated_protobuf.Text> texts = new ArrayList<>();
     private static Model instance;
@@ -45,7 +49,7 @@ public class Model {
 
     public Boolean isOnline(String name) {
         Contact contact = roster.get(name);
-        return contact.online != null && contact.online;
+        return contact != null && contact.online != null && contact.online;
     }
 
     public List<Text> getTexts() {
@@ -78,6 +82,14 @@ public class Model {
 
     public void setAccessToken(String author) {
         getSharedPreferences().edit().putString(AUTHOR, author).apply();
+    }
+
+    public void setTypeLogin(int type) {
+        getSharedPreferences().edit().putInt(TYPE_LOGIN, type).apply();
+    }
+
+    public int getTypeLogin() {
+        return getSharedPreferences().getInt(TYPE_LOGIN, 0);
     }
 
     void incomingFromServer(Wire wire) {
@@ -125,10 +137,20 @@ public class Model {
     }
 
     public void setContacts(List<String> names) {
+        /*for ( int i = 0; i < names.size()-1; i++ ) {
+            for ( int j = i + 1; j < names.size(); j++ ) {
+                if ( names.get(i).equals(names.get(j))) {
+                    names.remove(i);
+                    i--;
+                    break;
+                }
+            }
+        }*/
+
         roster = names.stream().collect(Collectors.toMap(id -> id, id ->
                 roster.containsKey(id) ?
                         roster.get(id) :
-                        new Contact.Builder().id(id).build()));
+                        new Contact.Builder().id(id).build(), (contact, contact2) -> contact));
         Backend.shared().sendContacts(new ArrayList<>(roster.values()));
     }
 

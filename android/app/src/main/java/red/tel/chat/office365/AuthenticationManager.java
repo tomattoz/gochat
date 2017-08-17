@@ -32,7 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import red.tel.chat.R;
-import red.tel.chat.ui.LoginActivity;
+import red.tel.chat.ui.activitys.LoginActivity;
 
 
 public class AuthenticationManager {
@@ -92,17 +92,12 @@ public class AuthenticationManager {
 
             mAuthorizationService.performTokenRequest(
                     tokenRequest,
-                    new AuthorizationService.TokenResponseCallback() {
-                        @Override
-                        public void onTokenRequestCompleted(
-                                @Nullable TokenResponse tokenResponse,
-                                @Nullable AuthorizationException ex) {
-                            mAuthState.update(tokenResponse, ex);
-                            if (tokenResponse != null) {
-                                mAccessToken = tokenResponse.accessToken;
-                            }
-                            callback.onTokenRequestCompleted(tokenResponse, ex);
+                    (tokenResponse, ex) -> {
+                        mAuthState.update(tokenResponse, ex);
+                        if (tokenResponse != null) {
+                            mAccessToken = tokenResponse.accessToken;
                         }
+                        callback.onTokenRequestCompleted(tokenResponse, ex);
                     });
         } else {
             Log.i(TAG, "Authorization failed: " + authorizationException);

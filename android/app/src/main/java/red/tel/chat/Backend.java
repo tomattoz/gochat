@@ -65,8 +65,6 @@ public class Backend extends IntentService {
 
             if (sessionId == null && wire.sessionId != null) {
                 authenticated(wire.sessionId);
-            } else {
-                Log.d(TAG, "onReceiveFromServer: Error");
             }
 
             switch (wire.which) {

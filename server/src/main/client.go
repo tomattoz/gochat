@@ -96,6 +96,7 @@ func (client *Client) receivedLoad(wire *Wire) {
   })
 }
 
+//save message
 func (client *Client) receivedStore(wire *Wire) {
   crowd.db.Update(func(tx *bolt.Tx) error {
 	b, err := tx.CreateBucketIfNotExists([]byte(client.id))
@@ -177,7 +178,7 @@ func forward(client *Client, wire *Wire) {
 }
 
 func (client *Client) receivedContacts(wire *Wire) {
-  fmt.Println("receivedContacts for " + client.id)
+  fmt.Println("Received Contacts for " + client.id)
   client.contacts = wire.GetContacts()
   client.subscribeToContacts()
   client.Save(crowd.db, wire)

@@ -1,4 +1,4 @@
-package red.tel.chat.ui;
+package red.tel.chat.ui.activitys;
 
 import android.content.Context;
 import android.content.Intent;
@@ -11,6 +11,7 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,11 @@ import java.util.List;
 import red.tel.chat.EventBus;
 import red.tel.chat.Model;
 import red.tel.chat.R;
+import red.tel.chat.office365.Constants;
+import red.tel.chat.office365.model.ContactsModel;
+import red.tel.chat.ui.fragments.ItemDetailFragment;
+import red.tel.chat.ui.presenter.ContactsContract;
+import red.tel.chat.ui.presenter.ContactsPresenter;
 
 /**
  * An activity representing a list of Items. This activity has different presentations for handset
@@ -31,11 +37,12 @@ import red.tel.chat.R;
  * lead to a {@link ItemDetailActivity} representing item details. On tablets, the activity presents
  * the list of items and item details side-by-side using two vertical panes.
  */
-public class ItemListActivity extends BaseActivity {
+public class ItemListActivity extends BaseActivity implements ContactsContract.ContactsView {
 
     private static final String TAG = "ItemListActivity";
     private boolean isTwoPane; // Whether or not the activity is in two-pane mode, i.e. running on a tablet device.
     private SimpleItemRecyclerViewAdapter recyclerViewAdapter;
+    private ContactsContract.Presenter presenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +62,13 @@ public class ItemListActivity extends BaseActivity {
             // If this view is present, then the activity should be in two-pane mode.
             isTwoPane = true;
         }
+        // Initialize Presenter
+        presenter = new ContactsPresenter();
+        // Attach View to it
+        presenter.attachView(this);
+        if (Model.shared().getTypeLogin() == Constants.TYPE_LOGIN_MS) {
+            presenter.getListContacts(0);
+        }
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
@@ -63,6 +77,24 @@ public class ItemListActivity extends BaseActivity {
         recyclerView.addItemDecoration(new DividerItemDecoration(this, RecyclerView.VERTICAL));
         this.recyclerViewAdapter = new SimpleItemRecyclerViewAdapter();
         recyclerView.setAdapter(this.recyclerViewAdapter);
+    }
+
+    @Override
+    public void showListContact(ContactsModel contactsModel) {
+        Log.d(TAG, "showListContact: " + contactsModel.getNextLink());
+        for (ContactsModel.DataContacts contacts : contactsModel.getDataContacts()) {
+            if (!recyclerViewAdapter.values.contains(contacts.getGivenName())) {
+                recyclerViewAdapter.values.add(contacts.getGivenName());
+                Model.shared().setContacts(recyclerViewAdapter.values);
+            }
+        }
+
+        recyclerViewAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onError(Throwable e) {
+        Log.e(TAG, "onError: ", e);
     }
 
     class SimpleItemRecyclerViewAdapter extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
@@ -88,6 +120,9 @@ public class ItemListActivity extends BaseActivity {
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
             String name = this.values.get(position);
+            if (name == null || name.equals("")) {
+                return;
+            }
             holder.contactName.setText(name);
             if (Model.shared().isOnline(name)) {
                 holder.contactName.setTextColor(Color.BLUE);
@@ -167,5 +202,11 @@ public class ItemListActivity extends BaseActivity {
 
         alert.setNegativeButton(R.string.cancel, (dialog, whichButton) -> dialog.cancel());
         alert.create().show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        presenter.detachView();
     }
 }

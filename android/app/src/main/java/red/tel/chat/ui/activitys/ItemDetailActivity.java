@@ -1,16 +1,13 @@
-package red.tel.chat.ui;
+package red.tel.chat.ui.activitys;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
-import android.view.View;
 
 import red.tel.chat.R;
+import red.tel.chat.ui.fragments.ItemDetailFragment;
 
 /**
  * An activity representing a single Item detail screen. This

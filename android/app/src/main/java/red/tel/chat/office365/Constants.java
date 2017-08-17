@@ -10,4 +10,6 @@ public class Constants {
     public static final String REDIRECT_URI = "https://login.microsoftonline.com/common/oauth2/nativeclient";
     public static final String SCOPES = "openid profile mail.send contacts.read";
     public static final String CONTACT_ENDPOINT = "https://graph.microsoft.com/v1.0/";
+    public static final int TYPE_LOGIN_MS = 1;
+    public static final int TYPE_LOGIN_NORMAL = 0;
 }

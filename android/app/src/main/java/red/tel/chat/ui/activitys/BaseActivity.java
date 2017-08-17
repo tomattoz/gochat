@@ -1,4 +1,4 @@
-package red.tel.chat.ui;
+package red.tel.chat.ui.activitys;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;

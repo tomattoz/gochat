@@ -6,9 +6,9 @@ import (
   "github.com/gorilla/websocket"
   "math/rand"
   "sync"
+  "encoding/json"
+  "net/http"
 )
-import "encoding/json"
-import "net/http"
 
 type Crowd struct {
   clients             map[string]*Client
@@ -109,7 +109,7 @@ func (crowd *Crowd) receivedLogin(conn *websocket.Conn, id string) string {
   mToken := dat["token"].(string)
 
   defer crowd.clientsMtx.Unlock()
-  crowd.clientsMtx.Lock()
+  defer crowd.clientsMtx.Lock()
 
   sessionId := createSessionId()
 
@@ -147,7 +147,7 @@ func verifyToken(token string) bool {
   req.Header.Add("Content-Type", "application/json")
   resp, err := client.Do(req)
   if err != nil {
-	panic(err)
+	fmt.Println("Get Api MS", err)
 	return false
   }
   defer resp.Body.Close()
