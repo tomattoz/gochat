@@ -20,7 +20,7 @@ public class ContactsModel {
     }
 
     public int getNexPage() {
-        return Integer.parseInt(getNextLink().substring(getNextLink().indexOf("=")+1));
+        return getNextLink() != null ? Integer.parseInt(getNextLink().substring(getNextLink().indexOf("=")+1)) : 0;
     }
 
     public static class DataContacts {

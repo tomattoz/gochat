@@ -13,20 +13,34 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import com.microsoft.graph.concurrency.ICallback;
+import com.microsoft.graph.core.ClientException;
+import com.microsoft.graph.extensions.Contact;
+import com.microsoft.graph.extensions.IContactCollectionPage;
+import com.microsoft.graph.extensions.IContactRequest;
+import com.microsoft.graph.extensions.IGraphServiceClient;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import red.tel.chat.ChatApp;
 import red.tel.chat.EventBus;
 import red.tel.chat.Model;
+import red.tel.chat.Network;
 import red.tel.chat.R;
 import red.tel.chat.office365.Constants;
 import red.tel.chat.office365.model.ContactsModel;
+import red.tel.chat.ui.OnLoadMoreListener;
 import red.tel.chat.ui.fragments.ItemDetailFragment;
 import red.tel.chat.ui.presenter.ContactsContract;
 import red.tel.chat.ui.presenter.ContactsPresenter;
@@ -37,19 +51,19 @@ import red.tel.chat.ui.presenter.ContactsPresenter;
  * lead to a {@link ItemDetailActivity} representing item details. On tablets, the activity presents
  * the list of items and item details side-by-side using two vertical panes.
  */
-public class ItemListActivity extends BaseActivity implements ContactsContract.ContactsView {
+public class ItemListActivity extends BaseActivity implements ContactsContract.ContactsView, OnLoadMoreListener {
 
     private static final String TAG = "ItemListActivity";
     private boolean isTwoPane; // Whether or not the activity is in two-pane mode, i.e. running on a tablet device.
     private SimpleItemRecyclerViewAdapter recyclerViewAdapter;
     private ContactsContract.Presenter presenter;
-
+    private IGraphServiceClient mGraphServiceClient;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_item_list);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
@@ -69,27 +83,45 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
         if (Model.shared().getTypeLogin() == Constants.TYPE_LOGIN_MS) {
             presenter.getListContacts(0);
         }
+        mGraphServiceClient = ((ChatApp)getApplication()).getGraphServiceClient();
+        mGraphServiceClient.getMe().getContacts().buildRequest().get(new ICallback<IContactCollectionPage>() {
+            @Override
+            public void success(IContactCollectionPage iContactCollectionPage) {
+                for (Contact contact : iContactCollectionPage.getCurrentPage()) {
+                    Log.d(TAG, "success: " + contact.displayName);
+                }
+            }
+
+            @Override
+            public void failure(ClientException ex) {
+                Log.e(TAG, "failure: ", ex);
+            }
+        });
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setHasFixedSize(true);
         recyclerView.addItemDecoration(new DividerItemDecoration(this, RecyclerView.VERTICAL));
-        this.recyclerViewAdapter = new SimpleItemRecyclerViewAdapter();
+        this.recyclerViewAdapter = new SimpleItemRecyclerViewAdapter(recyclerView);
         recyclerView.setAdapter(this.recyclerViewAdapter);
+        this.recyclerViewAdapter.setOnLoadMoreListener(this);
     }
 
     @Override
     public void showListContact(ContactsModel contactsModel) {
-        Log.d(TAG, "showListContact: " + contactsModel.getNextLink());
         for (ContactsModel.DataContacts contacts : contactsModel.getDataContacts()) {
-            if (!recyclerViewAdapter.values.contains(contacts.getGivenName())) {
-                recyclerViewAdapter.values.add(contacts.getGivenName());
+            if (!recyclerViewAdapter.values.contains(contacts.getDisplayName())) {
+                recyclerViewAdapter.values.add(contacts.getDisplayName());
                 Model.shared().setContacts(recyclerViewAdapter.values);
             }
         }
 
         recyclerViewAdapter.notifyDataSetChanged();
+        if (contactsModel.getNexPage() != 0) {
+            recyclerViewAdapter.setPageNext(contactsModel.getNexPage());
+            recyclerViewAdapter.setLoaded();
+        }
     }
 
     @Override
@@ -97,16 +129,45 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
         Log.e(TAG, "onError: ", e);
     }
 
-    class SimpleItemRecyclerViewAdapter extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
+    //load more list contact
+    @Override
+    public void onLoadMore(int nexPage) {
+        presenter.getListContacts(nexPage);
+    }
 
+    class SimpleItemRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         private List<String> values = new ArrayList<>();
+        private int visibleThreshold = 5;
+        private int lastVisibleItem, totalItemCount;
+        private boolean isLoading;
+        private int pageNext = 0;
 
-        SimpleItemRecyclerViewAdapter() {
+        private OnLoadMoreListener onLoadMoreListener;
+        public void setOnLoadMoreListener(OnLoadMoreListener mOnLoadMoreListener) {
+            this.onLoadMoreListener = mOnLoadMoreListener;
+        }
+
+        SimpleItemRecyclerViewAdapter(RecyclerView recyclerView) {
             values = Model.shared().getContacts();
+            final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+            recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                    super.onScrolled(recyclerView, dx, dy);
+                    totalItemCount = linearLayoutManager.getItemCount();
+                    lastVisibleItem = linearLayoutManager.findLastVisibleItemPosition();
+                    if (!isLoading && totalItemCount <= (lastVisibleItem + visibleThreshold)) {
+                        if (onLoadMoreListener != null) {
+                            onLoadMoreListener.onLoadMore(pageNext);
+                        }
+                        isLoading = true;
+                    }
+                }
+            });
         }
 
         @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater
                     .from(parent.getContext())
                     .inflate(R.layout.item_list_content, parent, false);
@@ -118,17 +179,18 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
         }
 
         @Override
-        public void onBindViewHolder(final ViewHolder holder, int position) {
+        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+            ViewHolder viewHolder = (ViewHolder) holder;
             String name = this.values.get(position);
             if (name == null || name.equals("")) {
                 return;
             }
-            holder.contactName.setText(name);
+            viewHolder.contactName.setText(name);
             if (Model.shared().isOnline(name)) {
-                holder.contactName.setTextColor(Color.BLUE);
-                holder.contactName.setTypeface(null, Typeface.BOLD);
+                viewHolder.contactName.setTextColor(Color.BLUE);
+                viewHolder.contactName.setTypeface(null, Typeface.BOLD);
             }
-            holder.view.setOnClickListener((View v) -> {
+            viewHolder.view.setOnClickListener((View v) -> {
                 if (isTwoPane) {
                     Bundle arguments = new Bundle();
                     arguments.putString(ItemDetailFragment.ARG_ITEM_ID, name);
@@ -151,6 +213,14 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
             return values.size();
         }
 
+        public void setLoaded() {
+            isLoading = false;
+        }
+
+        public void setPageNext(int pageNext) {
+            this.pageNext = pageNext;
+        }
+
         class ViewHolder extends RecyclerView.ViewHolder {
             final View view;
             final TextView contactName;
@@ -159,8 +229,8 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
             ViewHolder(View view) {
                 super(view);
                 this.view = view;
-                contactName = (TextView) view.findViewById(R.id.contactName);
-                deleteButton = (ImageButton) view.findViewById(R.id.deleteButton);
+                contactName = view.findViewById(R.id.contactName);
+                deleteButton = view.findViewById(R.id.deleteButton);
                 view.setOnLongClickListener(v -> {
                     deleteButton.setVisibility(View.VISIBLE);
                     return true;

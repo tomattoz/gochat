@@ -4,6 +4,8 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.util.Log;
 
+import com.neovisionaries.ws.client.WebSocketState;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -181,7 +183,11 @@ public class Backend extends IntentService {
     }
 
     private void send(Wire wire) {
-        network.send(wire.encode());
+        if (network.getWebSocket().getState() == WebSocketState.OPEN) {
+            network.send(wire.encode());
+        } else {
+            EventBus.announce(EventBus.Event.DISCONNECTED);
+        }
     }
 
     // send to Network

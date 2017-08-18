@@ -7,6 +7,7 @@ import android.util.Log;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import red.tel.chat.ChatApp;
 import red.tel.chat.EventBus;
 import red.tel.chat.EventBus.Event;
 import red.tel.chat.R;
@@ -43,6 +44,12 @@ public class SplashActivity extends BaseActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_TASK_ON_HOME);
         startActivity(intent);
         this.finish();
+    }
+
+    @Override
+    protected void onStop() {
+        ((ChatApp)getApplication()).onDismisDialog();
+        super.onStop();
     }
 
     @Override

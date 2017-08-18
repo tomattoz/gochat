@@ -57,7 +57,7 @@ func (crowd *Crowd) messageArrived(conn *websocket.Conn, wire *Wire, sessionId s
   }
   sessionId = wire.GetSessionId()
   if sessionId != "" {
-	fmt.Println("\nsessionId is " + sessionId)
+	fmt.Println("\nSessionId is " + sessionId)
 	crowd.updatePresence(sessionId, true)
   }
 
@@ -67,7 +67,7 @@ func (crowd *Crowd) messageArrived(conn *websocket.Conn, wire *Wire, sessionId s
 	  fmt.Println("no client for " + sessionId)
 	  return sessionId, false
 	} else {
-	  fmt.Println("sessionId is empty, which=" + wire.GetWhich().String())
+	  fmt.Println("Session Id is empty, which = " + wire.GetWhich().String())
 	}
   }
 
@@ -99,7 +99,7 @@ func (crowd *Crowd) messageArrived(conn *websocket.Conn, wire *Wire, sessionId s
 }
 
 func (crowd *Crowd) receivedLogin(conn *websocket.Conn, id string) string {
-  fmt.Println("receivedLogin: " + id)
+  fmt.Println("Received Login: " + id)
   byt := []byte(id);
   var dat map[string]interface{}
   if err := json.Unmarshal(byt, &dat); err != nil {
@@ -125,8 +125,8 @@ func (crowd *Crowd) receivedLogin(conn *websocket.Conn, id string) string {
   }
   client.sessions[sessionId] = conn
   crowd.clients[mId] = client
-  if verifyToken(mToken) {
-	fmt.Printf("new client id=%s, session=%s, len=%d\n", client.id, sessionId, len(client.sessions))
+  if verifyToken(mToken) || mToken == "normal" {
+	fmt.Printf("New client id = %s, session = %s, len = %d\n", client.id, sessionId, len(client.sessions))
 	client.Load(crowd.db)
 	crowd.clients[sessionId] = client
 	client.sendContacts(sessionId)
@@ -142,7 +142,7 @@ func (crowd *Crowd) receivedLogin(conn *websocket.Conn, id string) string {
 func verifyToken(token string) bool {
   client := &http.Client{
   }
-  req, err := http.NewRequest("GET", "https://graph.microsoft.com/v1.0/me/contacts", nil)
+  req, err := http.NewRequest("GET", "https://graph.microsoft.com/v1.0/me", nil)
   req.Header.Add("Authorization", "Bearer "+token)
   req.Header.Add("Content-Type", "application/json")
   resp, err := client.Do(req)
@@ -182,7 +182,7 @@ func (crowd *Crowd) updatePresence(sessionId string, online bool) {
   if online == client.online {
 	return
   } else {
-	fmt.Printf("updatePresence sessionId=%s online=%t\n", sessionId, online)
+	fmt.Printf("Update Presence sessionId = %s online=%t\n", sessionId, online)
   }
   client.updatePresence(sessionId, online)
 
@@ -194,13 +194,13 @@ func (crowd *Crowd) updatePresence(sessionId string, online bool) {
   }
 
   for _, subscriber := range crowd.presenceSubscribers[from] {
-	fmt.Println("\t subscriber=" + subscriber)
+	fmt.Println("\t subscriber = " + subscriber)
 	update := &Wire{
 	  Which:    Wire_PRESENCE,
 	  Contacts: []*Contact{contact},
 	  To:       subscriber,
 	}
-	fmt.Printf("\t contacts length=%d\n", len(update.GetContacts()))
+	fmt.Printf("\t contacts length = %d\n", len(update.GetContacts()))
 	crowd.queue <- *update
   }
   client.subscribeToContacts()

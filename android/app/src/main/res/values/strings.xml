@@ -29,4 +29,5 @@
     <string name="connect_toast_text_error">Error connecting to Microsoft Graph\\nCheck logcat for details</string>
     <string name="login_fail_title">Login Fail</string>
     <string name="login_fail_message">Error logging due to wrong token</string>
+    <string name="logout">Logout</string>
 </resources>

@@ -1,10 +1,6 @@
 package red.tel.chat;
 
-import red.tel.chat.EventBus.Event;
-
 import android.util.Log;
-import java.util.List;
-import java.util.Map;
 
 import com.neovisionaries.ws.client.ProxySettings;
 import com.neovisionaries.ws.client.WebSocket;
@@ -13,13 +9,34 @@ import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import com.neovisionaries.ws.client.WebSocketFrame;
 
+import java.util.List;
+import java.util.Map;
+
+import red.tel.chat.EventBus.Event;
+
 // websocket façade
-class Network {
+public class Network {
 
     private static final String serverUrl = "ws://127.0.0.1:8000/ws";
     private static final String TAG = "Network";
     private static final int CONNECTION_TIMEOUT = 1000;
     private WebSocket webSocket;
+    private static volatile Network ourInstance = null;
+
+    public static Network getInstance() {
+        if (ourInstance == null) {
+            synchronized (Network.class) {
+                if (ourInstance == null) {
+                    ourInstance = new Network();
+                }
+            }
+        }
+        return ourInstance;
+    }
+
+    public WebSocket getWebSocket() {
+        return webSocket;
+    }
 
     Network() {
 

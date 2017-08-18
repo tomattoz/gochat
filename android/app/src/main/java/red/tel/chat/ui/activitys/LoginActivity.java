@@ -2,6 +2,7 @@ package red.tel.chat.ui.activitys;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
@@ -9,6 +10,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +27,7 @@ import java.util.UUID;
 import red.tel.chat.Backend;
 import red.tel.chat.EventBus;
 import red.tel.chat.Model;
+import red.tel.chat.Network;
 import red.tel.chat.R;
 import red.tel.chat.office365.AuthenticationManager;
 import red.tel.chat.office365.Constants;
@@ -162,9 +165,13 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
         }
         String username = usernameView.getText().toString();
         String password = passwordView.getText().toString();
-        Model.shared().setAccessToken("");
-        login(username, password, "");
+        Model.shared().setAccessToken("normal");
+        login(username, password, "normal");
         Model.shared().setTypeLogin(Constants.TYPE_LOGIN_NORMAL);
+        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        }
     }
 
     private void login(String username, String password, String accessToken) {

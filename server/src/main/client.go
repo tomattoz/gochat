@@ -62,7 +62,7 @@ func (client *Client) Send(wire *Wire) {
   } else if client == nil {
 	fmt.Println("Send - cl is nil")
   } else {
-	//fmt.Printf("\t there are %d connections\n", len(client.sessions))
+	fmt.Printf("\t there are %d connections\n", len(client.sessions))
 	for _, conn := range client.sessions {
 	  conn.WriteMessage(websocket.BinaryMessage, data)
 	}
@@ -109,10 +109,10 @@ func (client *Client) receivedStore(wire *Wire) {
 
 func (client *Client) subscribeToContacts() {
   from := client.id
-  fmt.Println("subscribeToContacts from " + from)
+  fmt.Println("Subscribe to contacts from " + from)
   for _, contact := range client.contacts {
 	contactId := contact.GetId()
-	fmt.Println("\t contactId=" + contactId)
+	fmt.Println("\t contactId = " + contactId)
 	if client.online {
 	  if _, ok := crowd.presenceSubscribers[contactId]; !ok {
 		crowd.presenceSubscribers[contactId] = []string{from}
