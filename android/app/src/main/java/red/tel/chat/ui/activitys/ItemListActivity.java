@@ -38,6 +38,7 @@ import red.tel.chat.EventBus;
 import red.tel.chat.Model;
 import red.tel.chat.Network;
 import red.tel.chat.R;
+import red.tel.chat.generated_protobuf.Wire;
 import red.tel.chat.office365.Constants;
 import red.tel.chat.office365.model.ContactsModel;
 import red.tel.chat.ui.OnLoadMoreListener;
@@ -82,21 +83,22 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
         presenter.attachView(this);
         if (Model.shared().getTypeLogin() == Constants.TYPE_LOGIN_MS) {
             presenter.getListContacts(0);
-        }
-        mGraphServiceClient = ((ChatApp)getApplication()).getGraphServiceClient();
-        mGraphServiceClient.getMe().getContacts().buildRequest().get(new ICallback<IContactCollectionPage>() {
-            @Override
-            public void success(IContactCollectionPage iContactCollectionPage) {
-                for (Contact contact : iContactCollectionPage.getCurrentPage()) {
-                    Log.d(TAG, "success: " + contact.displayName);
+            mGraphServiceClient = ((ChatApp)getApplication()).getGraphServiceClient();
+            mGraphServiceClient.getMe().getContacts().buildRequest().get(new ICallback<IContactCollectionPage>() {
+                @Override
+                public void success(IContactCollectionPage iContactCollectionPage) {
+                    for (Contact contact : iContactCollectionPage.getCurrentPage()) {
+                        Log.d(TAG, "success: " + contact.displayName);
+                    }
                 }
-            }
 
-            @Override
-            public void failure(ClientException ex) {
-                Log.e(TAG, "failure: ", ex);
-            }
-        });
+                @Override
+                public void failure(ClientException ex) {
+                    Log.e(TAG, "failure: ", ex);
+                }
+            });
+        }
+
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
@@ -132,7 +134,9 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
     //load more list contact
     @Override
     public void onLoadMore(int nexPage) {
-        presenter.getListContacts(nexPage);
+        if (Model.shared().getTypeLogin() == Constants.TYPE_LOGIN_MS) {
+            presenter.getListContacts(nexPage);
+        }
     }
 
     class SimpleItemRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -189,6 +193,9 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
             if (Model.shared().isOnline(name)) {
                 viewHolder.contactName.setTextColor(Color.BLUE);
                 viewHolder.contactName.setTypeface(null, Typeface.BOLD);
+            } else {
+                viewHolder.contactName.setTextColor(Color.GRAY);
+                viewHolder.contactName.setTypeface(null, Typeface.NORMAL);
             }
             viewHolder.view.setOnClickListener((View v) -> {
                 if (isTwoPane) {
@@ -278,5 +285,15 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
     protected void onDestroy() {
         super.onDestroy();
         presenter.detachView();
+    }
+
+    @Override
+    protected void onSubscribeEvent(Object object) {
+        super.onSubscribeEvent(object);
+        if (object == Wire.Which.PRESENCE) {
+            if (recyclerViewAdapter != null) {
+                recyclerViewAdapter.notifyDataSetChanged();
+            }
+        }
     }
 }

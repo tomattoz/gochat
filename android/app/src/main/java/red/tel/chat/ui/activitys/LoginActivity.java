@@ -166,8 +166,9 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
         String username = usernameView.getText().toString();
         String password = passwordView.getText().toString();
         Model.shared().setAccessToken("normal");
-        login(username, password, "normal");
         Model.shared().setTypeLogin(Constants.TYPE_LOGIN_NORMAL);
+        login(username, password, "normal");
+
         InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null) {
             imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
