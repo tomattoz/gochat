@@ -91,9 +91,9 @@ public class ItemDetailFragment extends Fragment implements MessageListAdapter.C
             Model.shared().addText(message, Model.shared().getUsername(), whom);
             Backend.shared().sendText(message, whom);
             Text text = new Text.Builder().body(ByteString.encodeUtf8(message)).from(Model.shared().getUsername()).to(whom).build();
+            int position = textList.size();
             textList.add(text);
-            int position = textList.size() - 1;
-            listAdapter.notifyItemInserted(position);
+            listAdapter.notifyItemChanged(textList.size());
             recyclerView.scrollToPosition(position);
             messageEdit.setText("");
         });

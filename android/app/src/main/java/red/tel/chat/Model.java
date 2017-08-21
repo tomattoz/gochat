@@ -24,6 +24,8 @@ import red.tel.chat.generated_protobuf.Voip;
 import red.tel.chat.generated_protobuf.Contact;
 import red.tel.chat.generated_protobuf.Text;
 
+import static red.tel.chat.generated_protobuf.Wire.Which.PRESENCE;
+
 public class Model {
 
     private static final String TAG = "Model";
@@ -98,6 +100,10 @@ public class Model {
             case CONTACTS:
                 roster = wire.contacts.stream().collect(Collectors.toMap(c -> c.id, c -> c));
                 EventBus.announce(Event.CONTACTS);
+                break;
+            case PRESENCE:
+                roster = wire.contacts.stream().collect(Collectors.toMap(c -> c.id, c -> c));
+                RxBus.getInstance().sendEvent(PRESENCE);
                 break;
             default:
                 Log.e(TAG, "Did not handle incoming " + wire.which);

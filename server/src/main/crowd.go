@@ -103,7 +103,7 @@ func (crowd *Crowd) receivedLogin(conn *websocket.Conn, id string) string {
   byt := []byte(id);
   var dat map[string]interface{}
   if err := json.Unmarshal(byt, &dat); err != nil {
-	panic(err)
+	fmt.Println("Json wrong")
   }
   mId := dat["name"].(string)
   mToken := dat["token"].(string)
@@ -125,18 +125,23 @@ func (crowd *Crowd) receivedLogin(conn *websocket.Conn, id string) string {
   }
   client.sessions[sessionId] = conn
   crowd.clients[mId] = client
-  if verifyToken(mToken) || mToken == "normal" {
-	fmt.Printf("New client id = %s, session = %s, len = %d\n", client.id, sessionId, len(client.sessions))
-	client.Load(crowd.db)
-	crowd.clients[sessionId] = client
-	client.sendContacts(sessionId)
-	crowd.updatePresence(sessionId, true)
+  if mToken == "normal" {
+	loginSuccess(client, sessionId, crowd)
+  } else if verifyToken(mToken) {
+	loginSuccess(client, sessionId, crowd)
   } else {
 	crowd.clients[sessionId] = client
 	client.loginFail(sessionId)
   }
-
   return sessionId
+}
+
+func loginSuccess(client *Client, sessionId string, crowd *Crowd) {
+  fmt.Printf("New client id = %s, session = %s, len = %d\n", client.id, sessionId, len(client.sessions))
+  client.Load(crowd.db)
+  crowd.clients[sessionId] = client
+  client.sendContacts(sessionId)
+  crowd.updatePresence(sessionId, true)
 }
 
 func verifyToken(token string) bool {

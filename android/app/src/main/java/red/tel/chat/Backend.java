@@ -22,7 +22,6 @@ import static red.tel.chat.generated_protobuf.Wire.Which.CONTACTS;
 import static red.tel.chat.generated_protobuf.Wire.Which.HANDSHAKE;
 import static red.tel.chat.generated_protobuf.Wire.Which.LOGIN;
 import static red.tel.chat.generated_protobuf.Wire.Which.PAYLOAD;
-import static red.tel.chat.generated_protobuf.Wire.Which.PRESENCE;
 import static red.tel.chat.generated_protobuf.Wire.Which.PUBLIC_KEY;
 import static red.tel.chat.generated_protobuf.Wire.Which.PUBLIC_KEY_RESPONSE;
 
@@ -145,6 +144,7 @@ public class Backend extends IntentService {
     private class Hold {
         byte[] data;
         String peerId;
+
         Hold(byte[] data, String peerId) {
             this.data = data;
             this.peerId = peerId;
@@ -244,16 +244,6 @@ public class Backend extends IntentService {
                     break;
                 default:
                     Log.e(TAG, "no handler for " + voip.which);
-                    break;
-            }
-
-            Wire wire = Wire.ADAPTER.decode(binary);
-            switch (wire.which) {
-                case PRESENCE:
-                    RxBus.getInstance().sendEvent(PRESENCE);
-                    Log.d(TAG, "onReceiveFromPeer: ");
-                    break;
-                default:
                     break;
             }
         } catch (Exception exception) {
