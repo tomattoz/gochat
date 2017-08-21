@@ -164,7 +164,6 @@ func (client *Client) loginFail(sessionId string) {
   buds := &Wire{
 	Which:		Wire_LOGIN_RESPONSE,
 	SessionId: 	sessionId,
-	LoginStatus:	false,
 	To:			client.id,
   }
   crowd.queue <- *buds

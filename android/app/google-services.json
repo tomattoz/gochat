@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "152862020273",
+    "firebase_url": "https://gochat-2bdf3.firebaseio.com",
+    "project_id": "gochat-2bdf3",
+    "storage_bucket": "gochat-2bdf3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:152862020273:android:0d8033302db1be3e",
+        "android_client_info": {
+          "package_name": "red.tel.chat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "152862020273-87fisags3cbmm5rjac1furr44qcajckr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "red.tel.chat",
+            "certificate_hash": "c9d6024161dda0db0fee4b08aa23dc16e0540db7"
+          }
+        },
+        {
+          "client_id": "152862020273-8afii3vs4sl7ee05oiih2th5t92hs5d7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBG0zyMNsCtYsRWqAw4HZn4U3pbaR5uI_c"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "152862020273-8afii3vs4sl7ee05oiih2th5t92hs5d7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

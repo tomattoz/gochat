@@ -14,7 +14,6 @@ import com.squareup.wire.WireEnum;
 import com.squareup.wire.WireField;
 import com.squareup.wire.internal.Internal;
 import java.io.IOException;
-import java.lang.Boolean;
 import java.lang.Integer;
 import java.lang.Object;
 import java.lang.Override;
@@ -37,8 +36,6 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
   public static final String DEFAULT_FROM = "";
 
   public static final String DEFAULT_TO = "";
-
-  public static final Boolean DEFAULT_LOGINSTATUS = false;
 
   public static final Which DEFAULT_WHICH = Which.LOGIN;
 
@@ -69,12 +66,6 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
       adapter = "com.squareup.wire.ProtoAdapter#STRING"
   )
   public final String to;
-
-  @WireField(
-      tag = 6,
-      adapter = "com.squareup.wire.ProtoAdapter#BOOL"
-  )
-  public final Boolean loginStatus;
 
   @WireField(
       tag = 5,
@@ -113,20 +104,18 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
   )
   public final ByteString payload;
 
-  public Wire(Integer version, String sessionId, String from, String to, Boolean loginStatus,
-      Which which, String login, List<Contact> contacts, Store store, ByteString payload) {
-    this(version, sessionId, from, to, loginStatus, which, login, contacts, store, payload, ByteString.EMPTY);
+  public Wire(Integer version, String sessionId, String from, String to, Which which, String login,
+      List<Contact> contacts, Store store, ByteString payload) {
+    this(version, sessionId, from, to, which, login, contacts, store, payload, ByteString.EMPTY);
   }
 
-  public Wire(Integer version, String sessionId, String from, String to, Boolean loginStatus,
-      Which which, String login, List<Contact> contacts, Store store, ByteString payload,
-      ByteString unknownFields) {
+  public Wire(Integer version, String sessionId, String from, String to, Which which, String login,
+      List<Contact> contacts, Store store, ByteString payload, ByteString unknownFields) {
     super(ADAPTER, unknownFields);
     this.version = version;
     this.sessionId = sessionId;
     this.from = from;
     this.to = to;
-    this.loginStatus = loginStatus;
     this.which = which;
     this.login = login;
     this.contacts = Internal.immutableCopyOf("contacts", contacts);
@@ -141,7 +130,6 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
     builder.sessionId = sessionId;
     builder.from = from;
     builder.to = to;
-    builder.loginStatus = loginStatus;
     builder.which = which;
     builder.login = login;
     builder.contacts = Internal.copyOf("contacts", contacts);
@@ -161,7 +149,6 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
         && Internal.equals(sessionId, o.sessionId)
         && Internal.equals(from, o.from)
         && Internal.equals(to, o.to)
-        && Internal.equals(loginStatus, o.loginStatus)
         && Internal.equals(which, o.which)
         && Internal.equals(login, o.login)
         && contacts.equals(o.contacts)
@@ -178,7 +165,6 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
       result = result * 37 + (sessionId != null ? sessionId.hashCode() : 0);
       result = result * 37 + (from != null ? from.hashCode() : 0);
       result = result * 37 + (to != null ? to.hashCode() : 0);
-      result = result * 37 + (loginStatus != null ? loginStatus.hashCode() : 0);
       result = result * 37 + (which != null ? which.hashCode() : 0);
       result = result * 37 + (login != null ? login.hashCode() : 0);
       result = result * 37 + contacts.hashCode();
@@ -196,7 +182,6 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
     if (sessionId != null) builder.append(", sessionId=").append(sessionId);
     if (from != null) builder.append(", from=").append(from);
     if (to != null) builder.append(", to=").append(to);
-    if (loginStatus != null) builder.append(", loginStatus=").append(loginStatus);
     if (which != null) builder.append(", which=").append(which);
     if (login != null) builder.append(", login=").append(login);
     if (!contacts.isEmpty()) builder.append(", contacts=").append(contacts);
@@ -213,8 +198,6 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
     public String from;
 
     public String to;
-
-    public Boolean loginStatus;
 
     public Which which;
 
@@ -247,11 +230,6 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
 
     public Builder to(String to) {
       this.to = to;
-      return this;
-    }
-
-    public Builder loginStatus(Boolean loginStatus) {
-      this.loginStatus = loginStatus;
       return this;
     }
 
@@ -289,7 +267,7 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
 
     @Override
     public Wire build() {
-      return new Wire(version, sessionId, from, to, loginStatus, which, login, contacts, store, payload, super.buildUnknownFields());
+      return new Wire(version, sessionId, from, to, which, login, contacts, store, payload, super.buildUnknownFields());
     }
   }
 
@@ -372,7 +350,6 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
           + ProtoAdapter.STRING.encodedSizeWithTag(2, value.sessionId)
           + ProtoAdapter.STRING.encodedSizeWithTag(3, value.from)
           + ProtoAdapter.STRING.encodedSizeWithTag(4, value.to)
-          + ProtoAdapter.BOOL.encodedSizeWithTag(6, value.loginStatus)
           + Which.ADAPTER.encodedSizeWithTag(5, value.which)
           + ProtoAdapter.STRING.encodedSizeWithTag(101, value.login)
           + Contact.ADAPTER.asRepeated().encodedSizeWithTag(102, value.contacts)
@@ -387,7 +364,6 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
       ProtoAdapter.STRING.encodeWithTag(writer, 2, value.sessionId);
       ProtoAdapter.STRING.encodeWithTag(writer, 3, value.from);
       ProtoAdapter.STRING.encodeWithTag(writer, 4, value.to);
-      ProtoAdapter.BOOL.encodeWithTag(writer, 6, value.loginStatus);
       Which.ADAPTER.encodeWithTag(writer, 5, value.which);
       ProtoAdapter.STRING.encodeWithTag(writer, 101, value.login);
       Contact.ADAPTER.asRepeated().encodeWithTag(writer, 102, value.contacts);
@@ -414,7 +390,6 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
             }
             break;
           }
-          case 6: builder.loginStatus(ProtoAdapter.BOOL.decode(reader)); break;
           case 101: builder.login(ProtoAdapter.STRING.decode(reader)); break;
           case 102: builder.contacts.add(Contact.ADAPTER.decode(reader)); break;
           case 104: builder.store(Store.ADAPTER.decode(reader)); break;

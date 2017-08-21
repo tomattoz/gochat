@@ -19,7 +19,6 @@ message Wire {
     string sessionId = 2;
     string from = 3;
     string to = 4;
-    bool loginStatus = 6;
 
     // Identifies which field is filled in
     enum Which {
