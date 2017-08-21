@@ -4,7 +4,7 @@ option go_package = "main";
 option java_package = "red.tel.chat.generated_protobuf";
 
 message Contact {
-    string id = 1;
+    string id   = 1;
     string name = 2;
     bool online = 3;
 }
@@ -19,19 +19,18 @@ message Wire {
     string sessionId = 2;
     string from = 3;
     string to = 4;
-    bool loginStatus = 6;
 
     // Identifies which field is filled in
     enum Which {
         LOGIN = 0;
         CONTACTS = 1;
         PRESENCE = 2;
-        STORE = 3;
-        LOAD = 4;
-        PUBLIC_KEY = 5;
-        PUBLIC_KEY_RESPONSE = 6;
-        HANDSHAKE = 7;
-        PAYLOAD = 8;
+	    STORE = 3;
+	    LOAD = 4;
+	    PUBLIC_KEY = 5;
+	    PUBLIC_KEY_RESPONSE = 6;
+	    HANDSHAKE = 7;
+	    PAYLOAD = 8;
         LOGIN_RESPONSE = 9;
     }
     Which which = 5;
