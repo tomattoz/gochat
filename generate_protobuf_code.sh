@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 function generate() {
 
 	echo $1":"

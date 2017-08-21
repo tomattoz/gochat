@@ -42,7 +42,7 @@ public final class Voip extends AndroidMessage<Voip, Voip.Builder> {
   public final Integer version;
 
   @WireField(
-      tag = 2,
+      tag = 12,
       adapter = "red.tel.chat.generated_protobuf.Voip$Which#ADAPTER"
   )
   public final Which which;
@@ -66,11 +66,43 @@ public final class Voip extends AndroidMessage<Voip, Voip.Builder> {
   )
   public final ByteString payload;
 
-  public Voip(Integer version, Which which, List<Text> textStorage, File file, ByteString payload) {
-    this(version, which, textStorage, file, payload, ByteString.EMPTY);
+  @WireField(
+      tag = 104,
+      adapter = "red.tel.chat.generated_protobuf.Call#ADAPTER"
+  )
+  public final Call call;
+
+  @WireField(
+      tag = 105,
+      adapter = "red.tel.chat.generated_protobuf.Av#ADAPTER"
+  )
+  public final Av av;
+
+  @WireField(
+      tag = 106,
+      adapter = "red.tel.chat.generated_protobuf.AVSession#ADAPTER"
+  )
+  public final AVSession audioSession;
+
+  @WireField(
+      tag = 107,
+      adapter = "red.tel.chat.generated_protobuf.AVSession#ADAPTER"
+  )
+  public final AVSession videoSession;
+
+  @WireField(
+      tag = 18,
+      adapter = "red.tel.chat.generated_protobuf.AVQuality#ADAPTER"
+  )
+  public final AVQuality avQuality;
+
+  public Voip(Integer version, Which which, List<Text> textStorage, File file, ByteString payload,
+      Call call, Av av, AVSession audioSession, AVSession videoSession, AVQuality avQuality) {
+    this(version, which, textStorage, file, payload, call, av, audioSession, videoSession, avQuality, ByteString.EMPTY);
   }
 
   public Voip(Integer version, Which which, List<Text> textStorage, File file, ByteString payload,
+      Call call, Av av, AVSession audioSession, AVSession videoSession, AVQuality avQuality,
       ByteString unknownFields) {
     super(ADAPTER, unknownFields);
     this.version = version;
@@ -78,6 +110,11 @@ public final class Voip extends AndroidMessage<Voip, Voip.Builder> {
     this.textStorage = Internal.immutableCopyOf("textStorage", textStorage);
     this.file = file;
     this.payload = payload;
+    this.call = call;
+    this.av = av;
+    this.audioSession = audioSession;
+    this.videoSession = videoSession;
+    this.avQuality = avQuality;
   }
 
   @Override
@@ -88,6 +125,11 @@ public final class Voip extends AndroidMessage<Voip, Voip.Builder> {
     builder.textStorage = Internal.copyOf("textStorage", textStorage);
     builder.file = file;
     builder.payload = payload;
+    builder.call = call;
+    builder.av = av;
+    builder.audioSession = audioSession;
+    builder.videoSession = videoSession;
+    builder.avQuality = avQuality;
     builder.addUnknownFields(unknownFields());
     return builder;
   }
@@ -102,7 +144,12 @@ public final class Voip extends AndroidMessage<Voip, Voip.Builder> {
         && Internal.equals(which, o.which)
         && textStorage.equals(o.textStorage)
         && Internal.equals(file, o.file)
-        && Internal.equals(payload, o.payload);
+        && Internal.equals(payload, o.payload)
+        && Internal.equals(call, o.call)
+        && Internal.equals(av, o.av)
+        && Internal.equals(audioSession, o.audioSession)
+        && Internal.equals(videoSession, o.videoSession)
+        && Internal.equals(avQuality, o.avQuality);
   }
 
   @Override
@@ -115,6 +162,11 @@ public final class Voip extends AndroidMessage<Voip, Voip.Builder> {
       result = result * 37 + textStorage.hashCode();
       result = result * 37 + (file != null ? file.hashCode() : 0);
       result = result * 37 + (payload != null ? payload.hashCode() : 0);
+      result = result * 37 + (call != null ? call.hashCode() : 0);
+      result = result * 37 + (av != null ? av.hashCode() : 0);
+      result = result * 37 + (audioSession != null ? audioSession.hashCode() : 0);
+      result = result * 37 + (videoSession != null ? videoSession.hashCode() : 0);
+      result = result * 37 + (avQuality != null ? avQuality.hashCode() : 0);
       super.hashCode = result;
     }
     return result;
@@ -128,6 +180,11 @@ public final class Voip extends AndroidMessage<Voip, Voip.Builder> {
     if (!textStorage.isEmpty()) builder.append(", textStorage=").append(textStorage);
     if (file != null) builder.append(", file=").append(file);
     if (payload != null) builder.append(", payload=").append(payload);
+    if (call != null) builder.append(", call=").append(call);
+    if (av != null) builder.append(", av=").append(av);
+    if (audioSession != null) builder.append(", audioSession=").append(audioSession);
+    if (videoSession != null) builder.append(", videoSession=").append(videoSession);
+    if (avQuality != null) builder.append(", avQuality=").append(avQuality);
     return builder.replace(0, 2, "Voip{").append('}').toString();
   }
 
@@ -141,6 +198,16 @@ public final class Voip extends AndroidMessage<Voip, Voip.Builder> {
     public File file;
 
     public ByteString payload;
+
+    public Call call;
+
+    public Av av;
+
+    public AVSession audioSession;
+
+    public AVSession videoSession;
+
+    public AVQuality avQuality;
 
     public Builder() {
       textStorage = Internal.newMutableList();
@@ -172,9 +239,34 @@ public final class Voip extends AndroidMessage<Voip, Voip.Builder> {
       return this;
     }
 
+    public Builder call(Call call) {
+      this.call = call;
+      return this;
+    }
+
+    public Builder av(Av av) {
+      this.av = av;
+      return this;
+    }
+
+    public Builder audioSession(AVSession audioSession) {
+      this.audioSession = audioSession;
+      return this;
+    }
+
+    public Builder videoSession(AVSession videoSession) {
+      this.videoSession = videoSession;
+      return this;
+    }
+
+    public Builder avQuality(AVQuality avQuality) {
+      this.avQuality = avQuality;
+      return this;
+    }
+
     @Override
     public Voip build() {
-      return new Voip(version, which, textStorage, file, payload, super.buildUnknownFields());
+      return new Voip(version, which, textStorage, file, payload, call, av, audioSession, videoSession, avQuality, super.buildUnknownFields());
     }
   }
 
@@ -186,7 +278,27 @@ public final class Voip extends AndroidMessage<Voip, Voip.Builder> {
 
     FILE(1),
 
-    AV(2);
+    AV(2),
+
+    AudioSession(3),
+
+    VideoSession(4),
+
+    CALL_PROPOSAL(5),
+
+    CALL_CANCEL(6),
+
+    CALL_ACCEPT(7),
+
+    CALL_DECLINE(8),
+
+    CALL_START_OUTGOING(9),
+
+    CALL_START_INCOMING(10),
+
+    CALL_QUALITY(11),
+
+    CALL_STOP(12);
 
     public static final ProtoAdapter<Which> ADAPTER = new ProtoAdapter_Which();
 
@@ -204,6 +316,16 @@ public final class Voip extends AndroidMessage<Voip, Voip.Builder> {
         case 0: return TEXT;
         case 1: return FILE;
         case 2: return AV;
+        case 3: return AudioSession;
+        case 4: return VideoSession;
+        case 5: return CALL_PROPOSAL;
+        case 6: return CALL_CANCEL;
+        case 7: return CALL_ACCEPT;
+        case 8: return CALL_DECLINE;
+        case 9: return CALL_START_OUTGOING;
+        case 10: return CALL_START_INCOMING;
+        case 11: return CALL_QUALITY;
+        case 12: return CALL_STOP;
         default: return null;
       }
     }
@@ -233,20 +355,30 @@ public final class Voip extends AndroidMessage<Voip, Voip.Builder> {
     @Override
     public int encodedSize(Voip value) {
       return ProtoAdapter.UINT32.encodedSizeWithTag(1, value.version)
-          + Which.ADAPTER.encodedSizeWithTag(2, value.which)
+          + Which.ADAPTER.encodedSizeWithTag(12, value.which)
           + Text.ADAPTER.asRepeated().encodedSizeWithTag(101, value.textStorage)
           + File.ADAPTER.encodedSizeWithTag(102, value.file)
           + ProtoAdapter.BYTES.encodedSizeWithTag(103, value.payload)
+          + Call.ADAPTER.encodedSizeWithTag(104, value.call)
+          + Av.ADAPTER.encodedSizeWithTag(105, value.av)
+          + AVSession.ADAPTER.encodedSizeWithTag(106, value.audioSession)
+          + AVSession.ADAPTER.encodedSizeWithTag(107, value.videoSession)
+          + AVQuality.ADAPTER.encodedSizeWithTag(18, value.avQuality)
           + value.unknownFields().size();
     }
 
     @Override
     public void encode(ProtoWriter writer, Voip value) throws IOException {
       ProtoAdapter.UINT32.encodeWithTag(writer, 1, value.version);
-      Which.ADAPTER.encodeWithTag(writer, 2, value.which);
+      Which.ADAPTER.encodeWithTag(writer, 12, value.which);
       Text.ADAPTER.asRepeated().encodeWithTag(writer, 101, value.textStorage);
       File.ADAPTER.encodeWithTag(writer, 102, value.file);
       ProtoAdapter.BYTES.encodeWithTag(writer, 103, value.payload);
+      Call.ADAPTER.encodeWithTag(writer, 104, value.call);
+      Av.ADAPTER.encodeWithTag(writer, 105, value.av);
+      AVSession.ADAPTER.encodeWithTag(writer, 106, value.audioSession);
+      AVSession.ADAPTER.encodeWithTag(writer, 107, value.videoSession);
+      AVQuality.ADAPTER.encodeWithTag(writer, 18, value.avQuality);
       writer.writeBytes(value.unknownFields());
     }
 
@@ -257,7 +389,7 @@ public final class Voip extends AndroidMessage<Voip, Voip.Builder> {
       for (int tag; (tag = reader.nextTag()) != -1;) {
         switch (tag) {
           case 1: builder.version(ProtoAdapter.UINT32.decode(reader)); break;
-          case 2: {
+          case 12: {
             try {
               builder.which(Which.ADAPTER.decode(reader));
             } catch (ProtoAdapter.EnumConstantNotFoundException e) {
@@ -265,9 +397,14 @@ public final class Voip extends AndroidMessage<Voip, Voip.Builder> {
             }
             break;
           }
+          case 18: builder.avQuality(AVQuality.ADAPTER.decode(reader)); break;
           case 101: builder.textStorage.add(Text.ADAPTER.decode(reader)); break;
           case 102: builder.file(File.ADAPTER.decode(reader)); break;
           case 103: builder.payload(ProtoAdapter.BYTES.decode(reader)); break;
+          case 104: builder.call(Call.ADAPTER.decode(reader)); break;
+          case 105: builder.av(Av.ADAPTER.decode(reader)); break;
+          case 106: builder.audioSession(AVSession.ADAPTER.decode(reader)); break;
+          case 107: builder.videoSession(AVSession.ADAPTER.decode(reader)); break;
           default: {
             FieldEncoding fieldEncoding = reader.peekFieldEncoding();
             Object value = fieldEncoding.rawProtoAdapter().decode(reader);
@@ -284,6 +421,11 @@ public final class Voip extends AndroidMessage<Voip, Voip.Builder> {
       Builder builder = value.newBuilder();
       Internal.redactElements(builder.textStorage, Text.ADAPTER);
       if (builder.file != null) builder.file = File.ADAPTER.redact(builder.file);
+      if (builder.call != null) builder.call = Call.ADAPTER.redact(builder.call);
+      if (builder.av != null) builder.av = Av.ADAPTER.redact(builder.av);
+      if (builder.audioSession != null) builder.audioSession = AVSession.ADAPTER.redact(builder.audioSession);
+      if (builder.videoSession != null) builder.videoSession = AVSession.ADAPTER.redact(builder.videoSession);
+      if (builder.avQuality != null) builder.avQuality = AVQuality.ADAPTER.redact(builder.avQuality);
       builder.clearUnknownFields();
       return builder.build();
     }

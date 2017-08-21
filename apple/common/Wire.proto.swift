@@ -570,6 +570,7 @@ final public class Wire : GeneratedMessage {
         fieldCheck = fieldCheck && (lhs.hasFrom == rhs.hasFrom) && (!lhs.hasFrom || lhs.from == rhs.from)
         fieldCheck = fieldCheck && (lhs.hasTo == rhs.hasTo) && (!lhs.hasTo || lhs.to == rhs.to)
         fieldCheck = fieldCheck && (lhs.hasWhich == rhs.hasWhich) && (!lhs.hasWhich || lhs.which == rhs.which)
+        fieldCheck = fieldCheck && (lhs.hasLoginStatus == rhs.hasLoginStatus) && (!lhs.hasLoginStatus || lhs.loginStatus == rhs.loginStatus)
         fieldCheck = fieldCheck && (lhs.hasLogin == rhs.hasLogin) && (!lhs.hasLogin || lhs.login == rhs.login)
         fieldCheck = fieldCheck && (lhs.contacts == rhs.contacts)
         fieldCheck = fieldCheck && (lhs.hasStore == rhs.hasStore) && (!lhs.hasStore || lhs.store == rhs.store)
@@ -593,6 +594,7 @@ final public class Wire : GeneratedMessage {
             case publicKeyResponse = 6
             case handshake = 7
             case payload = 8
+            case loginResponse = 9
             public func toString() -> String {
                 switch self {
                 case .login: return "LOGIN"
@@ -604,6 +606,7 @@ final public class Wire : GeneratedMessage {
                 case .publicKeyResponse: return "PUBLIC_KEY_RESPONSE"
                 case .handshake: return "HANDSHAKE"
                 case .payload: return "PAYLOAD"
+                case .loginResponse: return "LOGIN_RESPONSE"
                 }
             }
             public static func fromString(_ str:String) throws -> Wire.Which {
@@ -617,6 +620,7 @@ final public class Wire : GeneratedMessage {
                 case "PUBLIC_KEY_RESPONSE":    return .publicKeyResponse
                 case "HANDSHAKE":    return .handshake
                 case "PAYLOAD":    return .payload
+                case "LOGIN_RESPONSE":    return .loginResponse
                 default: throw ProtocolBuffersError.invalidProtocolBuffer("Conversion failed.")
                 }
             }
@@ -633,6 +637,7 @@ final public class Wire : GeneratedMessage {
                 case .publicKeyResponse: return ".publicKeyResponse"
                 case .handshake: return ".handshake"
                 case .payload: return ".payload"
+                case .loginResponse: return ".loginResponse"
                 }
             }
             public var hashValue:Int {
@@ -656,6 +661,9 @@ final public class Wire : GeneratedMessage {
 
     public fileprivate(set) var to:String! = nil
     public fileprivate(set) var hasTo:Bool = false
+
+    public fileprivate(set) var loginStatus:Bool! = nil
+    public fileprivate(set) var hasLoginStatus:Bool = false
 
     public fileprivate(set) var which:Wire.Which = Wire.Which.login
     public fileprivate(set) var hasWhich:Bool = false
@@ -690,6 +698,9 @@ final public class Wire : GeneratedMessage {
         }
         if hasWhich {
             try codedOutputStream.writeEnum(fieldNumber: 5, value:which.rawValue)
+        }
+        if hasLoginStatus {
+            try codedOutputStream.writeBool(fieldNumber: 6, value:loginStatus)
         }
         if hasLogin {
             try codedOutputStream.writeString(fieldNumber: 101, value:login)
@@ -726,6 +737,9 @@ final public class Wire : GeneratedMessage {
         }
         if (hasWhich) {
             serialize_size += which.rawValue.computeEnumSize(fieldNumber: 5)
+        }
+        if hasLoginStatus {
+            serialize_size += loginStatus.computeBoolSize(fieldNumber: 6)
         }
         if hasLogin {
             serialize_size += login.computeStringSize(fieldNumber: 101)
@@ -781,6 +795,9 @@ final public class Wire : GeneratedMessage {
         if hasTo {
             jsonMap["to"] = to
         }
+        if hasLoginStatus {
+            jsonMap["loginStatus"] = loginStatus
+        }
         if hasWhich {
             jsonMap["which"] = which.toString()
         }
@@ -826,6 +843,9 @@ final public class Wire : GeneratedMessage {
         if (hasWhich) {
             output += "\(indent) which: \(which.description)\n"
         }
+        if hasLoginStatus {
+            output += "\(indent) loginStatus: \(loginStatus) \n"
+        }
         if hasLogin {
             output += "\(indent) login: \(login) \n"
         }
@@ -866,6 +886,9 @@ final public class Wire : GeneratedMessage {
             }
             if hasWhich {
                  hashCode = (hashCode &* 31) &+ which.hashValue
+            }
+            if hasLoginStatus {
+                hashCode = (hashCode &* 31) &+ loginStatus.hashValue
             }
             if hasLogin {
                 hashCode = (hashCode &* 31) &+ login.hashValue
@@ -1004,6 +1027,31 @@ final public class Wire : GeneratedMessage {
         public func clearTo() -> Wire.Builder{
             builderResult.hasTo = false
             builderResult.to = nil
+            return self
+        }
+        public var loginStatus:Bool {
+            get {
+                return builderResult.loginStatus
+            }
+            set (value) {
+                builderResult.hasLoginStatus = true
+                builderResult.loginStatus = value
+            }
+        }
+        public var hasLoginStatus:Bool {
+            get {
+                return builderResult.hasLoginStatus
+            }
+        }
+        @discardableResult
+        public func setLoginStatus(_ value:Bool) -> Wire.Builder {
+            self.loginStatus = value
+            return self
+        }
+        @discardableResult
+        public func clearLoginStatus() -> Wire.Builder{
+            builderResult.hasLoginStatus = false
+            builderResult.loginStatus = nil
             return self
         }
             public var which:Wire.Which {
@@ -1193,6 +1241,9 @@ final public class Wire : GeneratedMessage {
             if other.hasTo {
                 to = other.to
             }
+            if other.hasLoginStatus {
+                loginStatus = other.loginStatus
+            }
             if other.hasWhich {
                 which = other.which
             }
@@ -1245,6 +1296,9 @@ final public class Wire : GeneratedMessage {
                         try unknownFieldsBuilder.mergeVarintField(fieldNumber: 5, value:Int64(valueIntwhich))
                     }
 
+                case 48:
+                    loginStatus = try codedInputStream.readBool()
+
                 case 810:
                     login = try codedInputStream.readString()
 
@@ -1287,6 +1341,9 @@ final public class Wire : GeneratedMessage {
             }
             if let jsonValueTo = jsonMap["to"] as? String {
                 resultDecodedBuilder.to = jsonValueTo
+            }
+            if let jsonValueLoginStatus = jsonMap["loginStatus"] as? Bool {
+                resultDecodedBuilder.loginStatus = jsonValueLoginStatus
             }
             if let jsonValueWhich = jsonMap["which"] as? String {
                 resultDecodedBuilder.which = try Wire.Which.fromString(jsonValueWhich)
@@ -1486,6 +1543,7 @@ extension Wire: GeneratedMessageProtocol {
         case "sessionId": return self.sessionId
         case "from": return self.from
         case "to": return self.to
+        case "loginStatus": return self.loginStatus
         case "which": return self.which
         case "login": return self.login
         case "contacts": return self.contacts
@@ -1504,6 +1562,7 @@ extension Wire.Builder: GeneratedMessageBuilderProtocol {
             case "sessionId": return self.sessionId
             case "from": return self.from
             case "to": return self.to
+            case "loginStatus": return self.loginStatus
             case "which": return self.which
             case "login": return self.login
             case "contacts": return self.contacts
@@ -1534,6 +1593,11 @@ extension Wire.Builder: GeneratedMessageBuilderProtocol {
                     return
                 }
                 self.to = newSubscriptValue
+            case "loginStatus":
+                guard let newSubscriptValue = newSubscriptValue as? Bool else {
+                    return
+                }
+                self.loginStatus = newSubscriptValue
             case "which":
                 guard let newSubscriptValue = newSubscriptValue as? Wire.Which else {
                     return
