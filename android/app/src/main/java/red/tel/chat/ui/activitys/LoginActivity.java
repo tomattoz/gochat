@@ -3,6 +3,7 @@ package red.tel.chat.ui.activitys;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
@@ -15,6 +16,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.gson.JsonObject;
 
 import net.openid.appauth.AuthorizationException;
@@ -29,6 +32,7 @@ import red.tel.chat.EventBus;
 import red.tel.chat.Model;
 import red.tel.chat.Network;
 import red.tel.chat.R;
+import red.tel.chat.notification.RegistrationIntentService;
 import red.tel.chat.office365.AuthenticationManager;
 import red.tel.chat.office365.Constants;
 import red.tel.chat.office365.TokenNotFoundException;
@@ -36,7 +40,7 @@ import red.tel.chat.office365.TokenNotFoundException;
 import static red.tel.chat.Model.parseJsonUser;
 
 public class LoginActivity extends BaseActivity implements AuthorizationService.TokenResponseCallback {
-
+    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private static final String TAG = "LoginActivity";
     private EditText usernameView;
     private EditText passwordView;
@@ -65,6 +69,12 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
         loginFormView = findViewById(R.id.login_form);
         progressView = findViewById(R.id.login_progress);
         EventBus.listenFor(this, EventBus.Event.AUTHENTICATED, this::finish);
+
+        if (checkPlayServices()) {
+            // Start IntentService to register this application with GCM.
+            Intent intent = new Intent(this, RegistrationIntentService.class);
+            startService(intent);
+        }
     }
 
 
@@ -92,6 +102,27 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
             });
             alert.create().show();
         }
+    }
+
+    /**
+     * Check the device to make sure it has the Google Play Services APK. If
+     * it doesn't, display a dialog that allows users to download the APK from
+     * the Google Play Store or enable it in the device's system settings.
+     */
+    private boolean checkPlayServices() {
+        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
+        int resultCode = apiAvailability.isGooglePlayServicesAvailable(this);
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (apiAvailability.isUserResolvableError(resultCode)) {
+                apiAvailability.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST)
+                        .show();
+            } else {
+                Log.i(TAG, "This device is not supported.");
+                finish();
+            }
+            return false;
+        }
+        return true;
     }
 
     private void connect() {

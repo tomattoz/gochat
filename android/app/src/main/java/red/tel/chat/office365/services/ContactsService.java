@@ -38,7 +38,7 @@ public class ContactsService {
 
     private IContactsApi buildApi() {
         return new Retrofit.Builder()
-                .baseUrl(Constants.CONTACT_ENDPOINT)
+                .baseUrl(Constants.API_ENDPOINT)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(okHttpClient())

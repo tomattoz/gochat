@@ -165,7 +165,7 @@ public class Model {
         Gson gson = new Gson();
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("name", username);
-        jsonObject.addProperty("token", accessToken);
+        jsonObject.addProperty("authenToken", accessToken);
         return gson.toJson(jsonObject);
     }
 }

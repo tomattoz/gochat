@@ -105,8 +105,8 @@ func (crowd *Crowd) receivedLogin(conn *websocket.Conn, id string) string {
   if err := json.Unmarshal(byt, &dat); err != nil {
 	fmt.Println("Json wrong")
   }
-  mId := dat["name"].(string)
-  mToken := dat["token"].(string)
+  name := dat["name"].(string)
+  authenToken := dat["authenToken"].(string)
 
   defer crowd.clientsMtx.Unlock()
   defer crowd.clientsMtx.Lock()
@@ -114,20 +114,20 @@ func (crowd *Crowd) receivedLogin(conn *websocket.Conn, id string) string {
   sessionId := createSessionId()
 
   var client *Client
-  if c, ok := crowd.clients[mId]; ok {
+  if c, ok := crowd.clients[name]; ok {
 	client = c
   } else {
 	client = &Client{
-	  id:       mId,
+	  id:       name,
 	  sessions: make(map[string]*websocket.Conn),
 	  online:   false,
 	}
   }
   client.sessions[sessionId] = conn
-  crowd.clients[mId] = client
-  if mToken == "normal" {
+  crowd.clients[name] = client
+  if authenToken == "normal" {
 	loginSuccess(client, sessionId, crowd)
-  } else if verifyToken(mToken) {
+  } else if verifyToken(authenToken) {
 	loginSuccess(client, sessionId, crowd)
   } else {
 	crowd.clients[sessionId] = client
