@@ -77,11 +77,13 @@ public class ItemDetailFragment extends Fragment implements MessageListAdapter.C
         View rootView = inflater.inflate(R.layout.item_detail, container, false);
         getActivity().setTitle(whom);
 
-        EditText messageEdit = (EditText) rootView.findViewById(R.id.messageEdit);
-        ImageButton messageSend = (ImageButton) rootView.findViewById(R.id.chatSendButton);
-        LinearLayout content = (LinearLayout) rootView.findViewById(R.id.container);
-        recyclerView = (RecyclerView) rootView.findViewById(R.id.chat_list);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        EditText messageEdit = rootView.findViewById(R.id.messageEdit);
+        ImageButton messageSend = rootView.findViewById(R.id.chatSendButton);
+        LinearLayout content = rootView.findViewById(R.id.container);
+        recyclerView = rootView.findViewById(R.id.chat_list);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
+        layoutManager.setStackFromEnd(true);
+        recyclerView.setLayoutManager(layoutManager);
         listAdapter = new MessageListAdapter(this);
         recyclerView.setAdapter(listAdapter);
         messageSend.setOnClickListener(v -> {
