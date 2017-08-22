@@ -1,6 +1,7 @@
 package red.tel.chat.notification;
 
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -33,7 +34,7 @@ public class ChatGcmListenerService extends GcmListenerService {
     // [START receive_message]
     @Override
     public void onMessageReceived(String from, Bundle data) {
-        String message = data.getString("aps");
+        String message = data.getString("message");
         String pack = data.getString("packId");
         Log.d(TAG, "From: " + from);
         Log.d(TAG, "Message: " + message);
@@ -70,31 +71,42 @@ public class ChatGcmListenerService extends GcmListenerService {
      */
     private void sendNotification(Bundle data) {
         Log.d(TAG, "sendNotification: " + data.toString());
+        String message = data.getString("message");
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            NotificationUtils notificationUtils = new NotificationUtils(getBaseContext());
+            Notification.Builder nb = notificationUtils
+                    .getIosChannelNotification("Demo", message);
 
-        String message = data.getString("aps");
-        JsonObject jsonObject = new Gson().fromJson(message, JsonObject.class);
+            notificationUtils.getManager().notify(102, nb.build());
+        } else {
+            Intent intent = new Intent(this, ItemListActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            intent.putExtras(data);
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT);
+
+            Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setContentTitle("Demo")
+                    .setContentText(message)
+                    .setAutoCancel(true)
+                    .setSound(defaultSoundUri)
+                    .setContentIntent(pendingIntent);
+
+            NotificationManager notificationManager =
+                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+
+            if (notificationManager != null) {
+                notificationManager.notify(0 , notificationBuilder.build());
+            }
+        }
+
+        /*JsonObject jsonObject = new Gson().fromJson(message, JsonObject.class);
         String content = jsonObject.get("alert").toString();
-        String title = jsonObject.get("body").toString();
+        String title = jsonObject.get("body").toString();*/
         //String title = data.getString("alert");
-        Intent intent = new Intent(this, ItemListActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        intent.putExtras(data);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
 
-        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle(title)
-                .setContentText(content)
-                .setAutoCancel(true)
-                .setSound(defaultSoundUri)
-                .setContentIntent(pendingIntent);
-
-        NotificationManager notificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        assert notificationManager != null;
-        notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
     }
 }

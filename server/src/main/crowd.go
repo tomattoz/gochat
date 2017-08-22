@@ -107,6 +107,7 @@ func (crowd *Crowd) receivedLogin(conn *websocket.Conn, id string) string {
   }
   name := dat["name"].(string)
   authenToken := dat["authenToken"].(string)
+  deviceToken := dat["deviceToken"].(string)
 
   defer crowd.clientsMtx.Unlock()
   defer crowd.clientsMtx.Lock()
@@ -118,10 +119,12 @@ func (crowd *Crowd) receivedLogin(conn *websocket.Conn, id string) string {
 	client = c
   } else {
 	client = &Client{
-	  id:       name,
-	  sessions: make(map[string]*websocket.Conn),
-	  online:   false,
+	  id:          name,
+	  sessions:    make(map[string]*websocket.Conn),
+	  online:      false,
+	  deviceToken: deviceToken,
 	}
+	fmt.Println("token notification: " + deviceToken)
   }
   client.sessions[sessionId] = conn
   crowd.clients[name] = client
@@ -137,7 +140,8 @@ func (crowd *Crowd) receivedLogin(conn *websocket.Conn, id string) string {
 }
 
 func loginSuccess(client *Client, sessionId string, crowd *Crowd) {
-  fmt.Printf("New client id = %s, session = %s, len = %d\n", client.id, sessionId, len(client.sessions))
+  fmt.Printf("New client id = %s, session = %s, len = %d, tokenNotification = %s\n",
+	client.id, sessionId, len(client.sessions), client.deviceToken)
   client.Load(crowd.db)
   crowd.clients[sessionId] = client
   client.sendContacts(sessionId)
@@ -189,15 +193,18 @@ func (crowd *Crowd) updatePresence(sessionId string, online bool) {
   } else {
 	fmt.Printf("Update Presence sessionId = %s online=%t\n", sessionId, online)
   }
+  fmt.Printf("sessionId = %s device token = %s\n", sessionId, client.deviceToken)
   client.updatePresence(sessionId, online)
 
   // inform subscribers
   from := client.id
+  deviceToken := client.deviceToken
   contact := &Contact{
 	Id:     from,
 	Online: online,
+	DeviceToken: deviceToken,
   }
-
+  fmt.Printf("\t from: %s deviceToken: %s\n", from, deviceToken)
   for _, subscriber := range crowd.presenceSubscribers[from] {
 	fmt.Println("\t subscriber = " + subscriber)
 	update := &Wire{
@@ -205,7 +212,16 @@ func (crowd *Crowd) updatePresence(sessionId string, online bool) {
 	  Contacts: []*Contact{contact},
 	  To:       subscriber,
 	}
-	fmt.Printf("\t contacts length = %d\n", len(update.GetContacts()))
+
+	data := crowd.clients[subscriber]
+	fmt.Printf("\t deviceToken = %s  contacts length = %d\n", data.deviceToken, len(update.GetContacts()))
+	//push notification client online/offline
+	if client.online {
+	  client.pushNotification(from + " is Online", data.deviceToken)
+	} else {
+	  client.pushNotification(from + " is Offline", data.deviceToken)
+	}
+
 	crowd.queue <- *update
   }
   client.subscribeToContacts()

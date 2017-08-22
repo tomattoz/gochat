@@ -34,6 +34,7 @@ public class Model {
     private static final String PASSWORD = "password";
     private static final String AUTHOR = "authorization";
     private static final String TYPE_LOGIN = "type_login";
+    private static final String TOKEN_PUSH_NOTIFICATION = "token_push";
     private Map<String, Contact> roster = new HashMap<>();
     private List<red.tel.chat.generated_protobuf.Text> texts = new ArrayList<>();
     private static Model instance;
@@ -93,6 +94,14 @@ public class Model {
 
     public int getTypeLogin() {
         return getSharedPreferences().getInt(TYPE_LOGIN, 0);
+    }
+
+    public void setTokenPushNotification(String token) {
+        getSharedPreferences().edit().putString(TOKEN_PUSH_NOTIFICATION, token).apply();
+    }
+
+    public String getTokenPushNotification() {
+        return getSharedPreferences().getString(TOKEN_PUSH_NOTIFICATION, null);
     }
 
     void incomingFromServer(Wire wire) {
@@ -161,11 +170,12 @@ public class Model {
         Backend.shared().sendContacts(new ArrayList<>(roster.values()));
     }
 
-    public static String parseJsonUser(String username, String accessToken) {
+    public static String parseJsonUser(String username, String accessToken, String tokenNotification) {
         Gson gson = new Gson();
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("name", username);
         jsonObject.addProperty("authenToken", accessToken);
+        jsonObject.addProperty("deviceToken", tokenNotification);
         return gson.toJson(jsonObject);
     }
 }

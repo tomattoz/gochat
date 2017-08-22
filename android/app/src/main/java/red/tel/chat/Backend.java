@@ -52,8 +52,9 @@ public class Backend extends IntentService {
         EventBus.listenFor(this, EventBus.Event.CONNECTED, () -> {
             String username = Model.shared().getUsername();
             String token = Model.shared().getAccessToken();
-            if (username != null) {
-                Backend.this.login(parseJsonUser(username, token));
+            String tokenNotification = Model.shared().getTokenPushNotification();
+            if (username != null && tokenNotification != null) {
+                Backend.this.login(parseJsonUser(username, token, tokenNotification));
                 Log.d(TAG, "re login: ");
             }
         });

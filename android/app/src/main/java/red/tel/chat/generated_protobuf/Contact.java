@@ -32,6 +32,8 @@ public final class Contact extends AndroidMessage<Contact, Contact.Builder> {
 
   public static final Boolean DEFAULT_ONLINE = false;
 
+  public static final String DEFAULT_DEVICETOKEN = "";
+
   @WireField(
       tag = 1,
       adapter = "com.squareup.wire.ProtoAdapter#STRING"
@@ -50,15 +52,23 @@ public final class Contact extends AndroidMessage<Contact, Contact.Builder> {
   )
   public final Boolean online;
 
-  public Contact(String id, String name, Boolean online) {
-    this(id, name, online, ByteString.EMPTY);
+  @WireField(
+      tag = 4,
+      adapter = "com.squareup.wire.ProtoAdapter#STRING"
+  )
+  public final String deviceToken;
+
+  public Contact(String id, String name, Boolean online, String deviceToken) {
+    this(id, name, online, deviceToken, ByteString.EMPTY);
   }
 
-  public Contact(String id, String name, Boolean online, ByteString unknownFields) {
+  public Contact(String id, String name, Boolean online, String deviceToken,
+      ByteString unknownFields) {
     super(ADAPTER, unknownFields);
     this.id = id;
     this.name = name;
     this.online = online;
+    this.deviceToken = deviceToken;
   }
 
   @Override
@@ -67,6 +77,7 @@ public final class Contact extends AndroidMessage<Contact, Contact.Builder> {
     builder.id = id;
     builder.name = name;
     builder.online = online;
+    builder.deviceToken = deviceToken;
     builder.addUnknownFields(unknownFields());
     return builder;
   }
@@ -79,7 +90,8 @@ public final class Contact extends AndroidMessage<Contact, Contact.Builder> {
     return unknownFields().equals(o.unknownFields())
         && Internal.equals(id, o.id)
         && Internal.equals(name, o.name)
-        && Internal.equals(online, o.online);
+        && Internal.equals(online, o.online)
+        && Internal.equals(deviceToken, o.deviceToken);
   }
 
   @Override
@@ -90,6 +102,7 @@ public final class Contact extends AndroidMessage<Contact, Contact.Builder> {
       result = result * 37 + (id != null ? id.hashCode() : 0);
       result = result * 37 + (name != null ? name.hashCode() : 0);
       result = result * 37 + (online != null ? online.hashCode() : 0);
+      result = result * 37 + (deviceToken != null ? deviceToken.hashCode() : 0);
       super.hashCode = result;
     }
     return result;
@@ -101,6 +114,7 @@ public final class Contact extends AndroidMessage<Contact, Contact.Builder> {
     if (id != null) builder.append(", id=").append(id);
     if (name != null) builder.append(", name=").append(name);
     if (online != null) builder.append(", online=").append(online);
+    if (deviceToken != null) builder.append(", deviceToken=").append(deviceToken);
     return builder.replace(0, 2, "Contact{").append('}').toString();
   }
 
@@ -110,6 +124,8 @@ public final class Contact extends AndroidMessage<Contact, Contact.Builder> {
     public String name;
 
     public Boolean online;
+
+    public String deviceToken;
 
     public Builder() {
     }
@@ -129,9 +145,14 @@ public final class Contact extends AndroidMessage<Contact, Contact.Builder> {
       return this;
     }
 
+    public Builder deviceToken(String deviceToken) {
+      this.deviceToken = deviceToken;
+      return this;
+    }
+
     @Override
     public Contact build() {
-      return new Contact(id, name, online, super.buildUnknownFields());
+      return new Contact(id, name, online, deviceToken, super.buildUnknownFields());
     }
   }
 
@@ -145,6 +166,7 @@ public final class Contact extends AndroidMessage<Contact, Contact.Builder> {
       return ProtoAdapter.STRING.encodedSizeWithTag(1, value.id)
           + ProtoAdapter.STRING.encodedSizeWithTag(2, value.name)
           + ProtoAdapter.BOOL.encodedSizeWithTag(3, value.online)
+          + ProtoAdapter.STRING.encodedSizeWithTag(4, value.deviceToken)
           + value.unknownFields().size();
     }
 
@@ -153,6 +175,7 @@ public final class Contact extends AndroidMessage<Contact, Contact.Builder> {
       ProtoAdapter.STRING.encodeWithTag(writer, 1, value.id);
       ProtoAdapter.STRING.encodeWithTag(writer, 2, value.name);
       ProtoAdapter.BOOL.encodeWithTag(writer, 3, value.online);
+      ProtoAdapter.STRING.encodeWithTag(writer, 4, value.deviceToken);
       writer.writeBytes(value.unknownFields());
     }
 
@@ -165,6 +188,7 @@ public final class Contact extends AndroidMessage<Contact, Contact.Builder> {
           case 1: builder.id(ProtoAdapter.STRING.decode(reader)); break;
           case 2: builder.name(ProtoAdapter.STRING.decode(reader)); break;
           case 3: builder.online(ProtoAdapter.BOOL.decode(reader)); break;
+          case 4: builder.deviceToken(ProtoAdapter.STRING.decode(reader)); break;
           default: {
             FieldEncoding fieldEncoding = reader.peekFieldEncoding();
             Object value = fieldEncoding.rawProtoAdapter().decode(reader);

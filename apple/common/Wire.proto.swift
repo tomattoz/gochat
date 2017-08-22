@@ -30,6 +30,7 @@ final public class Contact : GeneratedMessage {
         fieldCheck = fieldCheck && (lhs.hasId == rhs.hasId) && (!lhs.hasId || lhs.id == rhs.id)
         fieldCheck = fieldCheck && (lhs.hasName == rhs.hasName) && (!lhs.hasName || lhs.name == rhs.name)
         fieldCheck = fieldCheck && (lhs.hasOnline == rhs.hasOnline) && (!lhs.hasOnline || lhs.online == rhs.online)
+        fieldCheck = fieldCheck && (lhs.hasDeviceToken == rhs.hasDeviceToken) && (!lhs.hasDeviceToken || lhs.deviceToken == rhs.deviceToken)
         fieldCheck = (fieldCheck && (lhs.unknownFields == rhs.unknownFields))
         return fieldCheck
     }
@@ -42,6 +43,9 @@ final public class Contact : GeneratedMessage {
 
     public fileprivate(set) var online:Bool! = nil
     public fileprivate(set) var hasOnline:Bool = false
+
+    public fileprivate(set) var deviceToken:String! = nil
+    public fileprivate(set) var hasDeviceToken:Bool = false
 
     required public init() {
         super.init()
@@ -58,6 +62,9 @@ final public class Contact : GeneratedMessage {
         }
         if hasOnline {
             try codedOutputStream.writeBool(fieldNumber: 3, value:online)
+        }
+        if hasDeviceToken {
+            try codedOutputStream.writeString(fieldNumber: 4, value:deviceToken)
         }
         try unknownFields.writeTo(codedOutputStream: codedOutputStream)
     }
@@ -76,6 +83,9 @@ final public class Contact : GeneratedMessage {
         }
         if hasOnline {
             serialize_size += online.computeBoolSize(fieldNumber: 3)
+        }
+        if hasDeviceToken {
+            serialize_size += deviceToken.computeStringSize(fieldNumber: 4)
         }
         serialize_size += unknownFields.serializedSize()
         memoizedSerializedSize = serialize_size
@@ -114,6 +124,9 @@ final public class Contact : GeneratedMessage {
         if hasOnline {
             jsonMap["online"] = online
         }
+        if hasDeviceToken {
+            jsonMap["deviceToken"] = deviceToken
+        }
         return jsonMap
     }
     override class public func decode(jsonMap:Dictionary<String,Any>) throws -> Contact {
@@ -133,6 +146,9 @@ final public class Contact : GeneratedMessage {
         if hasOnline {
             output += "\(indent) online: \(online) \n"
         }
+        if hasDeviceToken {
+            output += "\(indent) deviceToken: \(deviceToken) \n"
+        }
         output += unknownFields.getDescription(indent: indent)
         return output
     }
@@ -147,6 +163,9 @@ final public class Contact : GeneratedMessage {
             }
             if hasOnline {
                 hashCode = (hashCode &* 31) &+ online.hashValue
+            }
+            if hasDeviceToken {
+                hashCode = (hashCode &* 31) &+ deviceToken.hashValue
             }
             hashCode = (hashCode &* 31) &+  unknownFields.hashValue
             return hashCode
@@ -248,6 +267,31 @@ final public class Contact : GeneratedMessage {
             builderResult.online = nil
             return self
         }
+        public var deviceToken:String {
+            get {
+                return builderResult.deviceToken
+            }
+            set (value) {
+                builderResult.hasDeviceToken = true
+                builderResult.deviceToken = value
+            }
+        }
+        public var hasDeviceToken:Bool {
+            get {
+                return builderResult.hasDeviceToken
+            }
+        }
+        @discardableResult
+        public func setDeviceToken(_ value:String) -> Contact.Builder {
+            self.deviceToken = value
+            return self
+        }
+        @discardableResult
+        public func clearDeviceToken() -> Contact.Builder{
+            builderResult.hasDeviceToken = false
+            builderResult.deviceToken = nil
+            return self
+        }
         override public var internalGetResult:GeneratedMessage {
             get {
                 return builderResult
@@ -283,6 +327,9 @@ final public class Contact : GeneratedMessage {
             if other.hasOnline {
                 online = other.online
             }
+            if other.hasDeviceToken {
+                deviceToken = other.deviceToken
+            }
             try merge(unknownField: other.unknownFields)
             return self
         }
@@ -309,6 +356,9 @@ final public class Contact : GeneratedMessage {
                 case 24:
                     online = try codedInputStream.readBool()
 
+                case 34:
+                    deviceToken = try codedInputStream.readString()
+
                 default:
                     if (!(try parse(codedInputStream:codedInputStream, unknownFields:unknownFieldsBuilder, extensionRegistry:extensionRegistry, tag:protobufTag))) {
                         unknownFields = try unknownFieldsBuilder.build()
@@ -327,6 +377,9 @@ final public class Contact : GeneratedMessage {
             }
             if let jsonValueOnline = jsonMap["online"] as? Bool {
                 resultDecodedBuilder.online = jsonValueOnline
+            }
+            if let jsonValueDeviceToken = jsonMap["deviceToken"] as? String {
+                resultDecodedBuilder.deviceToken = jsonValueDeviceToken
             }
             return resultDecodedBuilder
         }
@@ -570,7 +623,6 @@ final public class Wire : GeneratedMessage {
         fieldCheck = fieldCheck && (lhs.hasFrom == rhs.hasFrom) && (!lhs.hasFrom || lhs.from == rhs.from)
         fieldCheck = fieldCheck && (lhs.hasTo == rhs.hasTo) && (!lhs.hasTo || lhs.to == rhs.to)
         fieldCheck = fieldCheck && (lhs.hasWhich == rhs.hasWhich) && (!lhs.hasWhich || lhs.which == rhs.which)
-        fieldCheck = fieldCheck && (lhs.hasLoginStatus == rhs.hasLoginStatus) && (!lhs.hasLoginStatus || lhs.loginStatus == rhs.loginStatus)
         fieldCheck = fieldCheck && (lhs.hasLogin == rhs.hasLogin) && (!lhs.hasLogin || lhs.login == rhs.login)
         fieldCheck = fieldCheck && (lhs.contacts == rhs.contacts)
         fieldCheck = fieldCheck && (lhs.hasStore == rhs.hasStore) && (!lhs.hasStore || lhs.store == rhs.store)
@@ -662,9 +714,6 @@ final public class Wire : GeneratedMessage {
     public fileprivate(set) var to:String! = nil
     public fileprivate(set) var hasTo:Bool = false
 
-    public fileprivate(set) var loginStatus:Bool! = nil
-    public fileprivate(set) var hasLoginStatus:Bool = false
-
     public fileprivate(set) var which:Wire.Which = Wire.Which.login
     public fileprivate(set) var hasWhich:Bool = false
     /// One of the following will be filled in
@@ -698,9 +747,6 @@ final public class Wire : GeneratedMessage {
         }
         if hasWhich {
             try codedOutputStream.writeEnum(fieldNumber: 5, value:which.rawValue)
-        }
-        if hasLoginStatus {
-            try codedOutputStream.writeBool(fieldNumber: 6, value:loginStatus)
         }
         if hasLogin {
             try codedOutputStream.writeString(fieldNumber: 101, value:login)
@@ -737,9 +783,6 @@ final public class Wire : GeneratedMessage {
         }
         if (hasWhich) {
             serialize_size += which.rawValue.computeEnumSize(fieldNumber: 5)
-        }
-        if hasLoginStatus {
-            serialize_size += loginStatus.computeBoolSize(fieldNumber: 6)
         }
         if hasLogin {
             serialize_size += login.computeStringSize(fieldNumber: 101)
@@ -795,9 +838,6 @@ final public class Wire : GeneratedMessage {
         if hasTo {
             jsonMap["to"] = to
         }
-        if hasLoginStatus {
-            jsonMap["loginStatus"] = loginStatus
-        }
         if hasWhich {
             jsonMap["which"] = which.toString()
         }
@@ -843,9 +883,6 @@ final public class Wire : GeneratedMessage {
         if (hasWhich) {
             output += "\(indent) which: \(which.description)\n"
         }
-        if hasLoginStatus {
-            output += "\(indent) loginStatus: \(loginStatus) \n"
-        }
         if hasLogin {
             output += "\(indent) login: \(login) \n"
         }
@@ -886,9 +923,6 @@ final public class Wire : GeneratedMessage {
             }
             if hasWhich {
                  hashCode = (hashCode &* 31) &+ which.hashValue
-            }
-            if hasLoginStatus {
-                hashCode = (hashCode &* 31) &+ loginStatus.hashValue
             }
             if hasLogin {
                 hashCode = (hashCode &* 31) &+ login.hashValue
@@ -1027,31 +1061,6 @@ final public class Wire : GeneratedMessage {
         public func clearTo() -> Wire.Builder{
             builderResult.hasTo = false
             builderResult.to = nil
-            return self
-        }
-        public var loginStatus:Bool {
-            get {
-                return builderResult.loginStatus
-            }
-            set (value) {
-                builderResult.hasLoginStatus = true
-                builderResult.loginStatus = value
-            }
-        }
-        public var hasLoginStatus:Bool {
-            get {
-                return builderResult.hasLoginStatus
-            }
-        }
-        @discardableResult
-        public func setLoginStatus(_ value:Bool) -> Wire.Builder {
-            self.loginStatus = value
-            return self
-        }
-        @discardableResult
-        public func clearLoginStatus() -> Wire.Builder{
-            builderResult.hasLoginStatus = false
-            builderResult.loginStatus = nil
             return self
         }
             public var which:Wire.Which {
@@ -1241,9 +1250,6 @@ final public class Wire : GeneratedMessage {
             if other.hasTo {
                 to = other.to
             }
-            if other.hasLoginStatus {
-                loginStatus = other.loginStatus
-            }
             if other.hasWhich {
                 which = other.which
             }
@@ -1296,9 +1302,6 @@ final public class Wire : GeneratedMessage {
                         try unknownFieldsBuilder.mergeVarintField(fieldNumber: 5, value:Int64(valueIntwhich))
                     }
 
-                case 48:
-                    loginStatus = try codedInputStream.readBool()
-
                 case 810:
                     login = try codedInputStream.readString()
 
@@ -1341,9 +1344,6 @@ final public class Wire : GeneratedMessage {
             }
             if let jsonValueTo = jsonMap["to"] as? String {
                 resultDecodedBuilder.to = jsonValueTo
-            }
-            if let jsonValueLoginStatus = jsonMap["loginStatus"] as? Bool {
-                resultDecodedBuilder.loginStatus = jsonValueLoginStatus
             }
             if let jsonValueWhich = jsonMap["which"] as? String {
                 resultDecodedBuilder.which = try Wire.Which.fromString(jsonValueWhich)
@@ -1414,6 +1414,7 @@ extension Contact: GeneratedMessageProtocol {
         case "id": return self.id
         case "name": return self.name
         case "online": return self.online
+        case "deviceToken": return self.deviceToken
         default: return nil
         }
     }
@@ -1426,6 +1427,7 @@ extension Contact.Builder: GeneratedMessageBuilderProtocol {
             case "id": return self.id
             case "name": return self.name
             case "online": return self.online
+            case "deviceToken": return self.deviceToken
             default: return nil
             }
         }
@@ -1446,6 +1448,11 @@ extension Contact.Builder: GeneratedMessageBuilderProtocol {
                     return
                 }
                 self.online = newSubscriptValue
+            case "deviceToken":
+                guard let newSubscriptValue = newSubscriptValue as? String else {
+                    return
+                }
+                self.deviceToken = newSubscriptValue
             default: return
             }
         }
@@ -1543,7 +1550,6 @@ extension Wire: GeneratedMessageProtocol {
         case "sessionId": return self.sessionId
         case "from": return self.from
         case "to": return self.to
-        case "loginStatus": return self.loginStatus
         case "which": return self.which
         case "login": return self.login
         case "contacts": return self.contacts
@@ -1562,7 +1568,6 @@ extension Wire.Builder: GeneratedMessageBuilderProtocol {
             case "sessionId": return self.sessionId
             case "from": return self.from
             case "to": return self.to
-            case "loginStatus": return self.loginStatus
             case "which": return self.which
             case "login": return self.login
             case "contacts": return self.contacts
@@ -1593,11 +1598,6 @@ extension Wire.Builder: GeneratedMessageBuilderProtocol {
                     return
                 }
                 self.to = newSubscriptValue
-            case "loginStatus":
-                guard let newSubscriptValue = newSubscriptValue as? Bool else {
-                    return
-                }
-                self.loginStatus = newSubscriptValue
             case "which":
                 guard let newSubscriptValue = newSubscriptValue as? Wire.Which else {
                     return

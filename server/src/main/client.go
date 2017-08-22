@@ -5,14 +5,17 @@ import (
   "github.com/boltdb/bolt"
   "github.com/golang/protobuf/proto"
   "github.com/gorilla/websocket"
+  "github.com/google/go-gcm"
+  //"github.com/alexjlockwood/gcm"
 )
 
 type Client struct {
-  id       string
-  contacts []*Contact
-  sessions map[string]*websocket.Conn
-  online   bool
-  crowd    *Crowd
+  id          string
+  contacts    []*Contact
+  sessions    map[string]*websocket.Conn
+  online      bool
+  crowd       *Crowd
+  deviceToken string
 }
 
 func (client *Client) Save(db *bolt.DB, wire *Wire) {
@@ -189,4 +192,26 @@ func (client *Client) receivedContacts(wire *Wire) {
   }
   wire.To = client.id
   forward(client, wire)
+}
+
+func (client *Client) pushNotification(pushText string, pushToken string)  {
+  serverKey := "AIzaSyB14mtQyetuI127fV11JGb-bTqVkfBDQJY"
+  var msg gcm.HttpMessage
+
+  data := map[string]interface{}{"message": pushText}
+  regIDs := []string{pushToken}
+
+  msg.RegistrationIds = regIDs
+  msg.Data = data
+  response,err := gcm.SendHttp(serverKey,msg)
+  if err != nil {
+	fmt.Println(err.Error())
+  }else{
+	fmt.Println("Response ",response.Success)
+	fmt.Println("MessageID ",response.MessageId)
+	fmt.Println("Failure ",response.Failure)
+	fmt.Println("Error ",response.Error)
+	fmt.Println("Results ",response.Results)
+
+  }
 }

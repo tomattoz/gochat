@@ -11,16 +11,21 @@ import red.tel.chat.ChatApp;
 import red.tel.chat.EventBus;
 import red.tel.chat.EventBus.Event;
 import red.tel.chat.R;
+import red.tel.chat.notification.RegistrationIntentService;
 
 public class SplashActivity extends BaseActivity {
     private static final String TAG = SplashActivity.class.getSimpleName();
-    private static final int SPLASH_DURATION = 3000;
+    private static final int SPLASH_DURATION = 3500;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
-
+        if (checkPlayServices()) {
+            // Start IntentService to register this application with GCM.
+            Intent intent = new Intent(this, RegistrationIntentService.class);
+            startService(intent);
+        }
         EventBus.listenFor(this, Event.AUTHENTICATED, () -> {
             Log.d(TAG, "onCreate: ");
             timerTask.cancel();

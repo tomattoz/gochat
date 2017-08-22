@@ -15,6 +15,7 @@ import java.io.IOException;
 
 import io.reactivex.disposables.CompositeDisposable;
 import okhttp3.ResponseBody;
+import red.tel.chat.Model;
 import red.tel.chat.R;
 
 
@@ -85,6 +86,7 @@ public class RegistrationIntentService extends IntentService {
      */
     private void sendRegistrationToServer(String token) {
         if (token != null) {
+            Model.shared().setTokenPushNotification(token);
             Log.d(TAG, "sendRegistrationToServer: " + token);
         }
     }

@@ -40,7 +40,7 @@ import red.tel.chat.office365.TokenNotFoundException;
 import static red.tel.chat.Model.parseJsonUser;
 
 public class LoginActivity extends BaseActivity implements AuthorizationService.TokenResponseCallback {
-    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
+
     private static final String TAG = "LoginActivity";
     private EditText usernameView;
     private EditText passwordView;
@@ -69,12 +69,6 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
         loginFormView = findViewById(R.id.login_form);
         progressView = findViewById(R.id.login_progress);
         EventBus.listenFor(this, EventBus.Event.AUTHENTICATED, this::finish);
-
-        if (checkPlayServices()) {
-            // Start IntentService to register this application with GCM.
-            Intent intent = new Intent(this, RegistrationIntentService.class);
-            startService(intent);
-        }
     }
 
 
@@ -104,26 +98,7 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
         }
     }
 
-    /**
-     * Check the device to make sure it has the Google Play Services APK. If
-     * it doesn't, display a dialog that allows users to download the APK from
-     * the Google Play Store or enable it in the device's system settings.
-     */
-    private boolean checkPlayServices() {
-        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
-        int resultCode = apiAvailability.isGooglePlayServicesAvailable(this);
-        if (resultCode != ConnectionResult.SUCCESS) {
-            if (apiAvailability.isUserResolvableError(resultCode)) {
-                apiAvailability.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST)
-                        .show();
-            } else {
-                Log.i(TAG, "This device is not supported.");
-                finish();
-            }
-            return false;
-        }
-        return true;
-    }
+
 
     private void connect() {
         AuthenticationManager.getInstance().startAuthorizationFlow();
@@ -210,7 +185,12 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
         Model.shared().setUsername(username);
         Model.shared().setPassword(password);
         showProgress(true);
-        Backend.shared().login(parseJsonUser(username, accessToken));
+        String tokenNotificaion = Model.shared().getTokenPushNotification();
+        if (tokenNotificaion != null) {
+            Backend.shared().login(parseJsonUser(username, accessToken, tokenNotificaion));
+        } else {
+            showProgress(false);
+        }
     }
 
     public void onClickRegister(View v) {
