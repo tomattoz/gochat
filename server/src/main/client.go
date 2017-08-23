@@ -194,11 +194,9 @@ func (client *Client) receivedContacts(wire *Wire) {
   forward(client, wire)
 }
 
-func (client *Client) pushNotification(pushText string, pushToken string)  {
+func (client *Client) pushNotification(data map[string]interface{}, pushToken string)  {
   serverKey := "AIzaSyB14mtQyetuI127fV11JGb-bTqVkfBDQJY"
   var msg gcm.HttpMessage
-
-  data := map[string]interface{}{"message": pushText}
   regIDs := []string{pushToken}
 
   msg.RegistrationIds = regIDs
@@ -212,6 +210,5 @@ func (client *Client) pushNotification(pushText string, pushToken string)  {
 	fmt.Println("Failure ",response.Failure)
 	fmt.Println("Error ",response.Error)
 	fmt.Println("Results ",response.Results)
-
   }
 }

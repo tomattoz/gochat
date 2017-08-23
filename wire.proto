@@ -14,8 +14,14 @@ message Store {
     bytes key = 1;
 }
 
-message Wire {
+message Login {
+    uint32 type = 1;
+    string userName = 2;
+    string authenToken = 3;
+    string deviceToken = 4;
+}
 
+message Wire {
     uint32 version = 1;
     string sessionId = 2;
     string from = 3;
@@ -37,7 +43,7 @@ message Wire {
     Which which = 5;
 
     // One of the following will be filled in
-    string login = 101;
+    Login login = 101;
     repeated Contact contacts = 102; // for roster, presence, and invite
     Store store = 104;
     bytes payload = 106;

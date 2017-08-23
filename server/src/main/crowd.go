@@ -6,7 +6,6 @@ import (
   "github.com/gorilla/websocket"
   "math/rand"
   "sync"
-  "encoding/json"
   "net/http"
 )
 
@@ -98,16 +97,12 @@ func (crowd *Crowd) messageArrived(conn *websocket.Conn, wire *Wire, sessionId s
   return sessionId, true
 }
 
-func (crowd *Crowd) receivedLogin(conn *websocket.Conn, id string) string {
-  fmt.Println("Received Login: " + id)
-  byt := []byte(id);
-  var dat map[string]interface{}
-  if err := json.Unmarshal(byt, &dat); err != nil {
-	fmt.Println("Json wrong")
-  }
-  name := dat["name"].(string)
-  authenToken := dat["authenToken"].(string)
-  deviceToken := dat["deviceToken"].(string)
+func (crowd *Crowd) receivedLogin(conn *websocket.Conn, login *Login) string {
+  fmt.Println("Received Login: " + login.UserName)
+  typeLogin := login.Type
+  name := login.UserName
+  authenToken := login.AuthenToken
+  deviceToken := login.DeviceToken
 
   defer crowd.clientsMtx.Unlock()
   defer crowd.clientsMtx.Lock()
@@ -128,13 +123,18 @@ func (crowd *Crowd) receivedLogin(conn *websocket.Conn, id string) string {
   }
   client.sessions[sessionId] = conn
   crowd.clients[name] = client
-  if authenToken == "normal" {
+  switch typeLogin {
+  case 1:
 	loginSuccess(client, sessionId, crowd)
-  } else if verifyToken(authenToken) {
-	loginSuccess(client, sessionId, crowd)
-  } else {
-	crowd.clients[sessionId] = client
-	client.loginFail(sessionId)
+	break
+  case 2:
+	if verifyToken(authenToken) {
+	  loginSuccess(client, sessionId, crowd)
+	} else {
+	  crowd.clients[sessionId] = client
+	  client.loginFail(sessionId)
+	}
+	break
   }
   return sessionId
 }
@@ -200,8 +200,8 @@ func (crowd *Crowd) updatePresence(sessionId string, online bool) {
   from := client.id
   deviceToken := client.deviceToken
   contact := &Contact{
-	Id:     from,
-	Online: online,
+	Id:          from,
+	Online:      online,
 	DeviceToken: deviceToken,
   }
   fmt.Printf("\t from: %s deviceToken: %s\n", from, deviceToken)
@@ -217,9 +217,11 @@ func (crowd *Crowd) updatePresence(sessionId string, online bool) {
 	fmt.Printf("\t deviceToken = %s  contacts length = %d\n", data.deviceToken, len(update.GetContacts()))
 	//push notification client online/offline
 	if client.online {
-	  client.pushNotification(from + " is Online", data.deviceToken)
+	  content := map[string]interface{}{"message": from + " is Online"}
+	  client.pushNotification(content, data.deviceToken)
 	} else {
-	  client.pushNotification(from + " is Offline", data.deviceToken)
+	  content := map[string]interface{}{"message": from + " is Online"}
+	  client.pushNotification(content, data.deviceToken)
 	}
 
 	crowd.queue <- *update

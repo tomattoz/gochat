@@ -610,6 +610,383 @@ final public class Store : GeneratedMessage {
 
 }
 
+final public class Login : GeneratedMessage {
+    public typealias BuilderType = Login.Builder
+
+    public static func == (lhs: Login, rhs: Login) -> Bool {
+        if lhs === rhs {
+            return true
+        }
+        var fieldCheck:Bool = (lhs.hashValue == rhs.hashValue)
+        fieldCheck = fieldCheck && (lhs.hasType == rhs.hasType) && (!lhs.hasType || lhs.type == rhs.type)
+        fieldCheck = fieldCheck && (lhs.hasUserName == rhs.hasUserName) && (!lhs.hasUserName || lhs.userName == rhs.userName)
+        fieldCheck = fieldCheck && (lhs.hasAuthenToken == rhs.hasAuthenToken) && (!lhs.hasAuthenToken || lhs.authenToken == rhs.authenToken)
+        fieldCheck = fieldCheck && (lhs.hasDeviceToken == rhs.hasDeviceToken) && (!lhs.hasDeviceToken || lhs.deviceToken == rhs.deviceToken)
+        fieldCheck = (fieldCheck && (lhs.unknownFields == rhs.unknownFields))
+        return fieldCheck
+    }
+
+    public fileprivate(set) var type:UInt32! = nil
+    public fileprivate(set) var hasType:Bool = false
+
+    public fileprivate(set) var userName:String! = nil
+    public fileprivate(set) var hasUserName:Bool = false
+
+    public fileprivate(set) var authenToken:String! = nil
+    public fileprivate(set) var hasAuthenToken:Bool = false
+
+    public fileprivate(set) var deviceToken:String! = nil
+    public fileprivate(set) var hasDeviceToken:Bool = false
+
+    required public init() {
+        super.init()
+    }
+    override public func isInitialized() -> Bool {
+        return true
+    }
+    override public func writeTo(codedOutputStream: CodedOutputStream) throws {
+        if hasType {
+            try codedOutputStream.writeUInt32(fieldNumber: 1, value:type)
+        }
+        if hasUserName {
+            try codedOutputStream.writeString(fieldNumber: 2, value:userName)
+        }
+        if hasAuthenToken {
+            try codedOutputStream.writeString(fieldNumber: 3, value:authenToken)
+        }
+        if hasDeviceToken {
+            try codedOutputStream.writeString(fieldNumber: 4, value:deviceToken)
+        }
+        try unknownFields.writeTo(codedOutputStream: codedOutputStream)
+    }
+    override public func serializedSize() -> Int32 {
+        var serialize_size:Int32 = memoizedSerializedSize
+        if serialize_size != -1 {
+         return serialize_size
+        }
+
+        serialize_size = 0
+        if hasType {
+            serialize_size += type.computeUInt32Size(fieldNumber: 1)
+        }
+        if hasUserName {
+            serialize_size += userName.computeStringSize(fieldNumber: 2)
+        }
+        if hasAuthenToken {
+            serialize_size += authenToken.computeStringSize(fieldNumber: 3)
+        }
+        if hasDeviceToken {
+            serialize_size += deviceToken.computeStringSize(fieldNumber: 4)
+        }
+        serialize_size += unknownFields.serializedSize()
+        memoizedSerializedSize = serialize_size
+        return serialize_size
+    }
+    public class func getBuilder() -> Login.Builder {
+        return Login.classBuilder() as! Login.Builder
+    }
+    public func getBuilder() -> Login.Builder {
+        return classBuilder() as! Login.Builder
+    }
+    override public class func classBuilder() -> ProtocolBuffersMessageBuilder {
+        return Login.Builder()
+    }
+    override public func classBuilder() -> ProtocolBuffersMessageBuilder {
+        return Login.Builder()
+    }
+    public func toBuilder() throws -> Login.Builder {
+        return try Login.builderWithPrototype(prototype:self)
+    }
+    public class func builderWithPrototype(prototype:Login) throws -> Login.Builder {
+        return try Login.Builder().mergeFrom(other:prototype)
+    }
+    override public func encode() throws -> Dictionary<String,Any> {
+        guard isInitialized() else {
+            throw ProtocolBuffersError.invalidProtocolBuffer("Uninitialized Message")
+        }
+
+        var jsonMap:Dictionary<String,Any> = Dictionary<String,Any>()
+        if hasType {
+            jsonMap["type"] = UInt(type)
+        }
+        if hasUserName {
+            jsonMap["userName"] = userName
+        }
+        if hasAuthenToken {
+            jsonMap["authenToken"] = authenToken
+        }
+        if hasDeviceToken {
+            jsonMap["deviceToken"] = deviceToken
+        }
+        return jsonMap
+    }
+    override class public func decode(jsonMap:Dictionary<String,Any>) throws -> Login {
+        return try Login.Builder.decodeToBuilder(jsonMap:jsonMap).build()
+    }
+    override class public func fromJSON(data:Data) throws -> Login {
+        return try Login.Builder.fromJSONToBuilder(data:data).build()
+    }
+    override public func getDescription(indent:String) throws -> String {
+        var output = ""
+        if hasType {
+            output += "\(indent) type: \(type) \n"
+        }
+        if hasUserName {
+            output += "\(indent) userName: \(userName) \n"
+        }
+        if hasAuthenToken {
+            output += "\(indent) authenToken: \(authenToken) \n"
+        }
+        if hasDeviceToken {
+            output += "\(indent) deviceToken: \(deviceToken) \n"
+        }
+        output += unknownFields.getDescription(indent: indent)
+        return output
+    }
+    override public var hashValue:Int {
+        get {
+            var hashCode:Int = 7
+            if hasType {
+                hashCode = (hashCode &* 31) &+ type.hashValue
+            }
+            if hasUserName {
+                hashCode = (hashCode &* 31) &+ userName.hashValue
+            }
+            if hasAuthenToken {
+                hashCode = (hashCode &* 31) &+ authenToken.hashValue
+            }
+            if hasDeviceToken {
+                hashCode = (hashCode &* 31) &+ deviceToken.hashValue
+            }
+            hashCode = (hashCode &* 31) &+  unknownFields.hashValue
+            return hashCode
+        }
+    }
+
+
+    //Meta information declaration start
+
+    override public class func className() -> String {
+        return "Login"
+    }
+    override public func className() -> String {
+        return "Login"
+    }
+    //Meta information declaration end
+
+    final public class Builder : GeneratedMessageBuilder {
+        fileprivate var builderResult:Login = Login()
+        public func getMessage() -> Login {
+            return builderResult
+        }
+
+        required override public init () {
+            super.init()
+        }
+        public var type:UInt32 {
+            get {
+                return builderResult.type
+            }
+            set (value) {
+                builderResult.hasType = true
+                builderResult.type = value
+            }
+        }
+        public var hasType:Bool {
+            get {
+                return builderResult.hasType
+            }
+        }
+        @discardableResult
+        public func setType(_ value:UInt32) -> Login.Builder {
+            self.type = value
+            return self
+        }
+        @discardableResult
+        public func clearType() -> Login.Builder{
+            builderResult.hasType = false
+            builderResult.type = nil
+            return self
+        }
+        public var userName:String {
+            get {
+                return builderResult.userName
+            }
+            set (value) {
+                builderResult.hasUserName = true
+                builderResult.userName = value
+            }
+        }
+        public var hasUserName:Bool {
+            get {
+                return builderResult.hasUserName
+            }
+        }
+        @discardableResult
+        public func setUserName(_ value:String) -> Login.Builder {
+            self.userName = value
+            return self
+        }
+        @discardableResult
+        public func clearUserName() -> Login.Builder{
+            builderResult.hasUserName = false
+            builderResult.userName = nil
+            return self
+        }
+        public var authenToken:String {
+            get {
+                return builderResult.authenToken
+            }
+            set (value) {
+                builderResult.hasAuthenToken = true
+                builderResult.authenToken = value
+            }
+        }
+        public var hasAuthenToken:Bool {
+            get {
+                return builderResult.hasAuthenToken
+            }
+        }
+        @discardableResult
+        public func setAuthenToken(_ value:String) -> Login.Builder {
+            self.authenToken = value
+            return self
+        }
+        @discardableResult
+        public func clearAuthenToken() -> Login.Builder{
+            builderResult.hasAuthenToken = false
+            builderResult.authenToken = nil
+            return self
+        }
+        public var deviceToken:String {
+            get {
+                return builderResult.deviceToken
+            }
+            set (value) {
+                builderResult.hasDeviceToken = true
+                builderResult.deviceToken = value
+            }
+        }
+        public var hasDeviceToken:Bool {
+            get {
+                return builderResult.hasDeviceToken
+            }
+        }
+        @discardableResult
+        public func setDeviceToken(_ value:String) -> Login.Builder {
+            self.deviceToken = value
+            return self
+        }
+        @discardableResult
+        public func clearDeviceToken() -> Login.Builder{
+            builderResult.hasDeviceToken = false
+            builderResult.deviceToken = nil
+            return self
+        }
+        override public var internalGetResult:GeneratedMessage {
+            get {
+                return builderResult
+            }
+        }
+        @discardableResult
+        override public func clear() -> Login.Builder {
+            builderResult = Login()
+            return self
+        }
+        override public func clone() throws -> Login.Builder {
+            return try Login.builderWithPrototype(prototype:builderResult)
+        }
+        override public func build() throws -> Login {
+            try checkInitialized()
+            return buildPartial()
+        }
+        public func buildPartial() -> Login {
+            let returnMe:Login = builderResult
+            return returnMe
+        }
+        @discardableResult
+        public func mergeFrom(other:Login) throws -> Login.Builder {
+            if other == Login() {
+                return self
+            }
+            if other.hasType {
+                type = other.type
+            }
+            if other.hasUserName {
+                userName = other.userName
+            }
+            if other.hasAuthenToken {
+                authenToken = other.authenToken
+            }
+            if other.hasDeviceToken {
+                deviceToken = other.deviceToken
+            }
+            try merge(unknownField: other.unknownFields)
+            return self
+        }
+        @discardableResult
+        override public func mergeFrom(codedInputStream: CodedInputStream) throws -> Login.Builder {
+            return try mergeFrom(codedInputStream: codedInputStream, extensionRegistry:ExtensionRegistry())
+        }
+        @discardableResult
+        override public func mergeFrom(codedInputStream: CodedInputStream, extensionRegistry:ExtensionRegistry) throws -> Login.Builder {
+            let unknownFieldsBuilder:UnknownFieldSet.Builder = try UnknownFieldSet.builderWithUnknownFields(copyFrom:self.unknownFields)
+            while (true) {
+                let protobufTag = try codedInputStream.readTag()
+                switch protobufTag {
+                case 0: 
+                    self.unknownFields = try unknownFieldsBuilder.build()
+                    return self
+
+                case 8:
+                    type = try codedInputStream.readUInt32()
+
+                case 18:
+                    userName = try codedInputStream.readString()
+
+                case 26:
+                    authenToken = try codedInputStream.readString()
+
+                case 34:
+                    deviceToken = try codedInputStream.readString()
+
+                default:
+                    if (!(try parse(codedInputStream:codedInputStream, unknownFields:unknownFieldsBuilder, extensionRegistry:extensionRegistry, tag:protobufTag))) {
+                        unknownFields = try unknownFieldsBuilder.build()
+                        return self
+                    }
+                }
+            }
+        }
+        class override public func decodeToBuilder(jsonMap:Dictionary<String,Any>) throws -> Login.Builder {
+            let resultDecodedBuilder = Login.Builder()
+            if let jsonValueType = jsonMap["type"] as? UInt {
+                resultDecodedBuilder.type = UInt32(jsonValueType)
+            } else if let jsonValueType = jsonMap["type"] as? String {
+                resultDecodedBuilder.type = UInt32(jsonValueType)!
+            }
+            if let jsonValueUserName = jsonMap["userName"] as? String {
+                resultDecodedBuilder.userName = jsonValueUserName
+            }
+            if let jsonValueAuthenToken = jsonMap["authenToken"] as? String {
+                resultDecodedBuilder.authenToken = jsonValueAuthenToken
+            }
+            if let jsonValueDeviceToken = jsonMap["deviceToken"] as? String {
+                resultDecodedBuilder.deviceToken = jsonValueDeviceToken
+            }
+            return resultDecodedBuilder
+        }
+        override class public func fromJSONToBuilder(data:Data) throws -> Login.Builder {
+            let jsonData = try JSONSerialization.jsonObject(with:data, options: JSONSerialization.ReadingOptions(rawValue: 0))
+            guard let jsDataCast = jsonData as? Dictionary<String,Any> else {
+              throw ProtocolBuffersError.invalidProtocolBuffer("Invalid JSON data")
+            }
+            return try Login.Builder.decodeToBuilder(jsonMap:jsDataCast)
+        }
+    }
+
+}
+
 final public class Wire : GeneratedMessage {
     public typealias BuilderType = Wire.Builder
 
@@ -716,10 +1093,8 @@ final public class Wire : GeneratedMessage {
 
     public fileprivate(set) var which:Wire.Which = Wire.Which.login
     public fileprivate(set) var hasWhich:Bool = false
-    /// One of the following will be filled in
-    public fileprivate(set) var login:String! = nil
+    public fileprivate(set) var login:Login!
     public fileprivate(set) var hasLogin:Bool = false
-
     public fileprivate(set) var contacts:Array<Contact>  = Array<Contact>()
     public fileprivate(set) var store:Store!
     public fileprivate(set) var hasStore:Bool = false
@@ -749,7 +1124,7 @@ final public class Wire : GeneratedMessage {
             try codedOutputStream.writeEnum(fieldNumber: 5, value:which.rawValue)
         }
         if hasLogin {
-            try codedOutputStream.writeString(fieldNumber: 101, value:login)
+            try codedOutputStream.writeMessage(fieldNumber: 101, value:login)
         }
         for oneElementContacts in contacts {
               try codedOutputStream.writeMessage(fieldNumber: 102, value:oneElementContacts)
@@ -785,7 +1160,9 @@ final public class Wire : GeneratedMessage {
             serialize_size += which.rawValue.computeEnumSize(fieldNumber: 5)
         }
         if hasLogin {
-            serialize_size += login.computeStringSize(fieldNumber: 101)
+            if let varSizelogin = login?.computeMessageSize(fieldNumber: 101) {
+                serialize_size += varSizelogin
+            }
         }
         for oneElementContacts in contacts {
             serialize_size += oneElementContacts.computeMessageSize(fieldNumber: 102)
@@ -842,7 +1219,7 @@ final public class Wire : GeneratedMessage {
             jsonMap["which"] = which.toString()
         }
         if hasLogin {
-            jsonMap["login"] = login
+            jsonMap["login"] = try login.encode()
         }
         if !contacts.isEmpty {
             var jsonArrayContacts:Array<Dictionary<String,Any>> = []
@@ -884,7 +1261,11 @@ final public class Wire : GeneratedMessage {
             output += "\(indent) which: \(which.description)\n"
         }
         if hasLogin {
-            output += "\(indent) login: \(login) \n"
+            output += "\(indent) login {\n"
+            if let outDescLogin = login {
+                output += try outDescLogin.getDescription(indent: "\(indent)  ")
+            }
+            output += "\(indent) }\n"
         }
         var contactsElementIndex:Int = 0
         for oneElementContacts in contacts {
@@ -925,7 +1306,9 @@ final public class Wire : GeneratedMessage {
                  hashCode = (hashCode &* 31) &+ which.hashValue
             }
             if hasLogin {
-                hashCode = (hashCode &* 31) &+ login.hashValue
+                if let hashValuelogin = login?.hashValue {
+                    hashCode = (hashCode &* 31) &+ hashValuelogin
+                }
             }
             for oneElementContacts in contacts {
                 hashCode = (hashCode &* 31) &+ oneElementContacts.hashValue
@@ -1089,8 +1472,11 @@ final public class Wire : GeneratedMessage {
                return self
             }
         /// One of the following will be filled in
-        public var login:String {
+        public var login:Login! {
             get {
+                if loginBuilder_ != nil {
+                    builderResult.login = loginBuilder_.getMessage()
+                }
                 return builderResult.login
             }
             set (value) {
@@ -1103,13 +1489,39 @@ final public class Wire : GeneratedMessage {
                 return builderResult.hasLogin
             }
         }
+        fileprivate var loginBuilder_:Login.Builder! {
+            didSet {
+                builderResult.hasLogin = true
+            }
+        }
+        public func getLoginBuilder() -> Login.Builder {
+            if loginBuilder_ == nil {
+                loginBuilder_ = Login.Builder()
+                builderResult.login = loginBuilder_.getMessage()
+                if login != nil {
+                    try! loginBuilder_.mergeFrom(other: login)
+                }
+            }
+            return loginBuilder_
+        }
         @discardableResult
-        public func setLogin(_ value:String) -> Wire.Builder {
+        public func setLogin(_ value:Login!) -> Wire.Builder {
             self.login = value
             return self
         }
         @discardableResult
-        public func clearLogin() -> Wire.Builder{
+        public func mergeLogin(value:Login) throws -> Wire.Builder {
+            if builderResult.hasLogin {
+                builderResult.login = try Login.builderWithPrototype(prototype:builderResult.login).mergeFrom(other: value).buildPartial()
+            } else {
+                builderResult.login = value
+            }
+            builderResult.hasLogin = true
+            return self
+        }
+        @discardableResult
+        public func clearLogin() -> Wire.Builder {
+            loginBuilder_ = nil
             builderResult.hasLogin = false
             builderResult.login = nil
             return self
@@ -1253,8 +1665,8 @@ final public class Wire : GeneratedMessage {
             if other.hasWhich {
                 which = other.which
             }
-            if other.hasLogin {
-                login = other.login
+            if (other.hasLogin) {
+                try mergeLogin(value: other.login)
             }
             if !other.contacts.isEmpty  {
                  builderResult.contacts += other.contacts
@@ -1303,7 +1715,12 @@ final public class Wire : GeneratedMessage {
                     }
 
                 case 810:
-                    login = try codedInputStream.readString()
+                    let subBuilder:Login.Builder = Login.Builder()
+                    if hasLogin {
+                        try subBuilder.mergeFrom(other: login)
+                    }
+                    try codedInputStream.readMessage(builder: subBuilder, extensionRegistry:extensionRegistry)
+                    login = subBuilder.buildPartial()
 
                 case 818:
                     let subBuilder = Contact.Builder()
@@ -1348,8 +1765,9 @@ final public class Wire : GeneratedMessage {
             if let jsonValueWhich = jsonMap["which"] as? String {
                 resultDecodedBuilder.which = try Wire.Which.fromString(jsonValueWhich)
             }
-            if let jsonValueLogin = jsonMap["login"] as? String {
-                resultDecodedBuilder.login = jsonValueLogin
+            if let jsonValueLogin = jsonMap["login"] as? Dictionary<String,Any> {
+                resultDecodedBuilder.login = try Login.Builder.decodeToBuilder(jsonMap:jsonValueLogin).build()
+
             }
             if let jsonValueContacts = jsonMap["contacts"] as? Array<Dictionary<String,Any>> {
                 var jsonArrayContacts:Array<Contact> = []
@@ -1515,6 +1933,84 @@ extension Store.Builder: GeneratedMessageBuilderProtocol {
         }
     }
 }
+extension Login: GeneratedMessageProtocol {
+    public class func parseArrayDelimitedFrom(inputStream: InputStream) throws -> Array<Login> {
+        var mergedArray = Array<Login>()
+        while let value = try parseDelimitedFrom(inputStream: inputStream) {
+          mergedArray.append(value)
+        }
+        return mergedArray
+    }
+    public class func parseDelimitedFrom(inputStream: InputStream) throws -> Login? {
+        return try Login.Builder().mergeDelimitedFrom(inputStream: inputStream)?.build()
+    }
+    public class func parseFrom(data: Data) throws -> Login {
+        return try Login.Builder().mergeFrom(data: data, extensionRegistry:WireRoot.default.extensionRegistry).build()
+    }
+    public class func parseFrom(data: Data, extensionRegistry:ExtensionRegistry) throws -> Login {
+        return try Login.Builder().mergeFrom(data: data, extensionRegistry:extensionRegistry).build()
+    }
+    public class func parseFrom(inputStream: InputStream) throws -> Login {
+        return try Login.Builder().mergeFrom(inputStream: inputStream).build()
+    }
+    public class func parseFrom(inputStream: InputStream, extensionRegistry:ExtensionRegistry) throws -> Login {
+        return try Login.Builder().mergeFrom(inputStream: inputStream, extensionRegistry:extensionRegistry).build()
+    }
+    public class func parseFrom(codedInputStream: CodedInputStream) throws -> Login {
+        return try Login.Builder().mergeFrom(codedInputStream: codedInputStream).build()
+    }
+    public class func parseFrom(codedInputStream: CodedInputStream, extensionRegistry:ExtensionRegistry) throws -> Login {
+        return try Login.Builder().mergeFrom(codedInputStream: codedInputStream, extensionRegistry:extensionRegistry).build()
+    }
+    public subscript(key: String) -> Any? {
+        switch key {
+        case "type": return self.type
+        case "userName": return self.userName
+        case "authenToken": return self.authenToken
+        case "deviceToken": return self.deviceToken
+        default: return nil
+        }
+    }
+}
+extension Login.Builder: GeneratedMessageBuilderProtocol {
+    public typealias GeneratedMessageType = Login
+    public subscript(key: String) -> Any? {
+        get { 
+            switch key {
+            case "type": return self.type
+            case "userName": return self.userName
+            case "authenToken": return self.authenToken
+            case "deviceToken": return self.deviceToken
+            default: return nil
+            }
+        }
+        set (newSubscriptValue) { 
+            switch key {
+            case "type":
+                guard let newSubscriptValue = newSubscriptValue as? UInt32 else {
+                    return
+                }
+                self.type = newSubscriptValue
+            case "userName":
+                guard let newSubscriptValue = newSubscriptValue as? String else {
+                    return
+                }
+                self.userName = newSubscriptValue
+            case "authenToken":
+                guard let newSubscriptValue = newSubscriptValue as? String else {
+                    return
+                }
+                self.authenToken = newSubscriptValue
+            case "deviceToken":
+                guard let newSubscriptValue = newSubscriptValue as? String else {
+                    return
+                }
+                self.deviceToken = newSubscriptValue
+            default: return
+            }
+        }
+    }
+}
 extension Wire: GeneratedMessageProtocol {
     public class func parseArrayDelimitedFrom(inputStream: InputStream) throws -> Array<Wire> {
         var mergedArray = Array<Wire>()
@@ -1604,7 +2100,7 @@ extension Wire.Builder: GeneratedMessageBuilderProtocol {
                 }
                 self.which = newSubscriptValue
             case "login":
-                guard let newSubscriptValue = newSubscriptValue as? String else {
+                guard let newSubscriptValue = newSubscriptValue as? Login else {
                     return
                 }
                 self.login = newSubscriptValue
