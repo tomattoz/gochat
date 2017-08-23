@@ -38,6 +38,8 @@ import red.tel.chat.office365.Constants;
 import red.tel.chat.office365.TokenNotFoundException;
 
 import static red.tel.chat.Model.parseJsonUser;
+import static red.tel.chat.office365.Constants.TYPE_LOGIN_MS;
+import static red.tel.chat.office365.Constants.TYPE_LOGIN_NORMAL;
 
 public class LoginActivity extends BaseActivity implements AuthorizationService.TokenResponseCallback {
 
@@ -172,8 +174,7 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
         String username = usernameView.getText().toString();
         String password = passwordView.getText().toString();
         Model.shared().setAccessToken("normal");
-        Model.shared().setTypeLogin(Constants.TYPE_LOGIN_NORMAL);
-        login(username, password, "normal");
+        login(TYPE_LOGIN_NORMAL, username, password, "normal");
 
         InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null) {
@@ -181,13 +182,14 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
         }
     }
 
-    private void login(String username, String password, String accessToken) {
+    private void login(int typeLogin, String username, String password, String accessToken) {
         Model.shared().setUsername(username);
         Model.shared().setPassword(password);
+        Model.shared().setTypeLogin(typeLogin);
         showProgress(true);
         String tokenNotificaion = Model.shared().getTokenPushNotification();
         if (tokenNotificaion != null) {
-            Backend.shared().login(parseJsonUser(username, accessToken, tokenNotificaion));
+            Backend.shared().login(typeLogin, username, accessToken, tokenNotificaion);
         } else {
             showProgress(false);
         }
@@ -219,8 +221,8 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
             try {
                 String accessToken = AuthenticationManager.getInstance().getAccessToken();
                 Model.shared().setAccessToken(accessToken);
-                login(name, tid, accessToken);
-                Model.shared().setTypeLogin(Constants.TYPE_LOGIN_MS);
+                login(TYPE_LOGIN_MS, name, tid, accessToken);
+                Model.shared().setTypeLogin(TYPE_LOGIN_MS);
                 Log.d(TAG, "onTokenRequestCompleted: " + accessToken);
             } catch (TokenNotFoundException e) {
                 e.printStackTrace();

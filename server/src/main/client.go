@@ -165,9 +165,9 @@ func (client *Client) sendContacts(sessionId string) {
 
 func (client *Client) loginFail(sessionId string) {
   buds := &Wire{
-	Which:		Wire_LOGIN_RESPONSE,
-	SessionId: 	sessionId,
-	To:			client.id,
+	Which:     Wire_LOGIN_RESPONSE,
+	SessionId: sessionId,
+	To:        client.id,
   }
   crowd.queue <- *buds
   message := <-crowd.queue
@@ -194,21 +194,21 @@ func (client *Client) receivedContacts(wire *Wire) {
   forward(client, wire)
 }
 
-func (client *Client) pushNotification(data map[string]interface{}, pushToken string)  {
+func (client *Client) pushNotification(data map[string]interface{}, pushToken string) {
   serverKey := "AIzaSyB14mtQyetuI127fV11JGb-bTqVkfBDQJY"
   var msg gcm.HttpMessage
   regIDs := []string{pushToken}
 
   msg.RegistrationIds = regIDs
   msg.Data = data
-  response,err := gcm.SendHttp(serverKey,msg)
+  response, err := gcm.SendHttp(serverKey, msg)
   if err != nil {
 	fmt.Println(err.Error())
-  }else{
-	fmt.Println("Response ",response.Success)
-	fmt.Println("MessageID ",response.MessageId)
-	fmt.Println("Failure ",response.Failure)
-	fmt.Println("Error ",response.Error)
-	fmt.Println("Results ",response.Results)
+  } else {
+	fmt.Println("Response ", response.Success)
+	fmt.Println("MessageID ", response.MessageId)
+	fmt.Println("Failure ", response.Failure)
+	fmt.Println("Error ", response.Error)
+	fmt.Println("Results ", response.Results)
   }
 }

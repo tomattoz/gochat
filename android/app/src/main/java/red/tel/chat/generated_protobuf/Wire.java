@@ -39,8 +39,6 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
 
   public static final Which DEFAULT_WHICH = Which.LOGIN;
 
-  public static final String DEFAULT_LOGIN = "";
-
   public static final ByteString DEFAULT_PAYLOAD = ByteString.EMPTY;
 
   @WireField(
@@ -78,9 +76,9 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
    */
   @WireField(
       tag = 101,
-      adapter = "com.squareup.wire.ProtoAdapter#STRING"
+      adapter = "red.tel.chat.generated_protobuf.Login#ADAPTER"
   )
-  public final String login;
+  public final Login login;
 
   /**
    * for roster, presence, and invite
@@ -104,12 +102,12 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
   )
   public final ByteString payload;
 
-  public Wire(Integer version, String sessionId, String from, String to, Which which, String login,
+  public Wire(Integer version, String sessionId, String from, String to, Which which, Login login,
       List<Contact> contacts, Store store, ByteString payload) {
     this(version, sessionId, from, to, which, login, contacts, store, payload, ByteString.EMPTY);
   }
 
-  public Wire(Integer version, String sessionId, String from, String to, Which which, String login,
+  public Wire(Integer version, String sessionId, String from, String to, Which which, Login login,
       List<Contact> contacts, Store store, ByteString payload, ByteString unknownFields) {
     super(ADAPTER, unknownFields);
     this.version = version;
@@ -201,7 +199,7 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
 
     public Which which;
 
-    public String login;
+    public Login login;
 
     public List<Contact> contacts;
 
@@ -241,7 +239,7 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
     /**
      * One of the following will be filled in
      */
-    public Builder login(String login) {
+    public Builder login(Login login) {
       this.login = login;
       return this;
     }
@@ -351,7 +349,7 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
           + ProtoAdapter.STRING.encodedSizeWithTag(3, value.from)
           + ProtoAdapter.STRING.encodedSizeWithTag(4, value.to)
           + Which.ADAPTER.encodedSizeWithTag(5, value.which)
-          + ProtoAdapter.STRING.encodedSizeWithTag(101, value.login)
+          + Login.ADAPTER.encodedSizeWithTag(101, value.login)
           + Contact.ADAPTER.asRepeated().encodedSizeWithTag(102, value.contacts)
           + Store.ADAPTER.encodedSizeWithTag(104, value.store)
           + ProtoAdapter.BYTES.encodedSizeWithTag(106, value.payload)
@@ -365,7 +363,7 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
       ProtoAdapter.STRING.encodeWithTag(writer, 3, value.from);
       ProtoAdapter.STRING.encodeWithTag(writer, 4, value.to);
       Which.ADAPTER.encodeWithTag(writer, 5, value.which);
-      ProtoAdapter.STRING.encodeWithTag(writer, 101, value.login);
+      Login.ADAPTER.encodeWithTag(writer, 101, value.login);
       Contact.ADAPTER.asRepeated().encodeWithTag(writer, 102, value.contacts);
       Store.ADAPTER.encodeWithTag(writer, 104, value.store);
       ProtoAdapter.BYTES.encodeWithTag(writer, 106, value.payload);
@@ -390,7 +388,7 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
             }
             break;
           }
-          case 101: builder.login(ProtoAdapter.STRING.decode(reader)); break;
+          case 101: builder.login(Login.ADAPTER.decode(reader)); break;
           case 102: builder.contacts.add(Contact.ADAPTER.decode(reader)); break;
           case 104: builder.store(Store.ADAPTER.decode(reader)); break;
           case 106: builder.payload(ProtoAdapter.BYTES.decode(reader)); break;
@@ -408,6 +406,7 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
     @Override
     public Wire redact(Wire value) {
       Builder builder = value.newBuilder();
+      if (builder.login != null) builder.login = Login.ADAPTER.redact(builder.login);
       Internal.redactElements(builder.contacts, Contact.ADAPTER);
       if (builder.store != null) builder.store = Store.ADAPTER.redact(builder.store);
       builder.clearUnknownFields();

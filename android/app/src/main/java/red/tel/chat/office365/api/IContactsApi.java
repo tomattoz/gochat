@@ -8,5 +8,5 @@ import retrofit2.http.Query;
 
 public interface IContactsApi {
     @GET("me/contacts")
-    Observable<ContactsModel> getContacts(@Query("$skip") int skip);
+    Observable<ContactsModel> getContacts(@Query("$top")int top, @Query("$skip") int skip);
 }

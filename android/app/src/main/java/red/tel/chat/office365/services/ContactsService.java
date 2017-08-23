@@ -47,6 +47,6 @@ public class ContactsService {
     }
 
     public Observable<ContactsModel> getContacts(int skipPage) {
-        return buildApi().getContacts(skipPage);
+        return buildApi().getContacts(200, skipPage);
     }
 }

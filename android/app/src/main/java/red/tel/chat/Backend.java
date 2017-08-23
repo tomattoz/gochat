@@ -13,6 +13,7 @@ import java.util.Map;
 
 import okio.ByteString;
 import red.tel.chat.generated_protobuf.Contact;
+import red.tel.chat.generated_protobuf.Login;
 import red.tel.chat.generated_protobuf.Store;
 import red.tel.chat.generated_protobuf.Voip;
 import red.tel.chat.generated_protobuf.Wire;
@@ -50,11 +51,12 @@ public class Backend extends IntentService {
         network = new Network();
 
         EventBus.listenFor(this, EventBus.Event.CONNECTED, () -> {
+            int typeLogin = Model.shared().getTypeLogin();
             String username = Model.shared().getUsername();
-            String token = Model.shared().getAccessToken();
-            String tokenNotification = Model.shared().getTokenPushNotification();
-            if (username != null && tokenNotification != null) {
-                Backend.this.login(parseJsonUser(username, token, tokenNotification));
+            String authenToken = Model.shared().getAccessToken();
+            String deviceToken = Model.shared().getTokenPushNotification();
+            if (username != null && deviceToken != null) {
+                Backend.this.login(typeLogin, username, authenToken, deviceToken);
                 Log.d(TAG, "re login: ");
             }
         });
@@ -88,6 +90,9 @@ public class Backend extends IntentService {
                     break;
                 case LOGIN_RESPONSE:
                     RxBus.getInstance().sendEvent(EventBus.Event.LOGIN_RESPONSE);
+                    break;
+                case LOGIN:
+                    Log.d(TAG, "login : ");
                     break;
                 default:
                     break;
@@ -193,8 +198,15 @@ public class Backend extends IntentService {
     }
 
     // send to Network
-    public void login(String username) {
-        Wire.Builder wire = new Wire.Builder().which(LOGIN).login(username);
+    public void login(int type, String username, String authenToken, String deviceToken) {
+        Login login = new Login
+                .Builder()
+                .type(type)
+                .userName(username)
+                .authenToken(authenToken)
+                .deviceToken(deviceToken)
+                .build();
+        Wire.Builder wire = new Wire.Builder().which(LOGIN).login(login);
         instance.buildAndSend(wire);
     }
 

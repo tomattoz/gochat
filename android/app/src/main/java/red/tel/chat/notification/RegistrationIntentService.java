@@ -87,7 +87,6 @@ public class RegistrationIntentService extends IntentService {
     private void sendRegistrationToServer(String token) {
         if (token != null) {
             Model.shared().setTokenPushNotification(token);
-            Log.d(TAG, "sendRegistrationToServer: " + token);
         }
     }
 

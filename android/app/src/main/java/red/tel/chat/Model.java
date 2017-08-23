@@ -1,6 +1,7 @@
 package red.tel.chat;
 
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -8,22 +9,19 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import okio.ByteString;
 import red.tel.chat.EventBus.Event;
-import red.tel.chat.generated_protobuf.Wire;
-import red.tel.chat.generated_protobuf.Voip;
 import red.tel.chat.generated_protobuf.Contact;
 import red.tel.chat.generated_protobuf.Text;
+import red.tel.chat.generated_protobuf.Voip;
+import red.tel.chat.generated_protobuf.Wire;
 
+import static red.tel.chat.generated_protobuf.Wire.Which.CONTACTS;
 import static red.tel.chat.generated_protobuf.Wire.Which.PRESENCE;
 
 public class Model {
@@ -48,7 +46,11 @@ public class Model {
     }
 
     public List<String> getContacts() {
-        return roster.values().stream().map(contact -> contact.id).collect(Collectors.toList());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            return roster.values().stream().map(contact -> contact.id).collect(Collectors.toList());
+        } else {
+            return new ArrayList<>(roster.keySet());
+        }
     }
 
     public Boolean isOnline(String name) {
@@ -107,12 +109,19 @@ public class Model {
     void incomingFromServer(Wire wire) {
         switch (wire.which) {
             case CONTACTS:
-                roster = wire.contacts.stream().collect(Collectors.toMap(c -> c.id, c -> c));
-                EventBus.announce(Event.CONTACTS);
-                break;
             case PRESENCE:
-                roster = wire.contacts.stream().collect(Collectors.toMap(c -> c.id, c -> c));
-                RxBus.getInstance().sendEvent(PRESENCE);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    roster = wire.contacts.stream().collect(Collectors.toMap(c -> c.id, c -> c));
+                } else {
+                    for (Contact contact : wire.contacts) {
+                        roster.put(contact.id, contact);
+                    }
+                }
+                if (wire.which == CONTACTS) {
+                    EventBus.announce(Event.CONTACTS);
+                } else if (wire.which == PRESENCE) {
+                    RxBus.getInstance().sendEvent(PRESENCE);
+                }
                 break;
             default:
                 Log.e(TAG, "Did not handle incoming " + wire.which);
@@ -153,20 +162,26 @@ public class Model {
     }
 
     public void setContacts(List<String> names) {
-        /*for ( int i = 0; i < names.size()-1; i++ ) {
-            for ( int j = i + 1; j < names.size(); j++ ) {
-                if ( names.get(i).equals(names.get(j))) {
-                    names.remove(i);
-                    i--;
-                    break;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            roster = names.stream().collect(Collectors.toMap(id -> id, id ->
+                    roster.containsKey(id) ?
+                            roster.get(id) :
+                            new Contact.Builder().id(id).name(id).build(), (contact, contact2) -> contact));
+        } else {
+            for (int i = 0; i < names.size() - 1; i++) {
+                for (int j = i + 1; j < names.size(); j++) {
+                    if (names.get(i).equals(names.get(j))) {
+                        names.remove(i);
+                        i--;
+                        break;
+                    }
                 }
             }
-        }*/
+            for (String name : names) {
+                roster.put(name, roster.containsKey(name) ? roster.get(name) : new Contact.Builder().id(name).name(name).build());
+            }
 
-        roster = names.stream().collect(Collectors.toMap(id -> id, id ->
-                roster.containsKey(id) ?
-                        roster.get(id) :
-                        new Contact.Builder().id(id).build(), (contact, contact2) -> contact));
+        }
         Backend.shared().sendContacts(new ArrayList<>(roster.values()));
     }
 
