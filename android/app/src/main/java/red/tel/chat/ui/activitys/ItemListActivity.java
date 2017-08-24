@@ -13,30 +13,32 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.microsoft.graph.concurrency.ICallback;
 import com.microsoft.graph.core.ClientException;
 import com.microsoft.graph.extensions.Contact;
 import com.microsoft.graph.extensions.IContactCollectionPage;
-import com.microsoft.graph.extensions.IContactRequest;
 import com.microsoft.graph.extensions.IGraphServiceClient;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.Executors;
 
+import io.reactivex.Observable;
+import io.reactivex.Scheduler;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import red.tel.chat.ChatApp;
 import red.tel.chat.EventBus;
 import red.tel.chat.Model;
-import red.tel.chat.Network;
 import red.tel.chat.R;
 import red.tel.chat.generated_protobuf.Wire;
 import red.tel.chat.office365.Constants;
@@ -59,9 +61,14 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
     private SimpleItemRecyclerViewAdapter recyclerViewAdapter;
     private ContactsContract.Presenter presenter;
     private IGraphServiceClient mGraphServiceClient;
+
+    private Scheduler scheduler;
+    private Disposable disposable;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        scheduler = Schedulers.from(Executors.newSingleThreadExecutor());
         setContentView(R.layout.activity_item_list);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -83,7 +90,7 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
         presenter.attachView(this);
         if (Model.shared().getTypeLogin() == Constants.TYPE_LOGIN_MS) {
             presenter.getListContacts(0);
-            mGraphServiceClient = ((ChatApp)getApplication()).getGraphServiceClient();
+            mGraphServiceClient = ((ChatApp) getApplication()).getGraphServiceClient();
             mGraphServiceClient.getMe().getContacts().buildRequest().get(new ICallback<IContactCollectionPage>() {
                 @Override
                 public void success(IContactCollectionPage iContactCollectionPage) {
@@ -108,22 +115,62 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
         this.recyclerViewAdapter = new SimpleItemRecyclerViewAdapter(recyclerView);
         recyclerView.setAdapter(this.recyclerViewAdapter);
         this.recyclerViewAdapter.setOnLoadMoreListener(this);
+        this.recyclerViewAdapter.onLoadDataFromServer(this);
     }
 
     @Override
     public void showListContact(ContactsModel contactsModel) {
-        for (ContactsModel.DataContacts contacts : contactsModel.getDataContacts()) {
-            if (!recyclerViewAdapter.values.contains(contacts.getDisplayName())) {
-                recyclerViewAdapter.values.add(contacts.getDisplayName());
-                Model.shared().setContacts(recyclerViewAdapter.values);
-            }
-        }
+        Log.d(TAG, "showListContact: ");
 
-        recyclerViewAdapter.notifyDataSetChanged();
-        if (contactsModel.getNexPage() != 0) {
-            recyclerViewAdapter.setPageNext(contactsModel.getNexPage());
-            recyclerViewAdapter.setLoaded();
+        if (disposable != null && !disposable.isDisposed()) {
+            disposable.dispose();
         }
+        disposable = Observable.just(recyclerViewAdapter.values)
+                .observeOn(scheduler)
+                .map(t -> {
+                    Log.d(TAG, "showListContact: 1");
+                    List<red.tel.chat.generated_protobuf.Contact> contacts = new ArrayList<>();
+                    contacts.addAll(t);
+                    List<red.tel.chat.generated_protobuf.Contact> contactList = new ArrayList<>();
+                    for (ContactsModel.DataContacts newCon : contactsModel.getDataContacts()) {
+                        if (newCon.getEmailAddresses() == null || newCon.getEmailAddresses().get(0).address == null) {
+                            continue;
+                        }
+                        red.tel.chat.generated_protobuf.Contact contact = new red.tel.chat.generated_protobuf.Contact.Builder()
+                                .id(newCon.getEmailAddresses().get(0).address)
+                                .name(newCon.getEmailAddresses().get(0).address).build();
+                        for (red.tel.chat.generated_protobuf.Contact contact1 : contacts) {
+                            if (contact1.id.equals(newCon.getEmailAddresses().get(0).address)) {//chu y
+                                contacts.remove(contact1);
+                                break;
+                            }
+                        }
+                        contactList.add(contact);
+                    }
+                    contactList.addAll(contacts);
+                    Collections.sort(contactList, new Comparator<red.tel.chat.generated_protobuf.Contact>() {
+                        @Override
+                        public int compare(red.tel.chat.generated_protobuf.Contact contact, red.tel.chat.generated_protobuf.Contact t1) {
+                            return contact.name.compareTo(t1.name);
+                        }
+                    });
+                    return contactList;
+                }).flatMap(res -> {
+                    Log.d(TAG, "showListContact: 2");
+                    return Observable.just(res);
+                }).observeOn(AndroidSchedulers.mainThread()).
+                        subscribe(t -> {
+                            Log.d(TAG, "showListContact: 3");
+                            recyclerViewAdapter.values = t;
+                            Model.shared().setContacts(recyclerViewAdapter.values);
+                            recyclerViewAdapter.notifyData();
+
+                            if (contactsModel.getNexPage() != 0) {
+                                recyclerViewAdapter.setPageNext(contactsModel.getNexPage());
+                                recyclerViewAdapter.setLoaded();
+                            }
+                        });
+
     }
 
     @Override
@@ -140,19 +187,27 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
     }
 
     class SimpleItemRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-        private List<String> values = new ArrayList<>();
+        private List<red.tel.chat.generated_protobuf.Contact> values = new ArrayList<>();
         private int visibleThreshold = 5;
         private int lastVisibleItem, totalItemCount;
         private boolean isLoading;
         private int pageNext = 0;
 
         private OnLoadMoreListener onLoadMoreListener;
+
+
         public void setOnLoadMoreListener(OnLoadMoreListener mOnLoadMoreListener) {
             this.onLoadMoreListener = mOnLoadMoreListener;
         }
 
+        public void notifyData() {
+            Log.d(TAG, "notifyData: .........");
+            notifyDataSetChanged();
+        }
+
         SimpleItemRecyclerViewAdapter(RecyclerView recyclerView) {
             values = Model.shared().getContacts();
+            softListContact();
             final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
             recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
                 @Override
@@ -160,7 +215,7 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
                     super.onScrolled(recyclerView, dx, dy);
                     totalItemCount = linearLayoutManager.getItemCount();
                     lastVisibleItem = linearLayoutManager.findLastVisibleItemPosition();
-                    if (!isLoading && totalItemCount <= (lastVisibleItem + visibleThreshold)) {
+                    if (!isLoading && totalItemCount <= (lastVisibleItem + 1)) {
                         if (onLoadMoreListener != null) {
                             onLoadMoreListener.onLoadMore(pageNext);
                         }
@@ -168,6 +223,7 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
                     }
                 }
             });
+
         }
 
         @Override
@@ -175,17 +231,31 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
             View view = LayoutInflater
                     .from(parent.getContext())
                     .inflate(R.layout.item_list_content, parent, false);
-            EventBus.listenFor(parent.getContext(), EventBus.Event.CONTACTS, () -> {
-                values = Model.shared().getContacts();
-                notifyDataSetChanged();
-            });
+            //onLoadDataFromServer(parent);
             return new ViewHolder(view);
+        }
+
+        private void onLoadDataFromServer(Context context) {
+            EventBus.listenFor(context, EventBus.Event.CONTACTS, () -> {
+                values = Model.shared().getContacts();
+                softListContact();
+                notifyData();
+            });
+        }
+
+        private void softListContact() {
+            Collections.sort(values, new Comparator<red.tel.chat.generated_protobuf.Contact>() {
+                @Override
+                public int compare(red.tel.chat.generated_protobuf.Contact contact, red.tel.chat.generated_protobuf.Contact t1) {
+                    return contact.name.compareTo(t1.name);
+                }
+            });
         }
 
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             ViewHolder viewHolder = (ViewHolder) holder;
-            String name = this.values.get(position);
+            String name = this.values.get(position).name;
             if (name == null || name.equals("")) {
                 return;
             }
@@ -253,7 +323,7 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
                 alert.setPositiveButton(R.string.ok, (dialog, whichButton) -> {
                     recyclerViewAdapter.values.remove(contactName.getText().toString());
                     Model.shared().setContacts(recyclerViewAdapter.values);
-                    recyclerViewAdapter.notifyDataSetChanged();
+                    recyclerViewAdapter.notifyData();
                 });
 
                 alert.setNegativeButton(R.string.cancel, (dialog, whichButton) -> dialog.cancel());
@@ -272,9 +342,12 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
 
         alert.setPositiveButton(R.string.ok, (dialog, whichButton) -> {
             String name = input.getEditableText().toString();
-            recyclerViewAdapter.values.add(name);
+            red.tel.chat.generated_protobuf.Contact contact = new red.tel.chat.generated_protobuf.Contact.Builder()
+                    .id(name)
+                    .name(name).build();
+            recyclerViewAdapter.values.add(contact);
             Model.shared().setContacts(recyclerViewAdapter.values);
-            recyclerViewAdapter.notifyDataSetChanged();
+            recyclerViewAdapter.notifyData();
         });
 
         alert.setNegativeButton(R.string.cancel, (dialog, whichButton) -> dialog.cancel());
@@ -292,7 +365,7 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
         super.onSubscribeEvent(object);
         if (object == Wire.Which.PRESENCE) {
             if (recyclerViewAdapter != null) {
-                recyclerViewAdapter.notifyDataSetChanged();
+                recyclerViewAdapter.notifyData();
             }
         }
     }

@@ -5,6 +5,7 @@ import android.app.Service;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -74,13 +75,18 @@ public class ItemDetailFragment extends Fragment implements MessageListAdapter.C
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.item_detail, container, false);
+        return inflater.inflate(R.layout.item_detail, container, false);
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         getActivity().setTitle(whom);
 
-        EditText messageEdit = rootView.findViewById(R.id.messageEdit);
-        ImageButton messageSend = rootView.findViewById(R.id.chatSendButton);
-        LinearLayout content = rootView.findViewById(R.id.container);
-        recyclerView = rootView.findViewById(R.id.chat_list);
+        EditText messageEdit = view.findViewById(R.id.messageEdit);
+        ImageButton messageSend = view.findViewById(R.id.chatSendButton);
+        LinearLayout content = view.findViewById(R.id.container);
+        recyclerView = view.findViewById(R.id.chat_list);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
         layoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(layoutManager);
@@ -120,7 +126,6 @@ public class ItemDetailFragment extends Fragment implements MessageListAdapter.C
             updateTexts();
             scrollListMessage();
         });
-        return rootView;
     }
 
     private void scrollListMessage() {

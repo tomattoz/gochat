@@ -1,6 +1,7 @@
 package red.tel.chat.office365.model;
 
 import com.google.gson.annotations.SerializedName;
+import com.microsoft.graph.extensions.EmailAddress;
 
 import java.util.List;
 
@@ -36,6 +37,8 @@ public class ContactsModel {
         private String displayName;
         @SerializedName("givenName")
         private String givenName;
+        @SerializedName("emailAddresses")
+        private List<EmailAddress> emailAddresses;
 
         public String getId() {
             return id;
@@ -59,6 +62,10 @@ public class ContactsModel {
 
         public String getGivenName() {
             return givenName;
+        }
+
+        public List<EmailAddress> getEmailAddresses() {
+            return emailAddresses;
         }
     }
 }

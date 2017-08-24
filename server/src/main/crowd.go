@@ -56,7 +56,7 @@ func (crowd *Crowd) messageArrived(conn *websocket.Conn, wire *Wire, sessionId s
   }
   sessionId = wire.GetSessionId()
   if sessionId != "" {
-	fmt.Println("\nSessionId is " + sessionId)
+	fmt.Println("\nSessionId is " + sessionId + " Wire: " + wire.GetWhich().String())
 	crowd.updatePresence(sessionId, true)
   }
 
@@ -126,7 +126,6 @@ func (crowd *Crowd) receivedLogin(conn *websocket.Conn, login *Login) string {
   switch typeLogin {
   case 1:
 	loginSuccess(client, sessionId, crowd)
-	break
   case 2:
 	if verifyToken(authenToken) {
 	  loginSuccess(client, sessionId, crowd)
@@ -134,7 +133,6 @@ func (crowd *Crowd) receivedLogin(conn *websocket.Conn, login *Login) string {
 	  crowd.clients[sessionId] = client
 	  client.loginFail(sessionId)
 	}
-	break
   }
   return sessionId
 }
@@ -220,7 +218,7 @@ func (crowd *Crowd) updatePresence(sessionId string, online bool) {
 	  content := map[string]interface{}{"message": from + " is Online"}
 	  client.pushNotification(content, data.deviceToken)
 	} else {
-	  content := map[string]interface{}{"message": from + " is Online"}
+	  content := map[string]interface{}{"message": from + " is Offline"}
 	  client.pushNotification(content, data.deviceToken)
 	}
 

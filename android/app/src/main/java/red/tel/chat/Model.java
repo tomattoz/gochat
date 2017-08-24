@@ -9,6 +9,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,12 +47,8 @@ public class Model {
         return instance;
     }
 
-    public List<String> getContacts() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            return roster.values().stream().map(contact -> contact.id).collect(Collectors.toList());
-        } else {
-            return new ArrayList<>(roster.keySet());
-        }
+    public List<Contact> getContacts() {
+        return new ArrayList<>(roster.values());
     }
 
     public Boolean isOnline(String name) {
@@ -161,28 +159,31 @@ public class Model {
         }
     }
 
-    public void setContacts(List<String> names) {
+    public void setContacts(List<Contact> contactList) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            roster = names.stream().collect(Collectors.toMap(id -> id, id ->
-                    roster.containsKey(id) ?
-                            roster.get(id) :
-                            new Contact.Builder().id(id).name(id).build(), (contact, contact2) -> contact));
+            roster = contactList.stream().collect(Collectors.toMap(contact -> contact.id, contactFunction ->
+                    roster.containsKey(contactFunction.id) ?
+                            roster.get(contactFunction.id) :
+                            new Contact.Builder().id(contactFunction.id).name(contactFunction.name).build()
+                    , (contact, contact2) -> contact));
         } else {
-            for (int i = 0; i < names.size() - 1; i++) {
-                for (int j = i + 1; j < names.size(); j++) {
-                    if (names.get(i).equals(names.get(j))) {
-                        names.remove(i);
+            for (int i = 0; i < contactList.size() - 1; i++) {
+                for (int j = i + 1; j < contactList.size(); j++) {
+                    if (contactList.get(i).equals(contactList.get(j))) {
+                        contactList.remove(i);
                         i--;
                         break;
                     }
                 }
             }
-            for (String name : names) {
-                roster.put(name, roster.containsKey(name) ? roster.get(name) : new Contact.Builder().id(name).name(name).build());
+            for (Contact contact : contactList) {
+                roster.put(contact.id, roster.containsKey(contact.id) ? roster.get(contact.id)
+                        : new Contact.Builder().id(contact.id).name(contact.name).build());
             }
-
         }
-        Backend.shared().sendContacts(new ArrayList<>(roster.values()));
+        List<Contact> listContact = new ArrayList<>(roster.values());
+        Collections.sort(listContact, (contact, t1) -> contact.name.compareTo(t1.name));
+        Backend.shared().sendContacts(listContact);
     }
 
     public static String parseJsonUser(String username, String accessToken, String tokenNotification) {

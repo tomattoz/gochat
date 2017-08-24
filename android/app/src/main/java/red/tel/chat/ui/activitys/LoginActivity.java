@@ -216,14 +216,19 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
         if (tokenResponse != null) {
             // get the UserInfo from the auth response
             JsonObject claims = AuthenticationManager.getInstance().getClaims(tokenResponse.idToken);
-            String name = claims.get("name").getAsString();
+            String name = claims.get("preferred_username").getAsString();
             String tid = claims.get("tid").getAsString();
             try {
-                String accessToken = AuthenticationManager.getInstance().getAccessToken();
-                Model.shared().setAccessToken(accessToken);
-                login(TYPE_LOGIN_MS, name, tid, accessToken);
-                Model.shared().setTypeLogin(TYPE_LOGIN_MS);
-                Log.d(TAG, "onTokenRequestCompleted: " + accessToken);
+                if (name != null && !name.equals("")) {
+                    String accessToken = AuthenticationManager.getInstance().getAccessToken();
+                    Model.shared().setAccessToken(accessToken);
+                    login(TYPE_LOGIN_MS, name, tid, accessToken);
+                    Model.shared().setTypeLogin(TYPE_LOGIN_MS);
+                    Log.d(TAG, "onTokenRequestCompleted: " + accessToken);
+                } else {
+                    showProgress(false);
+                    Toast.makeText(this, "Email is null", Toast.LENGTH_SHORT).show();
+                }
             } catch (TokenNotFoundException e) {
                 e.printStackTrace();
             }
