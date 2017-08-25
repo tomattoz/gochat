@@ -1,5 +1,6 @@
 import Foundation
 import Starscream
+import Toast_Swift
 
 class Model {
 
@@ -37,6 +38,7 @@ class Model {
         if peerId != watching {
             unreads[peerId] = (unreads[peerId] ?? 0) + 1
         }
+        
         addText(body: body, from: peerId, to: Auth.shared.username!)
     }
 
@@ -61,14 +63,39 @@ class Model {
     }
 
     func didReceiveContacts(_ contacts: [Contact]) {
-        roster = contacts.reduce([String: Contact]()) { (dict, contact) -> [String: Contact] in
-            var dict = dict
-            dict[contact.id] = contact
-            return dict
-        }
+        _ = self.syncContacts(with: contacts)
         EventBus.post(about:.contacts)
     }
+    
+    func getOfficeContactList() {
+        if Auth.shared.loginType == .office {
+            UIApplication.shared.keyWindow?.makeToastActivity(.center)
+            OfficeAuthentication.shared.getContacts({ (contacts) in
+                UIApplication.shared.keyWindow?.hideToastActivity()
+                if let contacts = contacts {
+                    if self.syncContacts(with: contacts) {
+                        // send to server if there is diffrence between current and new contact
+                        WireBackend.shared.sendContacts(Array(self.roster.values))
+                    }
+                }
+            })
+        }
+    }
 
+    // return true if there is diffrence between current and new contact
+    func syncContacts(with newContacts: [Contact]) -> Bool {
+        var isNotSame = false
+        
+        for contact in newContacts {
+            if !roster.contains(where: { $0.key == contact.id }) {
+                roster[contact.id] = contact
+                isNotSame = true
+            }
+        }
+        EventBus.post(about:.contacts)
+        return isNotSame
+    }
+    
     func didReceiveStore(key: Data, value: Data) throws {
         guard key == "texts".data(using: .utf8) else {
             throw ModelError.keyNotHandled
@@ -84,7 +111,8 @@ class Model {
             if let existing = roster[id] {
                 update[id] = existing
             } else {
-                update[id] = try? Contact.Builder().setId(id).build()
+                // To-do: create new id base on name
+                update[id] = try? Contact.Builder().setId(id).setName(id).build()
             }
         }
         roster = update

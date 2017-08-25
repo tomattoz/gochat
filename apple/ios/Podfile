@@ -7,6 +7,8 @@ target 'Chat' do
   pod 'ProtocolBuffers-Swift', :inhibit_warnings => true
   pod 'themis', :inhibit_warnings => true
   pod 'SlackTextViewController', :inhibit_warnings => true
+  pod 'Toast-Swift', '~> 2.0.0'
+  pod 'JWTDecode'
 end
 
 pre_install do |installer|

@@ -11,7 +11,7 @@ class LoginViewController: UIViewController {
     }
 
     @IBAction func didClickLogin(_ sender: Any) {
-        Auth.shared.login(username: username.text!, password: password.text!)
+        Auth.shared.loginNormal(username: username.text!, password: password.text!)
     }
     
     @IBAction func didClickRegister(_ sender: Any) {

@@ -8,7 +8,8 @@ class WireBackend {
     private var sessionId: String?
     private var crypto: Crypto?
     private var queues = [String:[Hold]]()
-
+    private var loginType: LoginType?
+    
     func connect() {
         network.connect()
     }
@@ -80,6 +81,7 @@ class WireBackend {
         }
         if let sid = wire.sessionId, sessionId == nil {
             authenticated(sessionId: sid)
+            Model.shared.getOfficeContactList()
         }
 
         print("read \(data.count) bytes for \(wire.which) from server")
@@ -98,7 +100,7 @@ class WireBackend {
             print(error.localizedDescription)
         }
     }
-
+    
     // tell the server to store data
     func sendStore(key: String, value: Data) {
         do {
@@ -129,8 +131,9 @@ class WireBackend {
         try Model.shared.didReceiveStore(key: wire.store.key, value: value)
     }
 
-    func login(username: String, password: String) {
-        let wireBuilder = Wire.Builder().setLogin(username).setWhich(.login)
+    func login(login: Login) {
+        loginType = LoginType(rawValue: Int(login.type))
+        let wireBuilder = Wire.Builder().setLogin(login).setWhich(.login)
         send(wireBuilder)
     }
 

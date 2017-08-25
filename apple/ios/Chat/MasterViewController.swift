@@ -3,7 +3,7 @@ import UIKit
 class MasterViewController: UITableViewController {
 
     var detailViewController: DetailViewController? = nil
-    private var names = [String]()
+    private var contacts = [Contact]()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,7 +19,7 @@ class MasterViewController: UITableViewController {
         }
 
         EventBus.addListener(about: .contacts) { notification in
-            self.names = Array(Model.shared.roster.values).map({ contact in return contact.id })
+            self.contacts = Array(Model.shared.roster.values)
             self.tableView.reloadData()
         }
 
@@ -41,7 +41,7 @@ class MasterViewController: UITableViewController {
         if let controller = (segue.destination as? UINavigationController)?.topViewController as? DetailViewController,
             let indexPath = self.tableView.indexPathForSelectedRow {
             self.tableView.reloadData()
-            Model.shared.watching = self.names[indexPath.row]
+            Model.shared.watching = self.contacts[indexPath.row].id
             controller.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem
             controller.navigationItem.leftItemsSupplementBackButton = true
         }
@@ -55,15 +55,22 @@ class MasterViewController: UITableViewController {
 
     // table
 
-    private func addContact(_ username:String) {
-        self.names.insert(username, at: 0)
-        self.updateNames()
+    private func addContact(_ username: String) {
+        let contactBuilder = Contact.Builder()
+        contactBuilder.setId(username)
+        contactBuilder.setName(username)
+        if let contact = try? contactBuilder.build() {
+            self.contacts.insert(contact, at: 0)
+            self.updateNames()
+        }
     }
 
     private func updateNames() {
-        self.names.sort()
+        self.contacts.sort(by: {
+            $0.name > $1.name
+        })
+        Model.shared.setContacts(self.contacts.map({ return $0.id }))
         self.tableView.reloadData()
-        Model.shared.setContacts(self.names)
     }
 
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -71,20 +78,21 @@ class MasterViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return names.count
+        return contacts.count
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-        let name = self.names[indexPath.row]
-        cell.textLabel?.text = self.cellTextFor(name)
-        cell.textLabel?.textColor = Model.shared.roster[name]?.online == true ? .blue : .gray
+        let contact = self.contacts[indexPath.row]
+        cell.textLabel?.text = self.cellTextFor(contact.id)
+        cell.textLabel?.textColor = Model.shared.roster[contact.id]?.online == true ? .blue : .gray
         return cell
     }
 
-    func cellTextFor(_ name: String) -> String {
-        let unreads = Model.shared.unreads[name] ?? 0
+    func cellTextFor(_ id: String) -> String {
+        let unreads = Model.shared.unreads[id] ?? 0
         let showUnreads = unreads > 0 ? " (\(unreads))" : ""
+        let name = Model.shared.roster[id]?.name ?? ""
         return name + showUnreads
     }
 
@@ -92,7 +100,7 @@ class MasterViewController: UITableViewController {
                             commit editingStyle: UITableViewCellEditingStyle,
                             forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            self.names.remove(at: indexPath.row)
+            self.contacts.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .fade)
             self.updateNames()
         }

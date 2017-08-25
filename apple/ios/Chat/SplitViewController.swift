@@ -37,6 +37,10 @@ class SplitViewController : UISplitViewController {
     }
 
     override func viewDidLoad() {
+        SplitViewController.shared = self
+
+        Auth.shared.clearUser()
+//        OfficeAuthentication.shared.signout()
         
         WireBackend.shared.connect()
         
@@ -68,7 +72,7 @@ class SplitViewController : UISplitViewController {
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        SplitViewController.shared = self
+
     }
     
     func showDetailsIfNeeded() -> DetailViewController {
@@ -115,10 +119,10 @@ class SplitViewController : UISplitViewController {
         alertController.addTextField { (textField : UITextField!) -> Void in
             textField.placeholder = "New contact name"
         }
-        SplitViewController.shared?.present(alertController, animated: true, completion: nil)
+        SplitViewController.shared?.showAlertGlobally(alertController)
     }
     
-    static func askAuthentication(title: String, cancellable: Bool, done:@escaping (String, String) -> Void) {
+    static func askAuthentication(title: String, cancellable: Bool, done:@escaping (Bool, String, String) -> Void) {
         let alertController = UIAlertController(title: nil,
                                                 message: title,
                                                 preferredStyle: UIAlertControllerStyle.alert)
@@ -127,14 +131,18 @@ class SplitViewController : UISplitViewController {
             if let alertController = alertController {
                 let loginTextField = alertController.textFields![0] as UITextField
                 let passwordTextField = alertController.textFields![1] as UITextField
-                done(loginTextField.text!, passwordTextField.text!)
+                done(false, loginTextField.text!, passwordTextField.text!)
             }
+        }
+        
+        let loginWithOfficeAction = UIAlertAction(title: "Login with office 365", style: .default) { _ in
+            done(true, "", "")
         }
         
         let registerAction = UIAlertAction(title: "Register", style: .default) { _ in
             let loginTextField = alertController.textFields![0] as UITextField
             let passwordTextField = alertController.textFields![1] as UITextField
-            done(loginTextField.text!, passwordTextField.text!)
+            done(false, loginTextField.text!, passwordTextField.text!)
         }
         
         alertController.addTextField { textField in
@@ -153,8 +161,9 @@ class SplitViewController : UISplitViewController {
         }
         
         alertController.addAction(loginAction)
+        alertController.addAction(loginWithOfficeAction)
         alertController.addAction(registerAction)
-        SplitViewController.shared?.present(alertController, animated: true, completion: nil)
+        SplitViewController.shared?.showAlertGlobally(alertController)
     }
 
     private func login(username: String) {
@@ -164,8 +173,20 @@ class SplitViewController : UISplitViewController {
     }
 
     private func askAuthentication() {
-        SplitViewController.askAuthentication(title: "Ask for authentication", cancellable: false) { (username, password) in
-            Auth.shared.login(username: username, password: password)
+        SplitViewController.askAuthentication(title: "Ask for authentication", cancellable: false) { (isLoginSocial, username, password) in
+            if isLoginSocial {
+                Auth.shared.loginWithOffice()
+            } else {
+                Auth.shared.loginNormal(username: username, password: password)
+            }
         }
+    }
+    
+    private func showAlertGlobally(_ alert: UIAlertController) {
+        let alertWindow = UIWindow(frame: UIScreen.main.bounds)
+        alertWindow.windowLevel = UIWindowLevelAlert
+        alertWindow.rootViewController = UIViewController()
+        alertWindow.makeKeyAndVisible()
+        alertWindow.rootViewController?.present(alert, animated: true, completion: nil)
     }
 }

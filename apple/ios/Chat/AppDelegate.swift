@@ -1,5 +1,6 @@
 import UIKit
 import AVFoundation
+import MSAL
 
 @UIApplicationMain
 class AppDelegate: Application, UIApplicationDelegate, UISplitViewControllerDelegate {
@@ -33,6 +34,18 @@ class AppDelegate: Application, UIApplicationDelegate, UISplitViewControllerDele
 
         // done
 
+        return true
+    }
+    
+    // @brief Handles inbound URLs. Checks if the URL matches the redirect URI for a pending AppAuth
+    // authorization request and if so, will look for the code in the response.
+    
+    func application(_ application: UIApplication, open url: URL, sourceApplication: String?, annotation: Any) -> Bool {
+        
+        print("Received callback!")
+        
+        MSALPublicClientApplication.handleMSALResponse(url)
+        
         return true
     }
 

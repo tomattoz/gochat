@@ -29,7 +29,7 @@ class DetailViewController: UIViewController {
             print("could not create Text")
             return
         }
-        //Backend.shared.sendText(body, to: whom)
+        
         VoipBackend.sendText(body, peerId: whom)
         input.text = ""
     }
@@ -58,7 +58,11 @@ class DetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.title = Model.shared.watching
+        if let id = Model.shared.watching {
+            self.title = Model.shared.roster[id]?.name
+        } else {
+            self.title = ""
+        }
         self.updateTranscript()
        
         EventBus.addListener(about: .text) { notification in
@@ -67,6 +71,8 @@ class DetailViewController: UIViewController {
     }
 
     override func viewDidDisappear(_ animated: Bool) {
+        
+        // Bug
         if self.navigationController?.viewControllers.contains(self) == false {
             Model.shared.watching = nil
         }
