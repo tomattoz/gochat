@@ -11,6 +11,7 @@ import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,7 @@ import red.tel.chat.generated_protobuf.Contact;
 import red.tel.chat.generated_protobuf.Text;
 import red.tel.chat.generated_protobuf.Voip;
 import red.tel.chat.generated_protobuf.Wire;
+import red.tel.chat.utils.Utils;
 
 import static red.tel.chat.generated_protobuf.Wire.Which.CONTACTS;
 import static red.tel.chat.generated_protobuf.Wire.Which.PRESENCE;
@@ -184,14 +186,5 @@ public class Model {
         List<Contact> listContact = new ArrayList<>(roster.values());
         Collections.sort(listContact, (contact, t1) -> contact.name.compareTo(t1.name));
         Backend.shared().sendContacts(listContact);
-    }
-
-    public static String parseJsonUser(String username, String accessToken, String tokenNotification) {
-        Gson gson = new Gson();
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("name", username);
-        jsonObject.addProperty("authenToken", accessToken);
-        jsonObject.addProperty("deviceToken", tokenNotification);
-        return gson.toJson(jsonObject);
     }
 }

@@ -19,6 +19,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import okio.ByteString;
@@ -31,6 +32,7 @@ import red.tel.chat.ui.SoftKeyboard;
 import red.tel.chat.ui.activitys.ItemDetailActivity;
 import red.tel.chat.ui.activitys.ItemListActivity;
 import red.tel.chat.ui.adapter.MessageListAdapter;
+import red.tel.chat.utils.Utils;
 
 /**
  * A fragment representing a single Item detail screen.
@@ -93,6 +95,7 @@ public class ItemDetailFragment extends Fragment implements MessageListAdapter.C
         listAdapter = new MessageListAdapter(this);
         recyclerView.setAdapter(listAdapter);
         messageSend.setOnClickListener(v -> {
+            long time = Utils.getFormattedDate(new Date());
             String message = messageEdit.getText().toString();
             Model.shared().addText(message, Model.shared().getUsername(), whom);
             Backend.shared().sendText(message, whom);
@@ -121,11 +124,7 @@ public class ItemDetailFragment extends Fragment implements MessageListAdapter.C
         });
 
         updateTexts();
-        scrollListMessage();
-        EventBus.listenFor(getContext(), EventBus.Event.TEXT, () -> {
-            updateTexts();
-            scrollListMessage();
-        });
+        EventBus.listenFor(getContext(), EventBus.Event.TEXT, this::updateTexts);
     }
 
     private void scrollListMessage() {
@@ -142,6 +141,7 @@ public class ItemDetailFragment extends Fragment implements MessageListAdapter.C
                 textList.add(text);
             }
         }
+        scrollListMessage();
     }
 
     @Override

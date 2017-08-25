@@ -18,7 +18,6 @@ import red.tel.chat.generated_protobuf.Store;
 import red.tel.chat.generated_protobuf.Voip;
 import red.tel.chat.generated_protobuf.Wire;
 
-import static red.tel.chat.Model.parseJsonUser;
 import static red.tel.chat.generated_protobuf.Wire.Which.CONTACTS;
 import static red.tel.chat.generated_protobuf.Wire.Which.HANDSHAKE;
 import static red.tel.chat.generated_protobuf.Wire.Which.LOGIN;
@@ -214,7 +213,7 @@ public class Backend extends IntentService {
         Wire.Builder wire = new Wire.Builder().which(CONTACTS).contacts(contacts);
         instance.buildAndSend(wire);
     }
-
+    //send message
     public void sendText(String message, String peerId) {
         okio.ByteString text = okio.ByteString.encodeUtf8(message);
         byte[] data = new Voip.Builder().which(Voip.Which.TEXT).payload(text).build().encode();

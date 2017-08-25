@@ -8,6 +8,7 @@ import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import com.neovisionaries.ws.client.WebSocketFrame;
+import com.neovisionaries.ws.client.WebSocketState;
 
 import java.util.List;
 import java.util.Map;
@@ -17,7 +18,7 @@ import red.tel.chat.EventBus.Event;
 // websocket façade
 public class Network {
 
-    private static final String serverUrl = "ws://192.168.2.172:8000/ws";
+    private static final String serverUrl = "ws://127.0.0.1:8000/ws";
     private static final String TAG = "Network";
     private static final int CONNECTION_TIMEOUT = 1000;
     private WebSocket webSocket;
@@ -46,6 +47,11 @@ public class Network {
 
         try {
             WebSocketAdapter webSocketAdapter = new WebSocketAdapter() {
+                @Override
+                public void onStateChanged(WebSocket websocket, WebSocketState newState) throws Exception {
+                    Log.d(TAG, "onStateChanged: " + newState.name());
+                }
+
                 @Override
                 public void onConnected(WebSocket websocket, Map<String, List<String>> headers) throws Exception {
                     Log.i(TAG, "Connected");

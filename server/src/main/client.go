@@ -170,8 +170,6 @@ func (client *Client) loginFail(sessionId string) {
 	To:        client.id,
   }
   crowd.queue <- *buds
-  message := <-crowd.queue
-  client.Send(&message)
 }
 
 func forward(client *Client, wire *Wire) {

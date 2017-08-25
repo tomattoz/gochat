@@ -3,7 +3,6 @@ package red.tel.chat.ui.activitys;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
@@ -16,9 +15,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.gson.JsonObject;
+import com.neovisionaries.ws.client.WebSocket;
 
 import net.openid.appauth.AuthorizationException;
 import net.openid.appauth.AuthorizationService;
@@ -32,12 +30,10 @@ import red.tel.chat.EventBus;
 import red.tel.chat.Model;
 import red.tel.chat.Network;
 import red.tel.chat.R;
-import red.tel.chat.notification.RegistrationIntentService;
 import red.tel.chat.office365.AuthenticationManager;
 import red.tel.chat.office365.Constants;
 import red.tel.chat.office365.TokenNotFoundException;
 
-import static red.tel.chat.Model.parseJsonUser;
 import static red.tel.chat.office365.Constants.TYPE_LOGIN_MS;
 import static red.tel.chat.office365.Constants.TYPE_LOGIN_NORMAL;
 
@@ -71,6 +67,10 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
         loginFormView = findViewById(R.id.login_form);
         progressView = findViewById(R.id.login_progress);
         EventBus.listenFor(this, EventBus.Event.AUTHENTICATED, this::finish);
+        WebSocket webSocket = Network.getInstance().getWebSocket();
+        if (webSocket != null) {
+            Log.d(TAG, "Websocket status: " + webSocket.getState().name());
+        }
     }
 
 
@@ -99,7 +99,6 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
             alert.create().show();
         }
     }
-
 
 
     private void connect() {
@@ -176,7 +175,7 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
         Model.shared().setAccessToken("normal");
         login(TYPE_LOGIN_NORMAL, username, password, "normal");
 
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null) {
             imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
         }

@@ -19,15 +19,10 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import com.microsoft.graph.concurrency.ICallback;
-import com.microsoft.graph.core.ClientException;
-import com.microsoft.graph.extensions.Contact;
-import com.microsoft.graph.extensions.IContactCollectionPage;
 import com.microsoft.graph.extensions.IGraphServiceClient;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Executors;
 
@@ -36,7 +31,6 @@ import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
-import red.tel.chat.ChatApp;
 import red.tel.chat.EventBus;
 import red.tel.chat.Model;
 import red.tel.chat.R;
@@ -44,6 +38,7 @@ import red.tel.chat.generated_protobuf.Wire;
 import red.tel.chat.office365.Constants;
 import red.tel.chat.office365.model.ContactsModel;
 import red.tel.chat.ui.OnLoadMoreListener;
+import red.tel.chat.ui.adapter.ItemContactAdapter;
 import red.tel.chat.ui.fragments.ItemDetailFragment;
 import red.tel.chat.ui.presenter.ContactsContract;
 import red.tel.chat.ui.presenter.ContactsPresenter;
@@ -58,7 +53,7 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
 
     private static final String TAG = "ItemListActivity";
     private boolean isTwoPane; // Whether or not the activity is in two-pane mode, i.e. running on a tablet device.
-    private SimpleItemRecyclerViewAdapter recyclerViewAdapter;
+    private ItemContactAdapter recyclerViewAdapter;
     private ContactsContract.Presenter presenter;
     private IGraphServiceClient mGraphServiceClient;
 
@@ -90,7 +85,7 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
         presenter.attachView(this);
         if (Model.shared().getTypeLogin() == Constants.TYPE_LOGIN_MS) {
             presenter.getListContacts(0);
-            mGraphServiceClient = ((ChatApp) getApplication()).getGraphServiceClient();
+            /*mGraphServiceClient = ((ChatApp) getApplication()).getGraphServiceClient();
             mGraphServiceClient.getMe().getContacts().buildRequest().get(new ICallback<IContactCollectionPage>() {
                 @Override
                 public void success(IContactCollectionPage iContactCollectionPage) {
@@ -103,7 +98,7 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
                 public void failure(ClientException ex) {
                     Log.e(TAG, "failure: ", ex);
                 }
-            });
+            });*/
         }
 
     }
@@ -112,7 +107,7 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setHasFixedSize(true);
         recyclerView.addItemDecoration(new DividerItemDecoration(this, RecyclerView.VERTICAL));
-        this.recyclerViewAdapter = new SimpleItemRecyclerViewAdapter(recyclerView);
+        this.recyclerViewAdapter = new ItemContactAdapter(recyclerView);
         recyclerView.setAdapter(this.recyclerViewAdapter);
         this.recyclerViewAdapter.setOnLoadMoreListener(this);
         this.recyclerViewAdapter.onLoadDataFromServer(this);
@@ -133,7 +128,7 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
                     contacts.addAll(t);
                     List<red.tel.chat.generated_protobuf.Contact> contactList = new ArrayList<>();
                     for (ContactsModel.DataContacts newCon : contactsModel.getDataContacts()) {
-                        if (newCon.getEmailAddresses() == null || newCon.getEmailAddresses().get(0).address == null) {
+                        if (newCon.getEmailAddresses() == null || newCon.getEmailAddresses().size() == 0) {
                             continue;
                         }
                         red.tel.chat.generated_protobuf.Contact contact = new red.tel.chat.generated_protobuf.Contact.Builder()
@@ -148,12 +143,7 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
                         contactList.add(contact);
                     }
                     contactList.addAll(contacts);
-                    Collections.sort(contactList, new Comparator<red.tel.chat.generated_protobuf.Contact>() {
-                        @Override
-                        public int compare(red.tel.chat.generated_protobuf.Contact contact, red.tel.chat.generated_protobuf.Contact t1) {
-                            return contact.name.compareTo(t1.name);
-                        }
-                    });
+                    Collections.sort(contactList, (contact, t1) -> contact.name.compareTo(t1.name));
                     return contactList;
                 }).flatMap(res -> {
                     Log.d(TAG, "showListContact: 2");
@@ -176,6 +166,9 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
     @Override
     public void onError(Throwable e) {
         Log.e(TAG, "onError: ", e);
+        recyclerViewAdapter.values.clear();
+        recyclerViewAdapter.loadData();
+        recyclerViewAdapter.notifyData();
     }
 
     //load more list contact
@@ -186,150 +179,28 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
         }
     }
 
-    class SimpleItemRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-        private List<red.tel.chat.generated_protobuf.Contact> values = new ArrayList<>();
-        private int visibleThreshold = 5;
-        private int lastVisibleItem, totalItemCount;
-        private boolean isLoading;
-        private int pageNext = 0;
-
-        private OnLoadMoreListener onLoadMoreListener;
-
-
-        public void setOnLoadMoreListener(OnLoadMoreListener mOnLoadMoreListener) {
-            this.onLoadMoreListener = mOnLoadMoreListener;
+    @Override
+    public void onClickItemAdapter(String name) {
+        if (isTwoPane) {
+            Bundle arguments = new Bundle();
+            arguments.putString(ItemDetailFragment.ARG_ITEM_ID, name);
+            ItemDetailFragment fragment = new ItemDetailFragment();
+            fragment.setArguments(arguments);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.item_detail_container, fragment)
+                    .commit();
+        } else {
+            Intent intent = new Intent(this, ItemDetailActivity.class);
+            intent.putExtra(ItemDetailFragment.ARG_ITEM_ID, name);
+            startActivity(intent);
         }
+    }
 
-        public void notifyData() {
-            Log.d(TAG, "notifyData: .........");
-            notifyDataSetChanged();
-        }
-
-        SimpleItemRecyclerViewAdapter(RecyclerView recyclerView) {
-            values = Model.shared().getContacts();
-            softListContact();
-            final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-            recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-                @Override
-                public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                    super.onScrolled(recyclerView, dx, dy);
-                    totalItemCount = linearLayoutManager.getItemCount();
-                    lastVisibleItem = linearLayoutManager.findLastVisibleItemPosition();
-                    if (!isLoading && totalItemCount <= (lastVisibleItem + 1)) {
-                        if (onLoadMoreListener != null) {
-                            onLoadMoreListener.onLoadMore(pageNext);
-                        }
-                        isLoading = true;
-                    }
-                }
-            });
-
-        }
-
-        @Override
-        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater
-                    .from(parent.getContext())
-                    .inflate(R.layout.item_list_content, parent, false);
-            //onLoadDataFromServer(parent);
-            return new ViewHolder(view);
-        }
-
-        private void onLoadDataFromServer(Context context) {
-            EventBus.listenFor(context, EventBus.Event.CONTACTS, () -> {
-                values = Model.shared().getContacts();
-                softListContact();
-                notifyData();
-            });
-        }
-
-        private void softListContact() {
-            Collections.sort(values, new Comparator<red.tel.chat.generated_protobuf.Contact>() {
-                @Override
-                public int compare(red.tel.chat.generated_protobuf.Contact contact, red.tel.chat.generated_protobuf.Contact t1) {
-                    return contact.name.compareTo(t1.name);
-                }
-            });
-        }
-
-        @Override
-        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-            ViewHolder viewHolder = (ViewHolder) holder;
-            String name = this.values.get(position).name;
-            if (name == null || name.equals("")) {
-                return;
-            }
-            viewHolder.contactName.setText(name);
-            if (Model.shared().isOnline(name)) {
-                viewHolder.contactName.setTextColor(Color.BLUE);
-                viewHolder.contactName.setTypeface(null, Typeface.BOLD);
-            } else {
-                viewHolder.contactName.setTextColor(Color.GRAY);
-                viewHolder.contactName.setTypeface(null, Typeface.NORMAL);
-            }
-            viewHolder.view.setOnClickListener((View v) -> {
-                if (isTwoPane) {
-                    Bundle arguments = new Bundle();
-                    arguments.putString(ItemDetailFragment.ARG_ITEM_ID, name);
-                    ItemDetailFragment fragment = new ItemDetailFragment();
-                    fragment.setArguments(arguments);
-                    getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.item_detail_container, fragment)
-                            .commit();
-                } else {
-                    Context context = v.getContext();
-                    Intent intent = new Intent(context, ItemDetailActivity.class);
-                    intent.putExtra(ItemDetailFragment.ARG_ITEM_ID, name);
-                    context.startActivity(intent);
-                }
-            });
-        }
-
-        @Override
-        public int getItemCount() {
-            return values.size();
-        }
-
-        public void setLoaded() {
-            isLoading = false;
-        }
-
-        public void setPageNext(int pageNext) {
-            this.pageNext = pageNext;
-        }
-
-        class ViewHolder extends RecyclerView.ViewHolder {
-            final View view;
-            final TextView contactName;
-            final ImageButton deleteButton;
-
-            ViewHolder(View view) {
-                super(view);
-                this.view = view;
-                contactName = view.findViewById(R.id.contactName);
-                deleteButton = view.findViewById(R.id.deleteButton);
-                view.setOnLongClickListener(v -> {
-                    deleteButton.setVisibility(View.VISIBLE);
-                    return true;
-                });
-                deleteButton.setOnClickListener(v -> onClickDelete());
-            }
-
-            private void onClickDelete() {
-                AlertDialog.Builder alert = new AlertDialog.Builder(view.getContext());
-                alert.setTitle(R.string.del_contact_title);
-                alert.setMessage(R.string.del_contact_message);
-
-                alert.setPositiveButton(R.string.ok, (dialog, whichButton) -> {
-                    recyclerViewAdapter.values.remove(contactName.getText().toString());
-                    Model.shared().setContacts(recyclerViewAdapter.values);
-                    recyclerViewAdapter.notifyData();
-                });
-
-                alert.setNegativeButton(R.string.cancel, (dialog, whichButton) -> dialog.cancel());
-                alert.create().show();
-            }
-        }
+    @Override
+    public void onDeleteContact(int position) {
+        recyclerViewAdapter.values.remove(position);
+        Model.shared().setContacts(recyclerViewAdapter.values);
+        recyclerViewAdapter.notifyData();
     }
 
     public void onClickAdd(View v) {
