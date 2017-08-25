@@ -132,6 +132,7 @@ func (crowd *Crowd) receivedLogin(conn *websocket.Conn, login *Login) string {
 	} else {
 	  crowd.clients[sessionId] = client
 	  client.loginFail(sessionId)
+	  crowd.updatePresence(sessionId, false)
 	}
   }
   return sessionId
