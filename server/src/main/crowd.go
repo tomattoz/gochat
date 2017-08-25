@@ -56,7 +56,7 @@ func (crowd *Crowd) messageArrived(conn *websocket.Conn, wire *Wire, sessionId s
   }
   sessionId = wire.GetSessionId()
   if sessionId != "" {
-	fmt.Println("\nSessionId is " + sessionId + " Wire: " + wire.GetWhich().String())
+	fmt.Println("\nSessionId is " + sessionId + " Wire: " + wire.GetWhich().String() + " From " + wire.From + " To " + wire.To)
 	crowd.updatePresence(sessionId, true)
   }
 
