@@ -73,7 +73,7 @@ class Auth {
         loginBuilder.setType(UInt32(type.rawValue))
         
         if username != nil {
-            loginBuilder.setUsername(username!)
+            loginBuilder.setUserName(username!)
         }
         
         if token != nil {
