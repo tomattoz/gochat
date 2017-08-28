@@ -88,9 +88,9 @@
             </LinearLayout>
 
             <android.support.v7.widget.AppCompatButton
+                android:id="@+id/office365"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:onClick="onClickSignInOffice360"
                 android:text="@string/action_sign_in_with_office" />
         </LinearLayout>
     </ScrollView>

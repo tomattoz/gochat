@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.microsoft.graph.extensions.IGraphServiceClient;
@@ -59,6 +60,7 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
 
     private Scheduler scheduler;
     private Disposable disposable;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +75,7 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
         View recyclerView = findViewById(R.id.item_list);
         assert recyclerView != null;
         setupRecyclerView((RecyclerView) recyclerView);
+        progressBar = findViewById(R.id.progressBar2);
 
         if (findViewById(R.id.item_detail_container) != null) {
             // The detail container view will be present only in the large-screen layouts (res/values-w900dp).
@@ -99,6 +102,8 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
                     Log.e(TAG, "failure: ", ex);
                 }
             });*/
+        } else {
+            progressBar.setVisibility(View.GONE);
         }
 
     }
@@ -128,14 +133,19 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
                     contacts.addAll(t);
                     List<red.tel.chat.generated_protobuf.Contact> contactList = new ArrayList<>();
                     for (ContactsModel.DataContacts newCon : contactsModel.getDataContacts()) {
-                        if (newCon.getEmailAddresses() == null || newCon.getEmailAddresses().size() == 0) {
+                        if (newCon.getNickName() == null || newCon.getNickName().equals("")) {
                             continue;
                         }
+                        String nickName = newCon.getNickName();
+                        if (nickName.contains(":")) {
+                            int index = nickName.indexOf(':');
+                            nickName = nickName.substring(index+1);
+                        }
                         red.tel.chat.generated_protobuf.Contact contact = new red.tel.chat.generated_protobuf.Contact.Builder()
-                                .id(newCon.getEmailAddresses().get(0).address)
-                                .name(newCon.getEmailAddresses().get(0).address).build();
+                                .id(nickName)
+                                .name(nickName).build();
                         for (red.tel.chat.generated_protobuf.Contact contact1 : contacts) {
-                            if (contact1.id.equals(newCon.getEmailAddresses().get(0).address)) {//chu y
+                            if (contact1.id.equals(nickName)) {//chu y
                                 contacts.remove(contact1);
                                 break;
                             }
@@ -159,6 +169,7 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
                                 recyclerViewAdapter.setPageNext(contactsModel.getNexPage());
                                 recyclerViewAdapter.setLoaded();
                             }
+                            progressBar.setVisibility(View.GONE);
                         });
 
     }
@@ -169,12 +180,14 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
         recyclerViewAdapter.values.clear();
         recyclerViewAdapter.loadData();
         recyclerViewAdapter.notifyData();
+        progressBar.setVisibility(View.GONE);
     }
 
     //load more list contact
     @Override
     public void onLoadMore(int nexPage) {
         if (Model.shared().getTypeLogin() == Constants.TYPE_LOGIN_MS) {
+            progressBar.setVisibility(View.VISIBLE);
             presenter.getListContacts(nexPage);
         }
     }

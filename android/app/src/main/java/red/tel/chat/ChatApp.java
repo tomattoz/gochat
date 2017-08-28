@@ -1,7 +1,10 @@
 package red.tel.chat;
 
+import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.multidex.MultiDexApplication;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -13,22 +16,29 @@ import com.microsoft.graph.extensions.GraphServiceClient;
 import com.microsoft.graph.extensions.IGraphServiceClient;
 import com.microsoft.graph.http.IHttpRequest;
 
+import io.reactivex.Observable;
+import io.reactivex.schedulers.Schedulers;
 import red.tel.chat.ui.activitys.BaseActivity;
+import red.tel.chat.ui.activitys.SplashActivity;
 
-public class ChatApp extends MultiDexApplication implements IAuthenticationProvider {
+public class ChatApp extends MultiDexApplication implements IAuthenticationProvider, Application.ActivityLifecycleCallbacks {
 
     private static final String TAG = "ChatApp";
     private static Context context;
+
     public static Context getContext() {
         return context;
     }
+
     private AlertDialog alertDialog;
+
     @Override
     public void onCreate() {
         super.onCreate();
         context = getApplicationContext();
         listenForConnection();
-        startService(new Intent(this, Backend.class));
+
+        this.registerActivityLifecycleCallbacks(this);
     }
 
     private void listenForConnection() {
@@ -69,5 +79,47 @@ public class ChatApp extends MultiDexApplication implements IAuthenticationProvi
         request.addHeader("Authorization", "Bearer " + Model.shared().getAccessToken());
         request.addHeader("Content-Type", "application/json");
         Log.d(TAG, "authenticateRequest: " + request);
+    }
+
+    @Override
+    public void onActivityCreated(Activity activity, Bundle bundle) {
+        if (activity instanceof SplashActivity) {
+            Observable.just(this)
+                    .observeOn(Schedulers.newThread())
+                    .subscribe(context->{
+                        startService(new Intent(context, Backend.class));
+                    },Throwable::printStackTrace);
+        }
+        Log.d(TAG, "onActivityCreated: ");
+    }
+
+    @Override
+    public void onActivityStarted(Activity activity) {
+        Log.d(TAG, "onActivityStarted: ");
+    }
+
+    @Override
+    public void onActivityResumed(Activity activity) {
+        Log.d(TAG, "onActivityResumed: ");
+    }
+
+    @Override
+    public void onActivityPaused(Activity activity) {
+        Log.d(TAG, "onActivityPaused: ");
+    }
+
+    @Override
+    public void onActivityStopped(Activity activity) {
+        Log.d(TAG, "onActivityStopped: ");
+    }
+
+    @Override
+    public void onActivitySaveInstanceState(Activity activity, Bundle bundle) {
+        Log.d(TAG, "onActivitySaveInstanceState: ");
+    }
+
+    @Override
+    public void onActivityDestroyed(Activity activity) {
+        Log.d(TAG, "onActivityDestroyed: ");
     }
 }

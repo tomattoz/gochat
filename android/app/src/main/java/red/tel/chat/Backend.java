@@ -2,6 +2,7 @@ package red.tel.chat;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.neovisionaries.ws.client.WebSocketState;
@@ -45,10 +46,11 @@ public class Backend extends IntentService {
     }
 
     @Override
-    protected void onHandleIntent(Intent workIntent) {
+    public void onCreate() {
+        super.onCreate();
         instance = this;
         network = new Network();
-
+        Log.d(TAG, "re login: onCreate..............");
         EventBus.listenFor(this, EventBus.Event.CONNECTED, () -> {
             int typeLogin = Model.shared().getTypeLogin();
             String username = Model.shared().getUsername();
@@ -59,6 +61,11 @@ public class Backend extends IntentService {
                 Log.d(TAG, "re login: ");
             }
         });
+    }
+
+    @Override
+    protected void onHandleIntent(@Nullable Intent intent) {
+
     }
 
     // receive from Network
@@ -213,6 +220,7 @@ public class Backend extends IntentService {
         Wire.Builder wire = new Wire.Builder().which(CONTACTS).contacts(contacts);
         instance.buildAndSend(wire);
     }
+
     //send message
     public void sendText(String message, String peerId) {
         okio.ByteString text = okio.ByteString.encodeUtf8(message);

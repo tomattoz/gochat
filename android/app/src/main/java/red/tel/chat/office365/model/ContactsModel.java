@@ -39,6 +39,8 @@ public class ContactsModel {
         private String givenName;
         @SerializedName("emailAddresses")
         private List<EmailAddress> emailAddresses;
+        @SerializedName("nickName")
+        private String nickName;
 
         public String getId() {
             return id;
@@ -66,6 +68,10 @@ public class ContactsModel {
 
         public List<EmailAddress> getEmailAddresses() {
             return emailAddresses;
+        }
+
+        public String getNickName() {
+            return nickName;
         }
     }
 }

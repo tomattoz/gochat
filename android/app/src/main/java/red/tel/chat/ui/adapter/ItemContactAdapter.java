@@ -29,7 +29,7 @@ public class ItemContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     public List<Contact> values = new ArrayList<>();
     private int visibleThreshold = 5;
     private int lastVisibleItem, totalItemCount;
-    private boolean isLoading;
+    private boolean isLoading = true;
     private int pageNext = 0;
 
     private OnLoadMoreListener onLoadMoreListener;

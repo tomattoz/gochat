@@ -11,6 +11,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -56,6 +57,17 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
         }
         usernameView = (EditText) findViewById(R.id.username);
         passwordView = (EditText) findViewById(R.id.password);
+        Button button = findViewById(R.id.office365);
+        button.setOnClickListener(view -> {
+            if (!hasAzureConfiguration()) {
+                Toast.makeText(
+                        LoginActivity.this,
+                        getString(R.string.warning_client_id_redirect_uri_incorrect),
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+            connect();
+        });
         passwordView.setOnEditorActionListener((TextView textView, int id, KeyEvent keyEvent) -> {
             if (id == R.id.login || id == EditorInfo.IME_NULL) {
                 validateInput();
@@ -200,14 +212,7 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
     //login with microsoft office 360
     public void onClickSignInOffice360(View view) {
         //check that client id and redirect have been configured
-        if (!hasAzureConfiguration()) {
-            Toast.makeText(
-                    LoginActivity.this,
-                    getString(R.string.warning_client_id_redirect_uri_incorrect),
-                    Toast.LENGTH_LONG).show();
-            return;
-        }
-        connect();
+
     }
 
     @Override
@@ -219,6 +224,8 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
             String tid = claims.get("tid").getAsString();
             try {
                 if (name != null && !name.equals("")) {
+                    int index = name.indexOf('@');
+                    name = name.substring(0, index);
                     String accessToken = AuthenticationManager.getInstance().getAccessToken();
                     Model.shared().setAccessToken(accessToken);
                     login(TYPE_LOGIN_MS, name, tid, accessToken);
