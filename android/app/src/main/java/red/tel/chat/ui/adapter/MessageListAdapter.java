@@ -1,5 +1,6 @@
 package red.tel.chat.ui.adapter;
 
+import android.os.Build;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.view.LayoutInflater;
@@ -48,7 +49,11 @@ public class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.
         String line = String.format(Locale.US, "%1$s:\n %2$s", "<b>" + text.from + "</b>", text.body.utf8());
         switch (getItemViewType(position)) {
             default:
-                holder.tvMessage.setText(Html.fromHtml(line, TO_HTML_PARAGRAPH_LINES_INDIVIDUAL));
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    holder.tvMessage.setText(Html.fromHtml(line, TO_HTML_PARAGRAPH_LINES_INDIVIDUAL));
+                } else {
+                    holder.tvMessage.setText(Html.fromHtml(line));
+                }
                 break;
         }
     }
@@ -73,7 +78,7 @@ public class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.
 
         ViewHolderMessageText(View itemView) {
             super(itemView);
-            tvMessage = (TextView) itemView.findViewById(R.id.tvMessage);
+            tvMessage = itemView.findViewById(R.id.tvMessage);
         }
     }
 

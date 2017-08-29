@@ -13,8 +13,8 @@ import android.support.annotation.RequiresApi;
 public class NotificationUtils extends ContextWrapper {
 
     private NotificationManager mManager;
-    public static final String ANDROID_CHANNEL_ID = "com.chikeandroid.tutsplustalerts.ANDROID";
-    public static final String IOS_CHANNEL_ID = "com.chikeandroid.tutsplustalerts.IOS";
+    public static final String ANDROID_CHANNEL_ID = "red.tel.chat.ANDROID";
+    public static final String IOS_CHANNEL_ID = "red.tel.chat.IOS";
     public static final String ANDROID_CHANNEL_NAME = "ANDROID CHANNEL";
     public static final String IOS_CHANNEL_NAME = "IOS CHANNEL";
 

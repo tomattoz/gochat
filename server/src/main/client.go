@@ -203,10 +203,12 @@ func (client *Client) pushNotification(data map[string]interface{}, pushToken st
   if err != nil {
 	fmt.Println(err.Error())
   } else {
-	fmt.Println("Response ", response.Success)
-	fmt.Println("MessageID ", response.MessageId)
-	fmt.Println("Failure ", response.Failure)
-	fmt.Println("Error ", response.Error)
-	fmt.Println("Results ", response.Results)
+	fmt.Println("============PUSH NOTIFICATION============")
+	fmt.Println("\tResponse ", response.Success)
+	fmt.Println("\tMessageID ", response.MessageId)
+	fmt.Println("\tFailure ", response.Failure)
+	fmt.Println("\tError ", response.Error)
+	fmt.Println("\tResults ", response.Results)
+	fmt.Println("=========================================")
   }
 }

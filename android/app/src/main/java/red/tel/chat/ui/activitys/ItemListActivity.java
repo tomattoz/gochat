@@ -24,6 +24,7 @@ import com.microsoft.graph.extensions.IGraphServiceClient;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Executors;
 
@@ -35,6 +36,7 @@ import io.reactivex.schedulers.Schedulers;
 import red.tel.chat.EventBus;
 import red.tel.chat.Model;
 import red.tel.chat.R;
+import red.tel.chat.generated_protobuf.Contact;
 import red.tel.chat.generated_protobuf.Wire;
 import red.tel.chat.office365.Constants;
 import red.tel.chat.office365.model.ContactsModel;
@@ -153,7 +155,13 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
                         contactList.add(contact);
                     }
                     contactList.addAll(contacts);
-                    Collections.sort(contactList, (contact, t1) -> contact.name.compareTo(t1.name));
+                    Collections.sort(contactList, new Comparator<Contact>() {
+                        @Override
+                        public int compare(Contact contact, Contact t1) {
+                            return contact.name == null || t1.name == null ? 0 : contact.name.compareTo(t1.name);
+                        }
+                    });
+                    //Collections.sort(contactList, (contact, t1) -> contact.name.compareTo(t1.name));
                     return contactList;
                 }).flatMap(res -> {
                     Log.d(TAG, "showListContact: 2");

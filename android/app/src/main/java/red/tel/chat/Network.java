@@ -39,8 +39,7 @@ public class Network {
         return webSocket;
     }
 
-    Network() {
-
+    public void onInitConnectServer() {
         WebSocketFactory factory = new WebSocketFactory();
         ProxySettings settings = factory.getProxySettings();
         settings.setServer(serverUrl);

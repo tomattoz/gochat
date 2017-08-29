@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import red.tel.chat.EventBus;
@@ -46,6 +47,9 @@ public class ItemContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     public void loadData() {
         values = Model.shared().getContacts();
+        if (values.size() == 0) {
+            return;
+        }
         softListContact();
     }
 
@@ -86,7 +90,15 @@ public class ItemContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     }
 
     private void softListContact() {
-        Collections.sort(values, (contact, t1) -> contact.name.compareTo(t1.name));
+        if (values.size() == 0) {
+            return;
+        }
+        Collections.sort(values, new Comparator<Contact>() {
+            @Override
+            public int compare(Contact contact, Contact t1) {
+                return contact.name == null || t1.name == null ? 0 : contact.name.compareTo(t1.name);
+            }
+        });
     }
 
     @Override

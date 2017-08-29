@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.multidex.MultiDexApplication;
 import android.support.v7.app.AlertDialog;
@@ -16,8 +17,7 @@ import com.microsoft.graph.extensions.GraphServiceClient;
 import com.microsoft.graph.extensions.IGraphServiceClient;
 import com.microsoft.graph.http.IHttpRequest;
 
-import io.reactivex.Observable;
-import io.reactivex.schedulers.Schedulers;
+import red.tel.chat.office365.Constants;
 import red.tel.chat.ui.activitys.BaseActivity;
 import red.tel.chat.ui.activitys.SplashActivity;
 
@@ -37,7 +37,6 @@ public class ChatApp extends MultiDexApplication implements IAuthenticationProvi
         super.onCreate();
         context = getApplicationContext();
         listenForConnection();
-
         this.registerActivityLifecycleCallbacks(this);
     }
 
@@ -84,11 +83,13 @@ public class ChatApp extends MultiDexApplication implements IAuthenticationProvi
     @Override
     public void onActivityCreated(Activity activity, Bundle bundle) {
         if (activity instanceof SplashActivity) {
-            Observable.just(this)
-                    .observeOn(Schedulers.newThread())
-                    .subscribe(context->{
-                        startService(new Intent(context, Backend.class));
-                    },Throwable::printStackTrace);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Intent startIntent = new Intent(this, Backend.class);
+                startIntent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
+                startForegroundService(startIntent);
+            } else {
+                startService(new Intent(this, Backend.class));
+            }
         }
         Log.d(TAG, "onActivityCreated: ");
     }

@@ -79,10 +79,6 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
         loginFormView = findViewById(R.id.login_form);
         progressView = findViewById(R.id.login_progress);
         EventBus.listenFor(this, EventBus.Event.AUTHENTICATED, this::finish);
-        WebSocket webSocket = Network.getInstance().getWebSocket();
-        if (webSocket != null) {
-            Log.d(TAG, "Websocket status: " + webSocket.getState().name());
-        }
     }
 
 

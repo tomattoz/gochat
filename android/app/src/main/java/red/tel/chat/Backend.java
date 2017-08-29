@@ -1,8 +1,12 @@
 package red.tel.chat;
 
 import android.app.IntentService;
+import android.app.Notification;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.neovisionaries.ws.client.WebSocketState;
@@ -11,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import okio.ByteString;
 import red.tel.chat.generated_protobuf.Contact;
@@ -18,6 +23,7 @@ import red.tel.chat.generated_protobuf.Login;
 import red.tel.chat.generated_protobuf.Store;
 import red.tel.chat.generated_protobuf.Voip;
 import red.tel.chat.generated_protobuf.Wire;
+import red.tel.chat.office365.Constants;
 
 import static red.tel.chat.generated_protobuf.Wire.Which.CONTACTS;
 import static red.tel.chat.generated_protobuf.Wire.Which.HANDSHAKE;
@@ -25,6 +31,7 @@ import static red.tel.chat.generated_protobuf.Wire.Which.LOGIN;
 import static red.tel.chat.generated_protobuf.Wire.Which.PAYLOAD;
 import static red.tel.chat.generated_protobuf.Wire.Which.PUBLIC_KEY;
 import static red.tel.chat.generated_protobuf.Wire.Which.PUBLIC_KEY_RESPONSE;
+import static red.tel.chat.notification.NotificationUtils.ANDROID_CHANNEL_ID;
 
 // shuttles data between Network and Model
 public class Backend extends IntentService {
@@ -49,7 +56,8 @@ public class Backend extends IntentService {
     public void onCreate() {
         super.onCreate();
         instance = this;
-        network = new Network();
+        network = Network.getInstance();
+        network.onInitConnectServer();
         Log.d(TAG, "re login: onCreate..............");
         EventBus.listenFor(this, EventBus.Event.CONNECTED, () -> {
             int typeLogin = Model.shared().getTypeLogin();
@@ -65,7 +73,20 @@ public class Backend extends IntentService {
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
+        //fixed bugs run the service in the background state is not allowed because an IllegalStateException is thrown on Android O
+        if (intent != null && Objects.equals(intent.getAction(), Constants.ACTION.STARTFOREGROUND_ACTION)) {
+            Bitmap icon = BitmapFactory.decodeResource(getResources(),
+                    R.mipmap.ic_launcher);
 
+            Notification notification = new NotificationCompat.Builder(this, ANDROID_CHANNEL_ID)
+                    .setContentTitle(getString(R.string.app_name))
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setLargeIcon(
+                            Bitmap.createScaledBitmap(icon, 128, 128, false))
+                    .setOngoing(true).build();
+            startForeground(Constants.NOTIFICATION_ID.FOREGROUND_SERVICE,
+                    notification);
+        }
     }
 
     // receive from Network
@@ -196,7 +217,7 @@ public class Backend extends IntentService {
     }
 
     private void send(Wire wire) {
-        if (network.getWebSocket().getState() == WebSocketState.OPEN) {
+        if (network.getWebSocket() != null && network.getWebSocket().getState() == WebSocketState.OPEN) {
             network.send(wire.encode());
         } else {
             EventBus.announce(EventBus.Event.DISCONNECTED);
@@ -243,6 +264,10 @@ public class Backend extends IntentService {
         sendData(HANDSHAKE, key, recipient);
     }
 
+    /**
+     *
+     * @param peerId
+     */
     void handshook(String peerId) {
         ArrayList<Hold> list = queue.get(peerId);
         if (list == null) {
@@ -250,7 +275,9 @@ public class Backend extends IntentService {
         }
         for (Hold hold : list) {
             encryptAndSend(hold.data, hold.peerId);
+            Log.d(TAG, "handshook: " + hold.peerId);
         }
+        queue.clear();//clear the hold list after sending
     }
 
     void onReceiveFromPeer(byte[] binary, String peerId) {
