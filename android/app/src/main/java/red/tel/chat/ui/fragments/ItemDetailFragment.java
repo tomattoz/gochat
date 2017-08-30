@@ -23,7 +23,7 @@ import java.util.Date;
 import java.util.List;
 
 import okio.ByteString;
-import red.tel.chat.Backend;
+import red.tel.chat.WireBackend;
 import red.tel.chat.EventBus;
 import red.tel.chat.Model;
 import red.tel.chat.R;
@@ -98,7 +98,7 @@ public class ItemDetailFragment extends Fragment implements MessageListAdapter.C
             long time = Utils.getFormattedDate(new Date());
             String message = messageEdit.getText().toString();
             Model.shared().addText(message, Model.shared().getUsername(), whom);
-            Backend.shared().sendText(message, whom);
+            WireBackend.shared().sendText(message, whom);
             Text text = new Text.Builder().body(ByteString.encodeUtf8(message)).from(Model.shared().getUsername()).to(whom).build();
             int position = textList.size();
             textList.add(text);

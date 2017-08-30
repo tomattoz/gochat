@@ -135,11 +135,12 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
                     contacts.addAll(t);
                     List<red.tel.chat.generated_protobuf.Contact> contactList = new ArrayList<>();
                     for (ContactsModel.DataContacts newCon : contactsModel.getDataContacts()) {
-                        if (newCon.getNickName() == null || newCon.getNickName().equals("")) {
+                        String nickName = newCon.getNickName();
+                        if (nickName == null || nickName.equals("")) {
                             continue;
                         }
-                        String nickName = newCon.getNickName();
-                        if (nickName.contains(":")) {
+
+                        if (nickName.contains("live:")) {
                             int index = nickName.indexOf(':');
                             nickName = nickName.substring(index+1);
                         }
@@ -155,13 +156,8 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
                         contactList.add(contact);
                     }
                     contactList.addAll(contacts);
-                    Collections.sort(contactList, new Comparator<Contact>() {
-                        @Override
-                        public int compare(Contact contact, Contact t1) {
-                            return contact.name == null || t1.name == null ? 0 : contact.name.compareTo(t1.name);
-                        }
-                    });
-                    //Collections.sort(contactList, (contact, t1) -> contact.name.compareTo(t1.name));
+                    Collections.sort(contactList, (contact, t1) -> contact.name == null || t1.name == null ? 0
+                            : contact.name.compareTo(t1.name));
                     return contactList;
                 }).flatMap(res -> {
                     Log.d(TAG, "showListContact: 2");

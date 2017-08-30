@@ -84,11 +84,11 @@ public class ChatApp extends MultiDexApplication implements IAuthenticationProvi
     public void onActivityCreated(Activity activity, Bundle bundle) {
         if (activity instanceof SplashActivity) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                Intent startIntent = new Intent(this, Backend.class);
+                Intent startIntent = new Intent(this, WireBackend.class);
                 startIntent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
                 startForegroundService(startIntent);
             } else {
-                startService(new Intent(this, Backend.class));
+                startService(new Intent(this, WireBackend.class));
             }
         }
         Log.d(TAG, "onActivityCreated: ");

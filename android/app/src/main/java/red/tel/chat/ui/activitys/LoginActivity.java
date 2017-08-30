@@ -17,7 +17,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.JsonObject;
-import com.neovisionaries.ws.client.WebSocket;
 
 import net.openid.appauth.AuthorizationException;
 import net.openid.appauth.AuthorizationService;
@@ -26,10 +25,9 @@ import net.openid.appauth.TokenResponse;
 import java.net.URI;
 import java.util.UUID;
 
-import red.tel.chat.Backend;
+import red.tel.chat.WireBackend;
 import red.tel.chat.EventBus;
 import red.tel.chat.Model;
-import red.tel.chat.Network;
 import red.tel.chat.R;
 import red.tel.chat.office365.AuthenticationManager;
 import red.tel.chat.office365.Constants;
@@ -196,7 +194,7 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
         showProgress(true);
         String tokenNotificaion = Model.shared().getTokenPushNotification();
         if (tokenNotificaion != null) {
-            Backend.shared().login(typeLogin, username, accessToken, tokenNotificaion);
+            WireBackend.shared().login(typeLogin, username, accessToken, tokenNotificaion);
         } else {
             showProgress(false);
         }

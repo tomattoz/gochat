@@ -5,13 +5,8 @@ import android.os.Build;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +18,6 @@ import red.tel.chat.generated_protobuf.Contact;
 import red.tel.chat.generated_protobuf.Text;
 import red.tel.chat.generated_protobuf.Voip;
 import red.tel.chat.generated_protobuf.Wire;
-import red.tel.chat.utils.Utils;
 
 import static red.tel.chat.generated_protobuf.Wire.Which.CONTACTS;
 import static red.tel.chat.generated_protobuf.Wire.Which.PRESENCE;
@@ -44,7 +38,7 @@ public class Model {
     public static Model shared() {
         if (instance == null) {
             instance = new Model();
-            EventBus.listenFor(ChatApp.getContext(), Event.AUTHENTICATED, () -> Backend.shared().sendLoad(TEXTS));
+            EventBus.listenFor(ChatApp.getContext(), Event.AUTHENTICATED, () -> WireBackend.shared().sendLoad(TEXTS));
         }
         return instance;
     }
@@ -125,6 +119,7 @@ public class Model {
                 break;
             default:
                 Log.e(TAG, "Did not handle incoming " + wire.which);
+                break;
         }
     }
 
@@ -137,6 +132,7 @@ public class Model {
                 break;
             default:
                 Log.e(TAG, "Did not handle incoming " + voip.which);
+                break;
         }
     }
 
@@ -148,7 +144,7 @@ public class Model {
 
     private void storeTexts() {
         byte[] data = new Voip.Builder().textStorage(texts).build().encode();
-        Backend.shared().sendStore(TEXTS, data);
+        WireBackend.shared().sendStore(TEXTS, data);
     }
 
     void onReceiveStore(String key, byte[] value) throws Exception {
@@ -184,7 +180,8 @@ public class Model {
             }
         }
         List<Contact> listContact = new ArrayList<>(roster.values());
-        Collections.sort(listContact, (contact, t1) -> contact.name.compareTo(t1.name));
-        Backend.shared().sendContacts(listContact);
+        Collections.sort(listContact, (contact, t1) -> contact.name == null || t1.name == null ? 0
+                : contact.name.compareTo(t1.name));
+        WireBackend.shared().sendContacts(listContact);
     }
 }

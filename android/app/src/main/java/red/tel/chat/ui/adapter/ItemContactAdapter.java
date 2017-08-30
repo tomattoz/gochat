@@ -93,12 +93,7 @@ public class ItemContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         if (values.size() == 0) {
             return;
         }
-        Collections.sort(values, new Comparator<Contact>() {
-            @Override
-            public int compare(Contact contact, Contact t1) {
-                return contact.name == null || t1.name == null ? 0 : contact.name.compareTo(t1.name);
-            }
-        });
+        Collections.sort(values, (contact, t1) -> contact.name == null || t1.name == null ? 0 : contact.name.compareTo(t1.name));
     }
 
     @Override

@@ -137,13 +137,13 @@ class Crypto {
 
         private void sendPublicKey(Boolean isResponse) {
             status = Status.PUBLIC_KEY_SENT;
-            Backend.shared().sendPublicKey(clientPublicKey.toByteArray(), peerId, isResponse);
+            WireBackend.shared().sendPublicKey(clientPublicKey.toByteArray(), peerId, isResponse);
         }
 
         private void connect() {
             try {
                 byte[] connectRequest = session.generateConnectRequest();
-                Backend.shared().sendHandshake(connectRequest, peerId);
+                WireBackend.shared().sendHandshake(connectRequest, peerId);
             } catch (Exception exception) {
                 Log.e(TAG, exception.getLocalizedMessage());
             }
@@ -153,18 +153,18 @@ class Crypto {
             SecureSession.UnwrapResult result = session.unwrap(receiveBuffer);
             if (session.isEstablished()) {
                 status = Status.SESSION_ESTABLISHED;
-                Backend.shared().handshook(peerId);
+                WireBackend.shared().handshook(peerId);
             }
             switch (result.getDataType()) {
                 case USER_DATA:
                     // this is the actual data that was encrypted by your peer using SecureSession.wrap
                     // process the data according to your application's flow for incoming data
-                    Backend.shared().onReceiveFromPeer(result.getData(), peerId);
+                    WireBackend.shared().onReceiveFromPeer(result.getData(), peerId);
                     break;
                 case PROTOCOL_DATA:
                     // this is the internal Secure Session protocol data. An opaque response was generated, just send it to your peer
                     // send the data to your peer as is
-                    Backend.shared().sendHandshake(result.getData(), peerId);
+                    WireBackend.shared().sendHandshake(result.getData(), peerId);
                     break;
                 case NO_DATA:
                     // this is the internal Secure Session protocol data, but no response is needed (this usually takes place on the client side when protocol negotiation completes)

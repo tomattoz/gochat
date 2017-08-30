@@ -11,6 +11,7 @@ import (
 
 type Client struct {
   id          string
+  name        string
   contacts    []*Contact
   sessions    map[string]*websocket.Conn
   online      bool

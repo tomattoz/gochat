@@ -115,6 +115,7 @@ func (crowd *Crowd) receivedLogin(conn *websocket.Conn, login *Login) string {
   } else {
 	client = &Client{
 	  id:          name,
+	  name:        name,
 	  sessions:    make(map[string]*websocket.Conn),
 	  online:      false,
 	  deviceToken: deviceToken,
@@ -197,13 +198,15 @@ func (crowd *Crowd) updatePresence(sessionId string, online bool) {
 
   // inform subscribers
   from := client.id
+  name := client.name
   deviceToken := client.deviceToken
   contact := &Contact{
 	Id:          from,
+	Name:        name,
 	Online:      online,
 	DeviceToken: deviceToken,
   }
-  fmt.Printf("\t from: %s deviceToken: %s\n", from, deviceToken)
+  fmt.Printf("\t from: %s deviceToken: %s\n", name, deviceToken)
   for _, subscriber := range crowd.presenceSubscribers[from] {
 	fmt.Println("\t subscriber = " + subscriber)
 	update := &Wire{

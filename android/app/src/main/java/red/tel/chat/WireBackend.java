@@ -34,12 +34,12 @@ import static red.tel.chat.generated_protobuf.Wire.Which.PUBLIC_KEY_RESPONSE;
 import static red.tel.chat.notification.NotificationUtils.ANDROID_CHANNEL_ID;
 
 // shuttles data between Network and Model
-public class Backend extends IntentService {
+public class WireBackend extends IntentService {
 
-    private static final String TAG = "Backend";
-    private static Backend instance;
+    private static final String TAG = "WireBackend";
+    private static WireBackend instance;
 
-    public Backend() {
+    public WireBackend() {
         super(TAG);
     }
 
@@ -48,7 +48,7 @@ public class Backend extends IntentService {
     private Crypto crypto;
     private Map<String, ArrayList<Hold>> queue = new HashMap<>();
 
-    public static Backend shared() {
+    public static WireBackend shared() {
         return instance;
     }
 
@@ -65,7 +65,7 @@ public class Backend extends IntentService {
             String authenToken = Model.shared().getAccessToken();
             String deviceToken = Model.shared().getTokenPushNotification();
             if (username != null && deviceToken != null) {
-                Backend.this.login(typeLogin, username, authenToken, deviceToken);
+                WireBackend.this.login(typeLogin, username, authenToken, deviceToken);
                 Log.d(TAG, "re login: ");
             }
         });
