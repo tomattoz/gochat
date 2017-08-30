@@ -119,7 +119,7 @@ func (crowd *Crowd) receivedLogin(conn *websocket.Conn, login *Login) string {
 	  online:      false,
 	  deviceToken: deviceToken,
 	}
-	fmt.Println("token notification: " + deviceToken)
+	fmt.Println("\ttoken notification: " + deviceToken)
   }
   client.sessions[sessionId] = conn
   crowd.clients[name] = client
@@ -139,7 +139,7 @@ func (crowd *Crowd) receivedLogin(conn *websocket.Conn, login *Login) string {
 }
 
 func loginSuccess(client *Client, sessionId string, crowd *Crowd) {
-  fmt.Printf("New client id = %s, session = %s, len = %d, tokenNotification = %s\n",
+  fmt.Printf("\tNew client id = %s, session = %s, len = %d, tokenNotification = %s\n",
 	client.id, sessionId, len(client.sessions), client.deviceToken)
   client.Load(crowd.db)
   crowd.clients[sessionId] = client
@@ -160,7 +160,7 @@ func verifyToken(token string) bool {
   }
   defer resp.Body.Close()
   statusCode := resp.StatusCode
-  fmt.Println("verify token:\nStatusCode: ", statusCode)
+  fmt.Println("\tVerify token: StatusCode: ", statusCode)
   if statusCode == 200 {
 	return true
   } else {

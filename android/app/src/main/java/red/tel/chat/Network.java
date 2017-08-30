@@ -8,6 +8,7 @@ import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import com.neovisionaries.ws.client.WebSocketFrame;
+import com.neovisionaries.ws.client.WebSocketState;
 
 import java.util.List;
 import java.util.Map;
@@ -38,14 +39,18 @@ public class Network {
         return webSocket;
     }
 
-    Network() {
-
+    public void onInitConnectServer() {
         WebSocketFactory factory = new WebSocketFactory();
         ProxySettings settings = factory.getProxySettings();
         settings.setServer(serverUrl);
 
         try {
             WebSocketAdapter webSocketAdapter = new WebSocketAdapter() {
+                @Override
+                public void onStateChanged(WebSocket websocket, WebSocketState newState) throws Exception {
+                    Log.d(TAG, "onStateChanged: " + newState.name());
+                }
+
                 @Override
                 public void onConnected(WebSocket websocket, Map<String, List<String>> headers) throws Exception {
                     Log.i(TAG, "Connected");

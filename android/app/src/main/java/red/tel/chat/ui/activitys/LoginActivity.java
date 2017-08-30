@@ -3,7 +3,6 @@ package red.tel.chat.ui.activitys;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
@@ -12,13 +11,13 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.gson.JsonObject;
+import com.neovisionaries.ws.client.WebSocket;
 
 import net.openid.appauth.AuthorizationException;
 import net.openid.appauth.AuthorizationService;
@@ -32,12 +31,10 @@ import red.tel.chat.EventBus;
 import red.tel.chat.Model;
 import red.tel.chat.Network;
 import red.tel.chat.R;
-import red.tel.chat.notification.RegistrationIntentService;
 import red.tel.chat.office365.AuthenticationManager;
 import red.tel.chat.office365.Constants;
 import red.tel.chat.office365.TokenNotFoundException;
 
-import static red.tel.chat.Model.parseJsonUser;
 import static red.tel.chat.office365.Constants.TYPE_LOGIN_MS;
 import static red.tel.chat.office365.Constants.TYPE_LOGIN_NORMAL;
 
@@ -60,6 +57,17 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
         }
         usernameView = (EditText) findViewById(R.id.username);
         passwordView = (EditText) findViewById(R.id.password);
+        Button button = findViewById(R.id.office365);
+        button.setOnClickListener(view -> {
+            if (!hasAzureConfiguration()) {
+                Toast.makeText(
+                        LoginActivity.this,
+                        getString(R.string.warning_client_id_redirect_uri_incorrect),
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+            connect();
+        });
         passwordView.setOnEditorActionListener((TextView textView, int id, KeyEvent keyEvent) -> {
             if (id == R.id.login || id == EditorInfo.IME_NULL) {
                 validateInput();
@@ -99,7 +107,6 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
             alert.create().show();
         }
     }
-
 
 
     private void connect() {
@@ -176,7 +183,7 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
         Model.shared().setAccessToken("normal");
         login(TYPE_LOGIN_NORMAL, username, password, "normal");
 
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null) {
             imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
         }
@@ -201,14 +208,7 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
     //login with microsoft office 360
     public void onClickSignInOffice360(View view) {
         //check that client id and redirect have been configured
-        if (!hasAzureConfiguration()) {
-            Toast.makeText(
-                    LoginActivity.this,
-                    getString(R.string.warning_client_id_redirect_uri_incorrect),
-                    Toast.LENGTH_LONG).show();
-            return;
-        }
-        connect();
+
     }
 
     @Override
@@ -220,6 +220,8 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
             String tid = claims.get("tid").getAsString();
             try {
                 if (name != null && !name.equals("")) {
+                    int index = name.indexOf('@');
+                    name = name.substring(0, index);
                     String accessToken = AuthenticationManager.getInstance().getAccessToken();
                     Model.shared().setAccessToken(accessToken);
                     login(TYPE_LOGIN_MS, name, tid, accessToken);
