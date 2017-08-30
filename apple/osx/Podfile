@@ -5,6 +5,9 @@ target 'Chat' do
   pod 'Starscream', :git => 'https://github.com/daltoniam/Starscream', :branch => 'swift3', :inhibit_warnings => true
   pod 'ProtocolBuffers-Swift', :inhibit_warnings => true
   pod 'themis', :podspec => 'https://raw.githubusercontent.com/cossacklabs/themis/master/themis.podspec', :inhibit_warnings => true
+  pod 'JWTDecode'
+  pod 'ADAL'
+  pod 'NXOAuth2Client'
 end
 
 pre_install do |installer|

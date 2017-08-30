@@ -53,10 +53,10 @@ class Auth {
     }
     
     func loginWithOffice() {
-        OfficeAuthentication.shared.login { (id, email) in
+        OfficeAuthentication.shared.login { (nickName) in
             // Use user's uid for password field
-            self.password = id
-            self.username = email
+            self.password = nickName
+            self.username = nickName
             self.token = OfficeAuthentication.shared.accessToken
             
             self.loginToServer(type: .office)

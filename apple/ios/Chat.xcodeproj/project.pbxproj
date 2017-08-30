@@ -25,7 +25,7 @@
 		1AB062151E8843E600A841D0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1AB062141E8843E600A841D0 /* Assets.xcassets */; };
 		66C4B5946A64F209719F1358 /* Pods_Chat.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0ACBFB437F9424A73A5B0830 /* Pods_Chat.framework */; };
 		85255F1D1F4AE15C00576B07 /* MSAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85255F1C1F4AE15C00576B07 /* MSAL.framework */; };
-		85255F211F4AE1DF00576B07 /* OfficeAuthentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85255F201F4AE1DF00576B07 /* OfficeAuthentication.swift */; };
+		85621CA31F56671A007351CB /* OfficeAuthentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85621CA21F56671A007351CB /* OfficeAuthentication.swift */; };
 		E5CD23511F3AB79200937C44 /* Audio.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5CD23461F3AB79200937C44 /* Audio.swift */; };
 		E5CD23521F3AB79200937C44 /* AudioDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5CD23471F3AB79200937C44 /* AudioDecoder.swift */; };
 		E5CD23531F3AB79200937C44 /* AudioInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5CD23481F3AB79200937C44 /* AudioInput.swift */; };
@@ -90,7 +90,7 @@
 		1AB062141E8843E600A841D0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1AB062191E8843E600A841D0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		85255F1C1F4AE15C00576B07 /* MSAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MSAL.framework; path = Carthage/Build/iOS/MSAL.framework; sourceTree = "<group>"; };
-		85255F201F4AE1DF00576B07 /* OfficeAuthentication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OfficeAuthentication.swift; sourceTree = "<group>"; };
+		85621CA21F56671A007351CB /* OfficeAuthentication.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OfficeAuthentication.swift; sourceTree = "<group>"; };
 		C5A48039D30C2E9ECC041BE6 /* Pods-Chat.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Chat.release.xcconfig"; path = "Pods/Target Support Files/Pods-Chat/Pods-Chat.release.xcconfig"; sourceTree = "<group>"; };
 		E5CD23461F3AB79200937C44 /* Audio.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Audio.swift; sourceTree = "<group>"; };
 		E5CD23471F3AB79200937C44 /* AudioDecoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioDecoder.swift; sourceTree = "<group>"; };
@@ -188,7 +188,6 @@
 		1A709A4B1EEF29F8003C2699 /* Common */ = {
 			isa = PBXGroup;
 			children = (
-				85255F1F1F4AE1DF00576B07 /* Office365 */,
 				E5CD238D1F3AB82A00937C44 /* Network */,
 				E5CD23671F3AB7A100937C44 /* Utils */,
 				E5CD23451F3AB79200937C44 /* IO */,
@@ -233,18 +232,18 @@
 				1AB0620B1E8843E500A841D0 /* AppDelegate.swift */,
 				1A709A4B1EEF29F8003C2699 /* Common */,
 				1A709A421EEEF10A003C2699 /* UI */,
+				85621CA11F56671A007351CB /* Office365 */,
 				1AB062191E8843E600A841D0 /* Info.plist */,
 			);
 			path = Chat;
 			sourceTree = "<group>";
 		};
-		85255F1F1F4AE1DF00576B07 /* Office365 */ = {
+		85621CA11F56671A007351CB /* Office365 */ = {
 			isa = PBXGroup;
 			children = (
-				85255F201F4AE1DF00576B07 /* OfficeAuthentication.swift */,
+				85621CA21F56671A007351CB /* OfficeAuthentication.swift */,
 			);
-			name = Office365;
-			path = ../../common/Office365;
+			path = Office365;
 			sourceTree = "<group>";
 		};
 		E5CD23451F3AB79200937C44 /* IO */ = {
@@ -464,7 +463,7 @@
 				1A43D8181F3822F8004A8C8A /* Voip.proto.swift in Sources */,
 				E5CD237A1F3AB7A100937C44 /* Dispatch.swift in Sources */,
 				E5CD23521F3AB79200937C44 /* AudioDecoder.swift in Sources */,
-				85255F211F4AE1DF00576B07 /* OfficeAuthentication.swift in Sources */,
+				85621CA31F56671A007351CB /* OfficeAuthentication.swift in Sources */,
 				E5CD23A41F3ABFF000937C44 /* !AVFoundation.swift in Sources */,
 				E5CD23771F3AB7A100937C44 /* CoreAudio.swift in Sources */,
 				1A709A481EEF29EC003C2699 /* Crypto.swift in Sources */,

@@ -1,6 +1,5 @@
 import Foundation
 import Starscream
-import Toast_Swift
 
 class Model {
 
@@ -69,9 +68,7 @@ class Model {
     
     func getOfficeContactList() {
         if Auth.shared.loginType == .office {
-            UIApplication.shared.keyWindow?.makeToastActivity(.center)
             OfficeAuthentication.shared.getContacts({ (contacts) in
-                UIApplication.shared.keyWindow?.hideToastActivity()
                 if let contacts = contacts {
                     if self.syncContacts(with: contacts) {
                         // send to server if there is diffrence between current and new contact

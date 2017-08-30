@@ -10,7 +10,7 @@ class LoginViewController : NSWindowController {
 
     @IBAction func didClickLogin(_ sender: Any) {
         loginWindow?.close()
-        Auth.shared.login(username: username.stringValue, password: password.stringValue)
+        Auth.shared.loginNormal(username: username.stringValue, password: password.stringValue)
     }
 
     @IBAction func didClickRegister(_ sender: Any) {
@@ -18,6 +18,10 @@ class LoginViewController : NSWindowController {
         Auth.shared.register(username: username.stringValue, password: password.stringValue)
     }
 
+    @IBAction func didClickLoginWithOffice(_ sender: Any) {
+        Auth.shared.loginWithOffice()
+    }
+    
     static func popup() {
         // Xcode8 compiler
         // shared = LoginViewController(windowNibName: NSNib.Name(rawValue: "Login"))

@@ -7,7 +7,9 @@
 //
 
 import Foundation
+import ADAL
 import JWTDecode
+import NXOAuth2Client
 
 class OfficeAuthentication: NSObject, URLSessionDelegate {
     
@@ -16,19 +18,16 @@ class OfficeAuthentication: NSObject, URLSessionDelegate {
     
     //-- Init
     private override init() {
-        do {
-            // Initialize a MSALPublicClientApplication with a given clientID and authority
-            self.applicationContext = try MSALPublicClientApplication.init(clientId: kClientID, authority: kAuthority)
-        } catch {
-            NSLog("Unable to create Application Context. Error: \(error)")
-        }
+        var error: ADAuthenticationError?
+        self.applicationContext = ADAuthenticationContext.init(authority: kAuthority, validateAuthority: true, error: &error)
     }
     
     // Constants
     
     let kClientID = "044e6315-8adc-4dce-9e8e-d9c4d8fef806"
     let kAuthority = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
-    
+    let kResource = "https://graph.windows.net"
+    let kRedirectUri = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
     let kGraphURI = "https://graph.microsoft.com/v1.0/me"
     let kContactGraphURI = "https://graph.microsoft.com/v1.0/me/contacts"
     let kScopes: [String] = ["https://graph.microsoft.com/user.read", "https://graph.microsoft.com/contacts.read"]
@@ -36,84 +35,34 @@ class OfficeAuthentication: NSObject, URLSessionDelegate {
     // Properties
     
     var accessToken: String?
-    var applicationContext = MSALPublicClientApplication.init()
-    var user: MSALUser?
-    
-    func login(_ completedHandler: @escaping ((String?, String?)->())) {
-        
-        func interactionRequiredToken() {
-            self.applicationContext.acquireToken(forScopes: self.kScopes) { (result, error) in
-                if error == nil {
-                    self.accessToken = (result?.accessToken)!
-                    self.user = result?.user
-                    NSLog("Access token is \(self.accessToken ?? "nil")")
-                    if let idToken = result?.idToken {
-                        self.getUserInfo(from: idToken, completedHanlder: completedHandler)
-                    }
-                } else  {
-                    NSLog("Could not acquire token: \(error ?? "No error information" as! Error)")
-                }
-            }
+    var applicationContext: ADAuthenticationContext?
+
+    func login(_ completedHandler: @escaping ((String?)->())) {
+        if applicationContext == nil {
+            return
         }
         
-        do {
-            // We check to see if we have a current logged in user. If we don't, then we need to sign someone in.
-            // We throw an interactionRequired so that we trigger the interactive signin.
-            
-            if  try self.applicationContext.users().isEmpty {
-                throw NSError.init(domain: "MSALErrorDomain", code: MSALErrorCode.interactionRequired.rawValue, userInfo: nil)
-            } else {
-                
-                // Acquire a token for an existing user silently
-                
-                try self.applicationContext.acquireTokenSilent(forScopes: self.kScopes, user: applicationContext.users().first) { (result, error) in
-                    
-                    if error == nil {
-                        self.accessToken = (result?.accessToken)!
-                        self.user = result?.user
+        
+        applicationContext!.acquireToken(withResource: kResource, clientId: kClientID, redirectUri: URL.init(string: kRedirectUri)) { (result) in
+            if result != nil {
+                self.accessToken = result!.accessToken
+                if let idToken = result?.tokenCacheItem?.userInformation?.rawIdToken {
+                    if let jwt = try? decode(jwt: idToken) {
+                        print(jwt.body)
+//                        let email = jwt.claim(name: "preferred_username").string
+//                        let id = jwt.claim(name: "tid").string
                         
-                        NSLog("Refreshing token silently")
-                        NSLog("Refreshed Access token is \(self.accessToken ?? "nil")")
-                        if let idToken = result?.idToken {
-                            self.getUserInfo(from: idToken, completedHanlder: completedHandler)
-                        }
                     } else {
-                        NSLog("Could not acquire token silently: \(error ?? "No error information" as! Error)")
-                        if (error! as NSError).code == MSALErrorCode.interactionRequired.rawValue {
-                            interactionRequiredToken()
-                        }
+                        
                     }
                 }
             }
-        }  catch let error as NSError {
-            
-            // interactionRequired means we need to ask the user to sign-in. This usually happens
-            // when the user's Refresh Token is expired or if the user has changed their password
-            // among other possible reasons.
-            
-            if error.code == MSALErrorCode.interactionRequired.rawValue {
-                interactionRequiredToken()
-            } else {
-            }
-            
-        } catch {
-            // This is the catch all error.
-            NSLog("Unable to acquire token. Got error: \(error)")
         }
+        
     }
     
     func signout() {
-        accessToken = nil
-        do {
-            
-            // Removes all tokens from the cache for this application for the provided user
-            // first parameter:   The user to remove from the cache
-            
-            try self.applicationContext.remove(self.applicationContext.users().first)
-        } catch let error {
-            NSLog("Received error signing user out: \(error)")
-        }
-        user = nil
+
     }
     
     func getContacts(_ completedHandler: @escaping(([Contact]?)->())) {
