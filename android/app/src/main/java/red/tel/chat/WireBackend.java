@@ -280,21 +280,5 @@ public class WireBackend extends IntentService {
         queue.clear();//clear the hold list after sending
     }
 
-    void onReceiveFromPeer(byte[] binary, String peerId) {
-        try {
-            Voip voip = Voip.ADAPTER.decode(binary);
-            Log.d(TAG, "incoming " + voip.which + " from " + peerId);
 
-            switch (voip.which) {
-                case TEXT:
-                    Model.shared().incomingFromPeer(voip, peerId);
-                    break;
-                default:
-                    Log.e(TAG, "no handler for " + voip.which);
-                    break;
-            }
-        } catch (Exception exception) {
-            Log.e(TAG, exception.getLocalizedMessage());
-        }
-    }
 }

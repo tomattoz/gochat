@@ -1,6 +1,10 @@
 package red.tel.chat.network;
 
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import red.tel.chat.io.IO;
 
 import static red.tel.chat.utils.Log.logError;
@@ -37,6 +41,35 @@ public class NetworkBase {
         public NetworkIOSessionInfo(IO.IOID id, byte[] formatData) {
             this.id = id;
             this.formatData = formatData;
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // NetworkInput
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static class NetworkInput {
+        private Map<String, byte[]> output = new HashMap<>();
+
+        public void add(String sid, byte[] output) {
+            this.output.put(sid, output);
+        }
+
+        public void remove(String sid) {
+            for (Iterator<Map.Entry<String, byte[]>> it = output.entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry<String, byte[]> entry = it.next();
+                if (entry.getKey().equals(sid)) {
+                    it.remove();
+                }
+            }
+        }
+
+        public void removeAll() {
+            output.clear();
+        }
+
+        public void process(String sid, byte[] data) {
+
         }
     }
 }

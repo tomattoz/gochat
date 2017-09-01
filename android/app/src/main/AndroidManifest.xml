@@ -67,6 +67,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".ui.activitys.IncomingCallActivity"/>
+
         <!-- [START gcm_receiver] -->
         <receiver
             android:name="com.google.android.gms.gcm.GcmReceiver"

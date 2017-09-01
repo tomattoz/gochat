@@ -1,6 +1,7 @@
 package red.tel.chat.network;
 
 import android.os.Handler;
+import android.os.Looper;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -13,7 +14,7 @@ public class NetworkCall {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Proposal
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    private static class NetworkCallProposalInfo {
+    public static class NetworkCallProposalInfo {
         private String id;
         private String from;
         private String to;
@@ -130,7 +131,7 @@ public class NetworkCall {
         void  callInfo(NetworkCallProposalInfo info);
     }
 
-    private static class NetworkCallProposal implements NetworkCallProposalProtocol {
+    public static class NetworkCallProposal implements NetworkCallProposalProtocol {
         private NetworkCallProposalInfo info;
         private NetworkCallProposalReceiverProtocol ui;
 
@@ -168,9 +169,20 @@ public class NetworkCall {
         }
     }
 
-    private static class NetworkCallProposalController extends NetworkSingleCallSessionController<NetworkCallProposal, NetworkCallProposalInfo> {
-        private static NetworkCallProposalController incoming;
-        private static NetworkCallProposalController outgoing;
+    public static class NetworkCallProposalController extends NetworkSingleCallSessionController<NetworkCallProposal, NetworkCallProposalInfo> {
+
+        private static volatile NetworkCallProposalController ourInstance = null;
+
+        public static NetworkCallProposalController getInstance() {
+            if (ourInstance == null) {
+                synchronized (NetworkCallProposalController.class) {
+                    if (ourInstance == null) {
+                        ourInstance = new NetworkCallProposalController();
+                    }
+                }
+            }
+            return ourInstance;
+        }
 
         @Override
         protected NetworkCallProposal create(NetworkCallProposalInfo info) {
@@ -185,12 +197,7 @@ public class NetworkCall {
         @Override
         public void start(NetworkCallProposalInfo info) {
             super.start(info);
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    timeout(info);
-                }
-            },10000);
+            new Handler(Looper.getMainLooper()).postDelayed(() -> timeout(info),10000);
         }
 
         public void accept(NetworkCallProposalInfo info) {
@@ -209,7 +216,7 @@ public class NetworkCall {
 
         //auto cancels a 10 second call, if? No reply
         private void timeout(NetworkCallProposalInfo info) {
-            start(info);
+            stop(info);
         }
     }
 
@@ -220,7 +227,7 @@ public class NetworkCall {
                 to,
                 audio,
                 video);
-        NetworkCallProposalController.outgoing.start(info);
+        NetworkCallProposalController.getInstance().start(info);
         return info;
     }
 
