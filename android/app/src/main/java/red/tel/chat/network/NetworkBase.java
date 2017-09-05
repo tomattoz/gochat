@@ -49,15 +49,15 @@ public class NetworkBase {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class NetworkInput {
-        private Map<String, byte[]> output = new HashMap<>();
+        private Map<String, IO.IODataProtocol> output = new HashMap<>();
 
-        public void add(String sid, byte[] output) {
+        public void add(String sid, IO.IODataProtocol output) {
             this.output.put(sid, output);
         }
 
         public void remove(String sid) {
-            for (Iterator<Map.Entry<String, byte[]>> it = output.entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry<String, byte[]> entry = it.next();
+            for (Iterator<Map.Entry<String, IO.IODataProtocol>> it = output.entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry<String, IO.IODataProtocol> entry = it.next();
                 if (entry.getKey().equals(sid)) {
                     it.remove();
                 }

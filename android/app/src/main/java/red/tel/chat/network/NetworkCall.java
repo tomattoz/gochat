@@ -8,9 +8,87 @@ import java.util.UUID;
 
 import red.tel.chat.Model;
 import red.tel.chat.Types;
+import red.tel.chat.io.Audio;
+import red.tel.chat.io.IO;
 import red.tel.chat.office365.Constants;
 
-public class NetworkCall {
+public class NetworkCall implements Types.SessionProtocol {
+
+    @Override
+    public void start() {
+
+    }
+
+    @Override
+    public void stop() {
+
+    }
+
+    // TODO: 9/5/17
+    public IO.IODataProtocol startOutput(NetworkVideo.NetworkVideoSessionInfo info) {
+        return null;
+    }
+
+    // TODO: 9/5/17
+    public IO.IODataProtocol startOutput(NetworkAudio.NetworkAudioSessionInfo info) {
+        return null;
+    }
+
+    // TODO: 9/5/17  
+    public static class NetworkCallController extends NetworkSingleCallSessionController<NetworkCall, NetworkCallInfo> {
+
+        private static volatile NetworkCallController ourInstance = null;
+
+        public static NetworkCallController getInstance() {
+            if (ourInstance == null) {
+                synchronized (NetworkCallController.class) {
+                    if (ourInstance == null) {
+                        ourInstance = new NetworkCallController();
+                    }
+                }
+            }
+            return ourInstance;
+        }
+
+        Types.SessionProtocol factory;
+
+        public NetworkCallController() {
+        }
+
+        public NetworkCallController(Types.SessionProtocol factory) {
+            this.factory = factory;
+        }
+
+        @Override
+        protected String id(NetworkCallInfo info) {
+            return info.id();
+        }
+
+        @Override
+        protected NetworkCall create(NetworkCallInfo info) {
+            return super.create(info);
+        }
+
+        public void startOutput(NetworkCallInfo call, IO.IODataProtocol audio, IO.IODataProtocol video) {
+            if (!Objects.equals(this.callInfo.id(), call.id())) {
+                return;
+            }
+
+            if (call.audioSession != null) {
+                audio = this.call.startOutput(call.audioSession);
+            }
+
+            if (call.videoSession != null) {
+                video = this.call.startOutput(call.videoSession);
+            }
+        }
+
+        public void changeQuality(NetworkCallInfo info, int diff) {
+            //call(info)
+        }
+    }
+
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Proposal
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,7 +130,7 @@ public class NetworkCall {
 
     private static class NetworkCallSessionController<T, I> {
         protected T create(I info) {
-           return null;
+            return null;
         }
 
         protected String id(I info) {
@@ -63,9 +141,11 @@ public class NetworkCall {
             return null;
         }
 
-        public void start(I info) {}
+        public void start(I info) {
+        }
 
-        public void stop(I info){}
+        public void stop(I info) {
+        }
     }
 
     private static class NetworkSingleCallSessionController<T extends Types.SessionProtocol, I> extends NetworkCallSessionController<T, I> {
@@ -124,11 +204,12 @@ public class NetworkCall {
 
     interface NetworkCallProposalProtocol extends Types.SessionProtocol {
         void accept(NetworkCallProposalInfo info);
+
         void decline();
     }
 
     interface NetworkCallProposalReceiverProtocol {
-        void  callInfo(NetworkCallProposalInfo info);
+        void callInfo(NetworkCallProposalInfo info);
     }
 
     public static class NetworkCallProposal implements NetworkCallProposalProtocol {
@@ -197,7 +278,7 @@ public class NetworkCall {
         @Override
         public void start(NetworkCallProposalInfo info) {
             super.start(info);
-            new Handler(Looper.getMainLooper()).postDelayed(() -> timeout(info),10000);
+            new Handler(Looper.getMainLooper()).postDelayed(() -> timeout(info), 10000);
         }
 
         public void accept(NetworkCallProposalInfo info) {
@@ -243,8 +324,41 @@ public class NetworkCall {
     // Call
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private static class NetworkCallInfo {
+    public static class NetworkCallInfo {
         private NetworkCallProposalInfo proposal;
         private NetworkAudio.NetworkAudioSessionInfo audioSession;
+        private NetworkVideo.NetworkVideoSessionInfo videoSession;
+
+        public NetworkCallInfo(NetworkCallProposalInfo proposal,
+                               NetworkAudio.NetworkAudioSessionInfo audioSession,
+                               NetworkVideo.NetworkVideoSessionInfo videoSession) {
+            this.proposal = proposal;
+            this.audioSession = audioSession;
+            this.videoSession = videoSession;
+        }
+
+        public NetworkCallInfo(NetworkCallProposalInfo proposal, NetworkAudio.NetworkAudioSessionInfo audioSession) {
+            new NetworkCallInfo(proposal, audioSession, null);
+        }
+
+        public NetworkCallInfo(NetworkCallProposalInfo proposal, NetworkVideo.NetworkVideoSessionInfo videoSession) {
+            new NetworkCallInfo(proposal, null, videoSession);
+        }
+
+        public NetworkCallInfo(NetworkCallProposalInfo proposal) {
+            new NetworkCallInfo(proposal, null, null);
+        }
+
+        public String id() {
+            return proposal.getId();
+        }
+
+        public String from() {
+            return proposal.getFrom();
+        }
+
+        public String to() {
+            return proposal.getTo();
+        }
     }
 }

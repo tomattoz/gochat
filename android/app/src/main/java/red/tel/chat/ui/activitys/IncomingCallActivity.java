@@ -10,6 +10,7 @@ import android.widget.TextView;
 import red.tel.chat.R;
 
 public class IncomingCallActivity extends BaseActivity implements View.OnClickListener {
+    public static final String WHOM = "whom";
     private TextView from;
     private Button btnAccept;
     private Button btnDecline;
@@ -23,6 +24,12 @@ public class IncomingCallActivity extends BaseActivity implements View.OnClickLi
         btnDecline = findViewById(R.id.decline);
         btnAccept.setOnClickListener(this);
         btnDecline.setOnClickListener(this);
+
+        Bundle bundle = getIntent().getExtras();
+        if (bundle != null) {
+            String whom = bundle.getString(WHOM);
+            from.setText(whom != null ? whom : "");
+        }
     }
 
     @Override

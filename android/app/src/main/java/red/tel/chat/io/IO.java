@@ -44,6 +44,10 @@ public class IO {
         Video
     }
 
+    public interface IODataProtocol {
+        void process(byte[] data);
+    }
+
     public static class IOFormat {
         private static String kID = "kID";
         private String[] data;
