@@ -192,7 +192,7 @@ public class WireBackend extends IntentService {
         queue.get(peerId).add(hold);
     }
 
-    private void send(byte[] data, String peerId) {
+    public void send(byte[] data, String peerId) {
         if (crypto.isSessionEstablishedFor(peerId)) {
             encryptAndSend(data, peerId);
         } else {

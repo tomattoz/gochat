@@ -9,9 +9,10 @@ import android.widget.TextView;
 
 import red.tel.chat.R;
 import red.tel.chat.camera.CameraView;
+import red.tel.chat.network.NetworkCall;
 import red.tel.chat.ui.fragments.ItemDetailFragment;
 
-public class IncomingCallActivity extends BaseActivity implements View.OnClickListener {
+public class IncomingCallActivity extends BaseActivity implements View.OnClickListener, NetworkCall.NetworkCallProposalReceiverProtocol {
     private TextView from;
     private Button btnAccept;
     private Button btnDecline;
@@ -33,6 +34,8 @@ public class IncomingCallActivity extends BaseActivity implements View.OnClickLi
             String whom = bundle.getString(ItemDetailFragment.ARG_ITEM_ID);
             from.setText(whom != null ? whom : "");
         }
+
+        NetworkCall.getInstance().callAudioAsync(from.getText().toString());
     }
 
     @Override
@@ -63,5 +66,10 @@ public class IncomingCallActivity extends BaseActivity implements View.OnClickLi
             default:
                 break;
         }
+    }
+
+    @Override
+    public void callInfo(NetworkCall.NetworkCallProposalInfo info) {
+
     }
 }

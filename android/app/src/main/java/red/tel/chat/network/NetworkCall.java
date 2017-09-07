@@ -2,26 +2,61 @@ package red.tel.chat.network;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import java.util.Objects;
 import java.util.UUID;
 
 import red.tel.chat.Model;
 import red.tel.chat.Types;
-import red.tel.chat.io.Audio;
+import red.tel.chat.VoipBackend;
 import red.tel.chat.io.IO;
 import red.tel.chat.office365.Constants;
 
 public class NetworkCall implements Types.SessionProtocol {
+    private static final String TAG = NetworkCall.class.getSimpleName();
+
+    private static volatile NetworkCall ourInstance = null;
+
+    public static NetworkCall getInstance() {
+        if (ourInstance == null) {
+            synchronized (NetworkCall.class) {
+                if (ourInstance == null) {
+                    ourInstance = new NetworkCall();
+                }
+            }
+        }
+        return ourInstance;
+    }
+
 
     @Override
     public void start() {
-
+        Log.d(TAG, "start: ");
     }
 
     @Override
     public void stop() {
 
+    }
+
+    private NetworkCallProposalInfo callAsync(String to, boolean audio, boolean video) {
+        String id = UUID.fromString(Constants.CLIENT_ID).toString();
+        NetworkCallProposalInfo info = new NetworkCallProposalInfo(id,
+                Model.shared().getUsername(),
+                to,
+                audio,
+                video);
+        NetworkCallProposalController.getInstance().start(info);
+        return info;
+    }
+
+    public NetworkCallProposalInfo callAudioAsync(String to) {
+        return callAsync(to, true, false);
+    }
+
+    public NetworkCallProposalInfo callVideoAsync(String to) {
+        return callAsync(to, true, true);
     }
 
     // TODO: 9/5/17
@@ -208,12 +243,12 @@ public class NetworkCall implements Types.SessionProtocol {
         void decline();
     }
 
-    interface NetworkCallProposalReceiverProtocol {
+    public interface NetworkCallProposalReceiverProtocol {
         void callInfo(NetworkCallProposalInfo info);
     }
 
     public static class NetworkCallProposal implements NetworkCallProposalProtocol {
-        private NetworkCallProposalInfo info;
+        public NetworkCallProposalInfo info;
         private NetworkCallProposalReceiverProtocol ui;
 
         public NetworkCallProposal(NetworkCallProposalInfo info) {
@@ -235,7 +270,9 @@ public class NetworkCall implements Types.SessionProtocol {
         @Override
         public void stop() {
             // TODO: 8/31/17
-            ui.callInfo(null);
+            if (ui != null) {
+                ui.callInfo(null);
+            }
         }
 
         @Override
@@ -267,7 +304,7 @@ public class NetworkCall implements Types.SessionProtocol {
 
         @Override
         protected NetworkCallProposal create(NetworkCallProposalInfo info) {
-            return super.create(info);
+            return new NetworkOutgoingCallProposal(info);
         }
 
         @Override
@@ -301,24 +338,7 @@ public class NetworkCall implements Types.SessionProtocol {
         }
     }
 
-    private NetworkCallProposalInfo callAsync(String to, boolean audio, boolean video) {
-        String id = UUID.fromString(Constants.CLIENT_ID).toString();
-        NetworkCallProposalInfo info = new NetworkCallProposalInfo(id,
-                Model.shared().getUsername(),
-                to,
-                audio,
-                video);
-        NetworkCallProposalController.getInstance().start(info);
-        return info;
-    }
 
-    private NetworkCallProposalInfo callAudioAsync(String to) {
-        return callAsync(to, true, false);
-    }
-
-    private NetworkCallProposalInfo callVideoAsync(String to) {
-        return callAsync(to, true, true);
-    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Call
@@ -359,6 +379,30 @@ public class NetworkCall implements Types.SessionProtocol {
 
         public String to() {
             return proposal.getTo();
+        }
+    }
+
+    public static class NetworkOutgoingCallProposal extends NetworkCallProposal {
+
+        public NetworkOutgoingCallProposal(NetworkCallProposalInfo info) {
+            super(info);
+        }
+
+        @Override
+        public void start() {
+            super.start();
+            VoipBackend.getInstance().sendCallProposal(info.to, info);
+        }
+
+        @Override
+        public void stop() {
+            super.stop();
+            VoipBackend.getInstance().sendCallCancel(info.to, info);
+        }
+
+        @Override
+        public void accept(NetworkCallProposalInfo info) {
+            super.accept(info);
         }
     }
 }

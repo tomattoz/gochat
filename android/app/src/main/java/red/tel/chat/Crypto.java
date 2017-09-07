@@ -159,7 +159,7 @@ class Crypto {
                 case USER_DATA:
                     // this is the actual data that was encrypted by your peer using SecureSession.wrap
                     // process the data according to your application's flow for incoming data
-                    VoidBackend.getInstance().onReceiveFromPeer(result.getData(), peerId);
+                    VoipBackend.getInstance().onReceiveFromPeer(result.getData(), peerId);
                     break;
                 case PROTOCOL_DATA:
                     // this is the internal Secure Session protocol data. An opaque response was generated, just send it to your peer

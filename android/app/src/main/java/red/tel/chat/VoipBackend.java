@@ -3,24 +3,25 @@ package red.tel.chat;
 
 import android.util.Log;
 
+import red.tel.chat.generated_protobuf.Call;
 import red.tel.chat.generated_protobuf.Voip;
 import red.tel.chat.io.IO;
 import red.tel.chat.network.NetworkAudio;
 import red.tel.chat.network.NetworkBase;
 import red.tel.chat.network.NetworkCall;
 
-public class VoidBackend {
-    private static final String TAG = VoidBackend.class.getSimpleName();
+public class VoipBackend {
+    private static final String TAG = VoipBackend.class.getSimpleName();
     private static NetworkBase.NetworkInput audio;
     private static NetworkBase.NetworkInput video;
 
-    private static volatile VoidBackend ourInstance = null;
+    private static volatile VoipBackend ourInstance = null;
 
-    public static VoidBackend getInstance() {
+    public static VoipBackend getInstance() {
         if (ourInstance == null) {
-            synchronized (VoidBackend.class) {
+            synchronized (VoipBackend.class) {
                 if (ourInstance == null) {
-                    ourInstance = new VoidBackend();
+                    ourInstance = new VoipBackend();
                 }
             }
         }
@@ -151,5 +152,30 @@ public class VoidBackend {
         if (video_ != null) {
             video.add(voip.videoSession.sid, video_);
         }
+    }
+
+    //set up call out
+    public void sendCallProposal(String to, NetworkCall.NetworkCallProposalInfo info) {
+        Call call = new Call.Builder()
+                .key(info.getId())
+                .from(info.getFrom())
+                .to(info.getTo())
+                .audio(info.isAudio())
+                .video(info.isVideo()).build();
+
+        byte[] data = new Voip.Builder().which(Voip.Which.CALL_PROPOSAL).call(call).build().encode();
+        WireBackend.shared().send(data, to);
+    }
+
+    public void sendCallCancel(String to, NetworkCall.NetworkCallProposalInfo info) {
+        Call call = new Call.Builder()
+                .key(info.getId())
+                .from(info.getFrom())
+                .to(info.getTo())
+                .audio(info.isAudio())
+                .video(info.isVideo()).build();
+
+        byte[] data = new Voip.Builder().which(Voip.Which.CALL_CANCEL).call(call).build().encode();
+        WireBackend.shared().send(data, to);
     }
 }
