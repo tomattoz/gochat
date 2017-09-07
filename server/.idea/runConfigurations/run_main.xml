@@ -3,8 +3,8 @@
     <module name="server" />
     <working_directory value="$PROJECT_DIR$" />
     <go_parameters value="-i" />
-    <filePath value="$PROJECT_DIR$/src/main/main.go" />
     <kind value="DIRECTORY" />
+    <filePath value="$PROJECT_DIR$/src/main/main.go" />
     <package value="main" />
     <directory value="$PROJECT_DIR$/src/main" />
     <method />

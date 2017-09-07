@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CameraView">
+
+        <attr name="cameraGestureTap" format="enum">
+            <enum name="none" value="0" />
+            <enum name="focus" value="1" />
+            <enum name="focusWithMarker" value="2" />
+            <enum name="capture" value="3" />
+        </attr>
+
+        <attr name="cameraGestureLongTap" format="enum">
+            <enum name="none" value="0" />
+            <enum name="focus" value="1" />
+            <enum name="focusWithMarker" value="2" />
+            <enum name="capture" value="3" />
+        </attr>
+
+        <attr name="cameraGesturePinch" format="enum">
+            <enum name="none" value="0" />
+            <enum name="zoom" value="4" />
+            <enum name="exposureCorrection" value="5" />
+        </attr>
+
+        <attr name="cameraFacing" format="enum">
+            <enum name="back" value="0" />
+            <enum name="front" value="1" />
+        </attr>
+
+        <attr name="cameraFlash" format="enum">
+            <enum name="off" value="0" />
+            <enum name="on" value="1" />
+            <enum name="auto" value="2" />
+            <enum name="torch" value="3" />
+        </attr>
+
+        <attr name="cameraJpegQuality" format="integer" />
+
+        <attr name="cameraVideoQuality" format="enum">
+            <enum name="lowest" value="0" />
+            <enum name="highest" value="1" />
+            <enum name="maxQvga" value="2" />
+            <enum name="max480p" value="3" />
+            <enum name="max720p" value="4" />
+            <enum name="max1080p" value="5" />
+            <enum name="max2160p" value="6" />
+        </attr>
+    </declare-styleable>
+
+</resources>

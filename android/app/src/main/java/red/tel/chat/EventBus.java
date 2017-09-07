@@ -46,6 +46,7 @@ public class EventBus {
     public static void unRegisterEvent(Context context) {
         if (broadcastReceiver != null) {
             LocalBroadcastManager.getInstance(context).unregisterReceiver(broadcastReceiver);
+            broadcastReceiver = null;
         }
     }
 }

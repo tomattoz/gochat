@@ -8,18 +8,21 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import red.tel.chat.R;
+import red.tel.chat.camera.CameraView;
+import red.tel.chat.ui.fragments.ItemDetailFragment;
 
 public class IncomingCallActivity extends BaseActivity implements View.OnClickListener {
-    public static final String WHOM = "whom";
     private TextView from;
     private Button btnAccept;
     private Button btnDecline;
+    private CameraView cameraView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_incoming_call);
         from = findViewById(R.id.from);
+        cameraView = findViewById(R.id.camera);
         btnAccept = findViewById(R.id.accept);
         btnDecline = findViewById(R.id.decline);
         btnAccept.setOnClickListener(this);
@@ -27,9 +30,27 @@ public class IncomingCallActivity extends BaseActivity implements View.OnClickLi
 
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
-            String whom = bundle.getString(WHOM);
+            String whom = bundle.getString(ItemDetailFragment.ARG_ITEM_ID);
             from.setText(whom != null ? whom : "");
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        cameraView.start();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        cameraView.stop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        cameraView.destroy();
     }
 
     @Override

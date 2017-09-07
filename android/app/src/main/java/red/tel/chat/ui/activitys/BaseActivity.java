@@ -126,7 +126,7 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
     public void requestPermissions() {
         if (EasyPermissions.hasPermissions(this, PERMISSIONS_ALL)) {
             // Have permission, do the thing!
-            Toast.makeText(this, "TODO: Camera things", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "TODO: CameraAndroid things", Toast.LENGTH_LONG).show();
         } else {
             // Ask for one permission
             EasyPermissions.requestPermissions(this, "check",

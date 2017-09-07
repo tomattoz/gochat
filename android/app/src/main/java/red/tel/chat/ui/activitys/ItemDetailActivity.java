@@ -4,8 +4,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Toast;
 
+import pub.devrel.easypermissions.AfterPermissionGranted;
+import pub.devrel.easypermissions.EasyPermissions;
 import red.tel.chat.R;
 import red.tel.chat.ui.fragments.ItemDetailFragment;
 
@@ -17,6 +22,7 @@ import red.tel.chat.ui.fragments.ItemDetailFragment;
  */
 public class ItemDetailActivity extends BaseActivity {
 
+    private Bundle arguments;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,10 +45,10 @@ public class ItemDetailActivity extends BaseActivity {
         //
         // http://developer.android.com/guide/components/fragments.html
         //
-        if (savedInstanceState == null) {
+        if (savedInstanceState == null && arguments == null) {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
-            Bundle arguments = new Bundle();
+            arguments = new Bundle();
             arguments.putString(ItemDetailFragment.ARG_ITEM_ID,
                     getIntent().getStringExtra(ItemDetailFragment.ARG_ITEM_ID));
             ItemDetailFragment fragment = new ItemDetailFragment();
@@ -54,18 +60,43 @@ public class ItemDetailActivity extends BaseActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_call, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == android.R.id.home) {
-            // This ID represents the Home or Up button. In the case of this
-            // activity, the Up button is shown. For
-            // more details, see the Navigation pattern on Android Design:
-            //
-            // http://developer.android.com/design/patterns/navigation.html#up-vs-back
-            //
-            navigateUpTo(new Intent(this, ItemListActivity.class));
-            return true;
+        switch (id) {
+            case android.R.id.home:
+                navigateUpTo(new Intent(this, ItemListActivity.class));
+                return true;
+            case R.id.callAudio:
+                requestPermissions();
+                return true;
+            case R.id.callVideo:
+                requestPermissions();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-        return super.onOptionsItemSelected(item);
+    }
+
+    @AfterPermissionGranted(REQUEST_ALL)
+    public void requestPermissions() {
+        if (EasyPermissions.hasPermissions(this, PERMISSIONS_ALL)) {
+            // Have permission, do the thing!
+            if (arguments != null) {
+                Intent intent = new Intent(this, IncomingCallActivity.class);
+                intent.putExtras(arguments);
+                startActivity(intent);
+            }
+        } else {
+            // Ask for one permission
+            EasyPermissions.requestPermissions(this, "check",
+                    REQUEST_ALL, PERMISSIONS_ALL);
+        }
     }
 }

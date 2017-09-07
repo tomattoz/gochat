@@ -26,13 +26,12 @@ public class SplashActivity extends BaseActivity {
             Intent intent = new Intent(this, RegistrationIntentService.class);
             startService(intent);
         }
+        new Timer().schedule(timerTask, SPLASH_DURATION);
         EventBus.listenFor(this, Event.AUTHENTICATED, () -> {
             Log.d(TAG, "onCreate: ");
             timerTask.cancel();
             start(ItemListActivity.class);
         });
-
-        new Timer().schedule(timerTask, SPLASH_DURATION);
     }
 
     private TimerTask timerTask = new TimerTask() {
@@ -44,11 +43,16 @@ public class SplashActivity extends BaseActivity {
         }
     };
 
+    private Intent intent;
     private void start(Class next) {
-        Intent intent = new Intent(this, next);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_TASK_ON_HOME);
-        startActivity(intent);
-        this.finish();
+        if (intent == null) {
+            intent = new Intent(this, next);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_TASK_ON_HOME);
+            startActivity(intent);
+            this.finish();
+        } else {
+            this.finish();
+        }
     }
 
     @Override
@@ -58,8 +62,8 @@ public class SplashActivity extends BaseActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onPause() {
         EventBus.unRegisterEvent(this);
+        super.onPause();
     }
 }

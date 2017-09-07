@@ -1,6 +1,7 @@
 package red.tel.chat;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
@@ -88,7 +89,9 @@ public class ChatApp extends MultiDexApplication implements IAuthenticationProvi
                 startIntent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
                 startForegroundService(startIntent);
             } else {
-                startService(new Intent(this, WireBackend.class));
+                if (!isServiceRunning(WireBackend.class)) {
+                    startService(new Intent(this, WireBackend.class));
+                }
             }
         }
         Log.d(TAG, "onActivityCreated: ");
@@ -122,5 +125,15 @@ public class ChatApp extends MultiDexApplication implements IAuthenticationProvi
     @Override
     public void onActivityDestroyed(Activity activity) {
         Log.d(TAG, "onActivityDestroyed: ");
+    }
+
+    private boolean isServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
