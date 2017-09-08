@@ -15,7 +15,7 @@ import red.tel.chat.office365.Constants;
 
 public class NetworkCall implements Types.SessionProtocol {
     private static final String TAG = NetworkCall.class.getSimpleName();
-
+    private NetworkCallProposalReceiverProtocol ui;
     private static volatile NetworkCall ourInstance = null;
 
     public static NetworkCall getInstance() {
@@ -249,8 +249,7 @@ public class NetworkCall implements Types.SessionProtocol {
 
     public static class NetworkCallProposal implements NetworkCallProposalProtocol {
         public NetworkCallProposalInfo info;
-        private NetworkCallProposalReceiverProtocol ui;
-
+        NetworkCallProposalReceiverProtocol ui;
         public NetworkCallProposal(NetworkCallProposalInfo info) {
             this.info = info;
         }
@@ -288,18 +287,14 @@ public class NetworkCall implements Types.SessionProtocol {
     }
 
     public static class NetworkCallProposalController extends NetworkSingleCallSessionController<NetworkCallProposal, NetworkCallProposalInfo> {
+        //static nested class
+        private NetworkCallProposalController(){}
+        private static class SingletonHelper {
+            private static final NetworkCallProposalController INSTANCE = new NetworkCallProposalController();
+        }
 
-        private static volatile NetworkCallProposalController ourInstance = null;
-
-        public static NetworkCallProposalController getInstance() {
-            if (ourInstance == null) {
-                synchronized (NetworkCallProposalController.class) {
-                    if (ourInstance == null) {
-                        ourInstance = new NetworkCallProposalController();
-                    }
-                }
-            }
-            return ourInstance;
+        public static synchronized NetworkCallProposalController getInstance() {
+            return SingletonHelper.INSTANCE;
         }
 
         @Override
@@ -315,9 +310,10 @@ public class NetworkCall implements Types.SessionProtocol {
         @Override
         public void start(NetworkCallProposalInfo info) {
             super.start(info);
-            new Handler(Looper.getMainLooper()).postDelayed(() -> timeout(info), 10000);
+            new Handler(Looper.getMainLooper()).postDelayed(() -> timeout(info), 30000);
         }
 
+        //accept call in
         public void accept(NetworkCallProposalInfo info) {
             if (call != null) {
                 call.accept(info);
@@ -383,6 +379,7 @@ public class NetworkCall implements Types.SessionProtocol {
     }
 
     public static class NetworkOutgoingCallProposal extends NetworkCallProposal {
+
 
         public NetworkOutgoingCallProposal(NetworkCallProposalInfo info) {
             super(info);

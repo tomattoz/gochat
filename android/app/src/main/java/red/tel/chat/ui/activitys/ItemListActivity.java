@@ -36,8 +36,10 @@ import io.reactivex.schedulers.Schedulers;
 import red.tel.chat.EventBus;
 import red.tel.chat.Model;
 import red.tel.chat.R;
+import red.tel.chat.WireBackend;
 import red.tel.chat.generated_protobuf.Contact;
 import red.tel.chat.generated_protobuf.Wire;
+import red.tel.chat.network.NetworkCall;
 import red.tel.chat.office365.Constants;
 import red.tel.chat.office365.model.ContactsModel;
 import red.tel.chat.ui.OnLoadMoreListener;
@@ -254,6 +256,15 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
         if (object == Wire.Which.PRESENCE) {
             if (recyclerViewAdapter != null) {
                 recyclerViewAdapter.notifyData();
+            }
+        }
+
+        if (object instanceof NetworkCall.NetworkCallProposalInfo) {
+            if (((NetworkCall.NetworkCallProposalInfo) object).getTo().equals(Model.shared().getUsername())) {
+                Bundle bundle = new Bundle();
+                bundle.putString(ItemDetailFragment.ARG_ITEM_ID, ((NetworkCall.NetworkCallProposalInfo) object).getFrom());
+                bundle.putBoolean(IncomingCallActivity.TYPE_CALL, ((NetworkCall.NetworkCallProposalInfo) object).isVideo());
+                onStartCallIncoming(bundle);
             }
         }
     }

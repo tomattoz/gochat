@@ -12,7 +12,10 @@ import android.widget.Toast;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 import red.tel.chat.R;
+import red.tel.chat.network.NetworkCall;
 import red.tel.chat.ui.fragments.ItemDetailFragment;
+
+import static red.tel.chat.generated_protobuf.Voip.Which.CALL_CANCEL;
 
 /**
  * An activity representing a single Item detail screen. This
@@ -74,10 +77,10 @@ public class ItemDetailActivity extends BaseActivity {
                 navigateUpTo(new Intent(this, ItemListActivity.class));
                 return true;
             case R.id.callAudio:
-                requestPermissions();
+                requestPermissions(false);
                 return true;
             case R.id.callVideo:
-                requestPermissions();
+                requestPermissions(true);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -85,18 +88,23 @@ public class ItemDetailActivity extends BaseActivity {
     }
 
     @AfterPermissionGranted(REQUEST_ALL)
-    public void requestPermissions() {
+    public void requestPermissions(boolean isVideo) {
         if (EasyPermissions.hasPermissions(this, PERMISSIONS_ALL)) {
             // Have permission, do the thing!
             if (arguments != null) {
-                Intent intent = new Intent(this, IncomingCallActivity.class);
-                intent.putExtras(arguments);
-                startActivity(intent);
+                arguments.putBoolean(IncomingCallActivity.TYPE_CALL, isVideo);
+                onStartCall(arguments);
             }
         } else {
             // Ask for one permission
             EasyPermissions.requestPermissions(this, "check",
                     REQUEST_ALL, PERMISSIONS_ALL);
         }
+    }
+
+    @Override
+    protected void onSubscribeEvent(Object object) {
+        super.onSubscribeEvent(object);
+
     }
 }

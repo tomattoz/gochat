@@ -1,6 +1,7 @@
 package red.tel.chat.ui.activitys;
 
 import android.Manifest;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -153,5 +154,17 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
             return false;
         }
         return true;
+    }
+
+    public void onStartCallIncoming(Bundle bundle) {
+        Intent intent = new Intent(this, IncomingCallActivity.class);
+        intent.putExtras(bundle);
+        startActivity(intent);
+    }
+
+    public void onStartCall(Bundle bundle) {
+        Intent intent = new Intent(this, OutgoingCallActivity.class);
+        intent.putExtras(bundle);
+        startActivity(intent);
     }
 }

@@ -69,7 +69,7 @@
         </activity>
 
         <activity android:name=".ui.activitys.IncomingCallActivity"/>
-
+        <activity android:name=".ui.activitys.OutgoingCallActivity"/>
         <!-- [START gcm_receiver] -->
         <receiver
             android:name="com.google.android.gms.gcm.GcmReceiver"

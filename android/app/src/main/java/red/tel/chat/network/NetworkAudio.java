@@ -1,11 +1,11 @@
 package red.tel.chat.network;
 
-import red.tel.chat.io.Audio;
+import red.tel.chat.io.AudioRecorder;
 import red.tel.chat.io.IO;
 
 public class NetworkAudio {
     public static class NetworkAudioSessionInfo extends NetworkBase.NetworkIOSessionInfo {
-        private Audio.AudioFormat audioFormat = new Audio.AudioFormat();
+        private AudioRecorder.AudioFormat audioFormat = new AudioRecorder.AudioFormat();
         public NetworkAudioSessionInfo(IO.IOID id) {
             super(id);
         }
@@ -17,7 +17,7 @@ public class NetworkAudio {
             super(id, formatData);
         }
 
-        public NetworkAudioSessionInfo(IO.IOID id, Audio.AudioFormat audioFormat) {
+        public NetworkAudioSessionInfo(IO.IOID id, AudioRecorder.AudioFormat audioFormat) {
             super(id);
             this.audioFormat = audioFormat;
         }

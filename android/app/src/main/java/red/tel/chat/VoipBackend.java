@@ -68,12 +68,15 @@ public class VoipBackend {
 
     private void getsCallProposal(Voip voip) {
         NetworkCall.NetworkCallProposalController.getInstance().start(callProposalInfo(voip));
+        RxBus.getInstance().sendEvent(callProposalInfo(voip));
     }
 
     private void getsCallCancel(Voip voip) {
         NetworkCall.NetworkCallProposalController.getInstance().stop(callProposalInfo(voip));
+        RxBus.getInstance().sendEvent(voip);
     }
 
+    //accept in call
     private void getsCallAccept(Voip voip) {
         NetworkCall.NetworkCallProposalController.getInstance().accept(callProposalInfo(voip));
     }
