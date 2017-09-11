@@ -11,11 +11,13 @@ import android.widget.Toast;
 
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
+import red.tel.chat.Model;
 import red.tel.chat.R;
 import red.tel.chat.network.NetworkCall;
 import red.tel.chat.ui.fragments.ItemDetailFragment;
 
 import static red.tel.chat.generated_protobuf.Voip.Which.CALL_CANCEL;
+import static red.tel.chat.ui.fragments.ItemDetailFragment.CALL_INFO;
 
 /**
  * An activity representing a single Item detail screen. This
@@ -105,6 +107,14 @@ public class ItemDetailActivity extends BaseActivity {
     @Override
     protected void onSubscribeEvent(Object object) {
         super.onSubscribeEvent(object);
-
+        if (object instanceof NetworkCall.NetworkCallProposalInfo) {
+            if (((NetworkCall.NetworkCallProposalInfo) object).getTo().equals(Model.shared().getUsername())) {
+                Bundle bundle = new Bundle();
+                bundle.putParcelable(CALL_INFO ,(NetworkCall.NetworkCallProposalInfo) object);
+                bundle.putString(ItemDetailFragment.ARG_ITEM_ID, ((NetworkCall.NetworkCallProposalInfo) object).getFrom());
+                bundle.putBoolean(IncomingCallActivity.TYPE_CALL, ((NetworkCall.NetworkCallProposalInfo) object).isVideo());
+                onStartCallIncoming(bundle);
+            }
+        }
     }
 }

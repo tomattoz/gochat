@@ -34,6 +34,22 @@ public class IO {
         private static String newID(String from, String to, String kind) {
             return kind + from + "-" + to + UUID.fromString(Constants.CLIENT_ID);
         }
+
+        public String getFrom() {
+            return from;
+        }
+
+        public String getTo() {
+            return to;
+        }
+
+        public String getSid() {
+            return sid;
+        }
+
+        public String getGid() {
+            return gid;
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

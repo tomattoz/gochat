@@ -2,8 +2,11 @@ package red.tel.chat.network;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -29,6 +32,7 @@ public class NetworkCall implements Types.SessionProtocol {
         return ourInstance;
     }
 
+    public NetworkCallInfo info;
 
     @Override
     public void start() {
@@ -37,7 +41,16 @@ public class NetworkCall implements Types.SessionProtocol {
 
     @Override
     public void stop() {
+        Log.d(TAG, "stop: ");
+    }
 
+    public String counterpart() {
+        return info.from();
+    }
+
+    // TODO: 9/11/17
+    public NetworkCallInfo startCapture(String from, String to) {
+        return new NetworkCallInfo(info.proposal, null, null);
     }
 
     private NetworkCallProposalInfo callAsync(String to, boolean audio, boolean video) {
@@ -127,7 +140,7 @@ public class NetworkCall implements Types.SessionProtocol {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Proposal
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    public static class NetworkCallProposalInfo {
+    public static class NetworkCallProposalInfo implements Parcelable {
         private String id;
         private String from;
         private String to;
@@ -161,6 +174,41 @@ public class NetworkCall implements Types.SessionProtocol {
         public boolean isVideo() {
             return video;
         }
+
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeString(this.id);
+            dest.writeString(this.from);
+            dest.writeString(this.to);
+            dest.writeByte(this.audio ? (byte) 1 : (byte) 0);
+            dest.writeByte(this.video ? (byte) 1 : (byte) 0);
+        }
+
+        protected NetworkCallProposalInfo(Parcel in) {
+            this.id = in.readString();
+            this.from = in.readString();
+            this.to = in.readString();
+            this.audio = in.readByte() != 0;
+            this.video = in.readByte() != 0;
+        }
+
+        public static final Creator<NetworkCallProposalInfo> CREATOR = new Creator<NetworkCallProposalInfo>() {
+            @Override
+            public NetworkCallProposalInfo createFromParcel(Parcel source) {
+                return new NetworkCallProposalInfo(source);
+            }
+
+            @Override
+            public NetworkCallProposalInfo[] newArray(int size) {
+                return new NetworkCallProposalInfo[size];
+            }
+        };
     }
 
     private static class NetworkCallSessionController<T, I> {
@@ -183,7 +231,8 @@ public class NetworkCall implements Types.SessionProtocol {
         }
     }
 
-    private static class NetworkSingleCallSessionController<T extends Types.SessionProtocol, I> extends NetworkCallSessionController<T, I> {
+    private static class NetworkSingleCallSessionController<T extends Types.SessionProtocol, I>
+            extends NetworkCallSessionController<T, I> {
         T call;
         I callInfo;
 
@@ -249,44 +298,34 @@ public class NetworkCall implements Types.SessionProtocol {
 
     public static class NetworkCallProposal implements NetworkCallProposalProtocol {
         public NetworkCallProposalInfo info;
-        NetworkCallProposalReceiverProtocol ui;
+        //NetworkCallProposalReceiverProtocol ui;
         public NetworkCallProposal(NetworkCallProposalInfo info) {
             this.info = info;
         }
 
-        public NetworkCallProposal(NetworkCallProposalInfo info, NetworkCallProposalReceiverProtocol ui) {
-            this.info = info;
-            this.ui = ui;
-        }
+        public NetworkCallProposal() {}
 
         @Override
         public void start() {
-            if (ui != null) {
-                ui.callInfo(info);
-            }
         }
 
         @Override
         public void stop() {
-            // TODO: 8/31/17
-            if (ui != null) {
-                ui.callInfo(null);
-            }
         }
 
         @Override
         public void accept(NetworkCallProposalInfo info) {
             this.info = info;
-            ui.callInfo(null);
         }
 
         @Override
         public void decline() {
-            ui.callInfo(null);
+
         }
     }
 
-    public static class NetworkCallProposalController extends NetworkSingleCallSessionController<NetworkCallProposal, NetworkCallProposalInfo> {
+    public static class NetworkCallProposalController extends
+            NetworkSingleCallSessionController<NetworkCallProposal, NetworkCallProposalInfo> {
         //static nested class
         private NetworkCallProposalController(){}
         private static class SingletonHelper {
@@ -296,6 +335,9 @@ public class NetworkCall implements Types.SessionProtocol {
         public static synchronized NetworkCallProposalController getInstance() {
             return SingletonHelper.INSTANCE;
         }
+
+        private Handler handler;
+        private Runnable finalizer;
 
         @Override
         protected NetworkCallProposal create(NetworkCallProposalInfo info) {
@@ -310,15 +352,27 @@ public class NetworkCall implements Types.SessionProtocol {
         @Override
         public void start(NetworkCallProposalInfo info) {
             super.start(info);
-            new Handler(Looper.getMainLooper()).postDelayed(() -> timeout(info), 30000);
+            if (handler == null) {
+                handler = new Handler(Looper.getMainLooper());
+                finalizer = new Runnable() {
+                    @Override
+                    public void run() {
+                        timeout(info);
+                    }
+                };
+                handler.postDelayed(finalizer, 10000);
+            }
         }
 
         //accept call in
         public void accept(NetworkCallProposalInfo info) {
             if (call != null) {
                 call.accept(info);
+                handler.removeCallbacks(finalizer);
+                handler = null;
+                finalizer = null;
             }
-            call = null;
+            //call = null;
         }
 
         public void decline(NetworkCallProposalInfo info) {
@@ -331,6 +385,7 @@ public class NetworkCall implements Types.SessionProtocol {
         //auto cancels a 10 second call, if? No reply
         private void timeout(NetworkCallProposalInfo info) {
             stop(info);
+            Log.d(TAG, "timeout: STOP");
         }
     }
 
@@ -341,9 +396,9 @@ public class NetworkCall implements Types.SessionProtocol {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class NetworkCallInfo {
-        private NetworkCallProposalInfo proposal;
-        private NetworkAudio.NetworkAudioSessionInfo audioSession;
-        private NetworkVideo.NetworkVideoSessionInfo videoSession;
+        public NetworkCallProposalInfo proposal;
+        public NetworkAudio.NetworkAudioSessionInfo audioSession;
+        public NetworkVideo.NetworkVideoSessionInfo videoSession;
 
         public NetworkCallInfo(NetworkCallProposalInfo proposal,
                                NetworkAudio.NetworkAudioSessionInfo audioSession,
@@ -393,13 +448,55 @@ public class NetworkCall implements Types.SessionProtocol {
 
         @Override
         public void stop() {
-            super.stop();
             VoipBackend.getInstance().sendCallCancel(info.to, info);
+            super.stop();
+        }
+
+        @Override
+        public void accept(NetworkCallProposalInfo info) {
+            VoipBackend.getInstance().sendCallAccept(info.from, info);
+            super.accept(info);
+        }
+
+        @Override
+        public void decline() {
+            VoipBackend.getInstance().sendCallDecline(info.from, info);
+            super.decline();
+        }
+    }
+
+    public static class NetworkIncomingCallProposal extends NetworkCallProposal {
+
+        //static nested class
+        private NetworkIncomingCallProposal(){
+            super();
+        }
+        private static class SingletonHelper {
+            private static final NetworkIncomingCallProposal INSTANCE = new NetworkIncomingCallProposal();
+        }
+
+        public static synchronized NetworkIncomingCallProposal getInstance() {
+            return SingletonHelper.INSTANCE;
+        }
+
+
+        public NetworkIncomingCallProposal(NetworkCallProposalInfo info) {
+            super(info);
+        }
+
+        @Override
+        public void stop() {
+            super.stop();
         }
 
         @Override
         public void accept(NetworkCallProposalInfo info) {
             super.accept(info);
+        }
+
+        @Override
+        public void decline() {
+            super.decline();
         }
     }
 }

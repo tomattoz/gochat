@@ -3,6 +3,7 @@ package red.tel.chat;
 
 import android.util.Log;
 
+import red.tel.chat.generated_protobuf.AVSession;
 import red.tel.chat.generated_protobuf.Call;
 import red.tel.chat.generated_protobuf.Voip;
 import red.tel.chat.io.IO;
@@ -79,10 +80,12 @@ public class VoipBackend {
     //accept in call
     private void getsCallAccept(Voip voip) {
         NetworkCall.NetworkCallProposalController.getInstance().accept(callProposalInfo(voip));
+
     }
 
     private void getsCallDecline(Voip voip) {
         NetworkCall.NetworkCallProposalController.getInstance().decline(callProposalInfo(voip));
+        RxBus.getInstance().sendEvent(voip);
     }
 
     private void getsOutgoingCallStart(Voip voip) {
@@ -180,5 +183,156 @@ public class VoipBackend {
 
         byte[] data = new Voip.Builder().which(Voip.Which.CALL_CANCEL).call(call).build().encode();
         WireBackend.shared().send(data, to);
+        RxBus.getInstance().sendEvent(EventBus.Event.STOP_CALL);
+    }
+
+    public void sendCallDecline(String to, NetworkCall.NetworkCallProposalInfo info) {
+        Call call = new Call.Builder()
+                .key(info.getId())
+                .from(info.getFrom())
+                .to(info.getTo())
+                .audio(info.isAudio())
+                .video(info.isVideo()).build();
+
+        byte[] data = new Voip.Builder().which(Voip.Which.CALL_DECLINE).call(call).build().encode();
+        WireBackend.shared().send(data, to);
+    }
+
+    /**
+     * @method sendCallAccept
+     * @param to String
+     * @param info {@link NetworkCall.NetworkCallProposalInfo}
+     */
+    public void sendCallAccept(String to, NetworkCall.NetworkCallProposalInfo info) {
+        Call call = new Call.Builder()
+                .key(info.getId())
+                .from(info.getFrom())
+                .to(info.getTo())
+                .audio(info.isAudio())
+                .video(info.isVideo()).build();
+
+        byte[] data = new Voip.Builder().which(Voip.Which.CALL_ACCEPT).call(call).build().encode();
+        WireBackend.shared().send(data, to);
+    }
+
+    /**
+     * @method sendIncomingCallStart
+     * @param to String
+     * @param info {@link NetworkCall.NetworkCallInfo}
+     */
+    public void sendIncomingCallStart(String to, NetworkCall.NetworkCallInfo info) {
+        DataCall dataCall = new DataCall(info).invoke();
+        AVSession.Builder audioSession = dataCall.getAudioSession();
+        AVSession.Builder videoSession = dataCall.getVideoSession();
+        Call call = dataCall.getCall();
+
+        byte[] data = new Voip.Builder()
+                .which(Voip.Which.CALL_START_INCOMING)
+                .audioSession(audioSession.build())
+                .videoSession(videoSession.build())
+                .call(call)
+                .build()
+                .encode();
+        WireBackend.shared().send(data, to);
+    }
+
+    /**
+     * @method sendCallStop
+     * @param to String
+     * @param info {@link NetworkCall.NetworkCallInfo}
+     */
+    public void sendCallStop(String to, NetworkCall.NetworkCallInfo info) {
+        DataCall dataCall = new DataCall(info).invoke();
+        AVSession.Builder audioSession = dataCall.getAudioSession();
+        AVSession.Builder videoSession = dataCall.getVideoSession();
+        Call call = dataCall.getCall();
+
+        byte[] data = new Voip.Builder()
+                .which(Voip.Which.CALL_STOP)
+                .audioSession(audioSession.build())
+                .videoSession(videoSession.build())
+                .call(call)
+                .build()
+                .encode();
+        WireBackend.shared().send(data, to);
+    }
+
+    /**
+     * @method sendOutgoingCallStart
+     * @param to String
+     * @param info {@link NetworkCall.NetworkCallInfo}
+     */
+    public void sendOutgoingCallStart(String to, NetworkCall.NetworkCallInfo info) {
+        DataCall dataCall = new DataCall(info).invoke();
+        AVSession.Builder audioSession = dataCall.getAudioSession();
+        AVSession.Builder videoSession = dataCall.getVideoSession();
+        Call call = dataCall.getCall();
+
+        byte[] data = new Voip.Builder()
+                .which(Voip.Which.CALL_START_OUTGOING)
+                .audioSession(audioSession.build())
+                .videoSession(videoSession.build())
+                .call(call)
+                .build()
+                .encode();
+        WireBackend.shared().send(data, to);
+    }
+
+    /**
+     * class inner call data in/out
+     * return data info call, audio session/video session
+     */
+    private class DataCall {
+        private NetworkCall.NetworkCallInfo info;
+        private Call call;
+        private AVSession.Builder audioSession;
+        private AVSession.Builder videoSession;
+
+        public DataCall(NetworkCall.NetworkCallInfo info) {
+            this.info = info;
+        }
+
+        public Call getCall() {
+            return call;
+        }
+
+        public AVSession.Builder getAudioSession() {
+            return audioSession;
+        }
+
+        public AVSession.Builder getVideoSession() {
+            return videoSession;
+        }
+
+        public DataCall invoke() {
+            call = new Call.Builder()
+                    .key(info.proposal.getId())
+                    .from(info.proposal.getFrom())
+                    .to(info.proposal.getTo())
+                    .audio(info.proposal.isAudio())
+                    .video(info.proposal.isVideo()).build();
+            audioSession = new AVSession.Builder();
+            videoSession = new AVSession.Builder();
+            if (info.audioSession != null) {
+                audioSession
+                        .active(true)
+                        .sid(info.audioSession.id.getSid())
+                        .gid(info.audioSession.id.getGid());
+                if (info.audioSession.formatData != null) {
+                    audioSession.data(info.audioSession.formatData);
+                }
+            }
+
+            if (info.videoSession != null) {
+                videoSession
+                        .active(true)
+                        .sid(info.videoSession.id.getSid())
+                        .gid(info.videoSession.id.getGid());
+                if (info.videoSession.formatData != null) {
+                    videoSession.data(info.videoSession.formatData);
+                }
+            }
+            return this;
+        }
     }
 }

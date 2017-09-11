@@ -48,6 +48,8 @@ import red.tel.chat.ui.fragments.ItemDetailFragment;
 import red.tel.chat.ui.presenter.ContactsContract;
 import red.tel.chat.ui.presenter.ContactsPresenter;
 
+import static red.tel.chat.ui.fragments.ItemDetailFragment.CALL_INFO;
+
 /**
  * An activity representing a list of Items. This activity has different presentations for handset
  * and tablet-size devices. On handsets, the activity presents a list of items, which when touched,
@@ -262,6 +264,7 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
         if (object instanceof NetworkCall.NetworkCallProposalInfo) {
             if (((NetworkCall.NetworkCallProposalInfo) object).getTo().equals(Model.shared().getUsername())) {
                 Bundle bundle = new Bundle();
+                bundle.putParcelable(CALL_INFO ,(NetworkCall.NetworkCallProposalInfo) object);
                 bundle.putString(ItemDetailFragment.ARG_ITEM_ID, ((NetworkCall.NetworkCallProposalInfo) object).getFrom());
                 bundle.putBoolean(IncomingCallActivity.TYPE_CALL, ((NetworkCall.NetworkCallProposalInfo) object).isVideo());
                 onStartCallIncoming(bundle);

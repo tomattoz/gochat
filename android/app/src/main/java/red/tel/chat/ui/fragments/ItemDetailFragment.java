@@ -46,6 +46,7 @@ public class ItemDetailFragment extends Fragment implements MessageListAdapter.C
 
     // The fragment argument representing the item ID that this fragment represents.
     public static final String ARG_ITEM_ID = "item_id";
+    public static final String CALL_INFO = "call_info";
 
     private String whom;
     private List<Text> textList = new ArrayList<>();

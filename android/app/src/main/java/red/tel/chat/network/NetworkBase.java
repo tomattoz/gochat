@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import okio.ByteString;
 import red.tel.chat.io.IO;
 
 import static red.tel.chat.utils.Log.logError;
@@ -31,14 +32,14 @@ public class NetworkBase {
     }
 
     protected static class NetworkIOSessionInfo {
-        private IO.IOID id;
-        private byte[] formatData;
+        public IO.IOID id;
+        public ByteString formatData;
 
         public NetworkIOSessionInfo(IO.IOID id) {
             this.id = id;
         }
 
-        public NetworkIOSessionInfo(IO.IOID id, byte[] formatData) {
+        public NetworkIOSessionInfo(IO.IOID id, ByteString formatData) {
             this.id = id;
             this.formatData = formatData;
         }

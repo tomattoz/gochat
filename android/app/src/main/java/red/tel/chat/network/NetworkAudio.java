@@ -1,5 +1,6 @@
 package red.tel.chat.network;
 
+import okio.ByteString;
 import red.tel.chat.io.AudioRecorder;
 import red.tel.chat.io.IO;
 
@@ -10,7 +11,7 @@ public class NetworkAudio {
             super(id);
         }
 
-        public NetworkAudioSessionInfo(IO.IOID id, byte[] formatData) {
+        public NetworkAudioSessionInfo(IO.IOID id, ByteString formatData) {
             /*if (formatData != null) {
                 this.audioFormat = audioFormat
             }*/
