@@ -254,20 +254,10 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
 
     @Override
     protected void onSubscribeEvent(Object object) {
-        super.onSubscribeEvent(object);
+        //super.onSubscribeEvent(object);
         if (object == Wire.Which.PRESENCE) {
             if (recyclerViewAdapter != null) {
                 recyclerViewAdapter.notifyData();
-            }
-        }
-
-        if (object instanceof NetworkCall.NetworkCallProposalInfo) {
-            if (((NetworkCall.NetworkCallProposalInfo) object).getTo().equals(Model.shared().getUsername())) {
-                Bundle bundle = new Bundle();
-                bundle.putParcelable(CALL_INFO ,(NetworkCall.NetworkCallProposalInfo) object);
-                bundle.putString(ItemDetailFragment.ARG_ITEM_ID, ((NetworkCall.NetworkCallProposalInfo) object).getFrom());
-                bundle.putBoolean(IncomingCallActivity.TYPE_CALL, ((NetworkCall.NetworkCallProposalInfo) object).isVideo());
-                onStartCallIncoming(bundle);
             }
         }
     }

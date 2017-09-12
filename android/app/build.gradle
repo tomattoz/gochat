@@ -86,7 +86,7 @@ dependencies {
     compile 'com.squareup.okhttp3:okhttp:3.8.1'
     compile 'com.android.support:multidex:1.0.2'
     compile 'com.jakewharton.rxrelay2:rxrelay:2.0.0'
-    compile 'pub.devrel:easypermissions:0.4.3'
+    compile 'pub.devrel:easypermissions:1.0.0'
     compile "com.google.android.gms:play-services-gcm:11.2.0"
     implementation 'com.google.firebase:firebase-messaging:11.2.0'
 }

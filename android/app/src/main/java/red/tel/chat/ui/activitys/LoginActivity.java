@@ -3,6 +3,7 @@ package red.tel.chat.ui.activitys;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
@@ -53,8 +54,8 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
         if (extras != null) {
             AuthenticationManager.getInstance().processAuthorizationCode(getIntent(), this);
         }
-        usernameView = (EditText) findViewById(R.id.username);
-        passwordView = (EditText) findViewById(R.id.password);
+        usernameView = findViewById(R.id.username);
+        passwordView = findViewById(R.id.password);
         Button button = findViewById(R.id.office365);
         button.setOnClickListener(view -> {
             if (!hasAzureConfiguration()) {
@@ -76,7 +77,10 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
 
         loginFormView = findViewById(R.id.login_form);
         progressView = findViewById(R.id.login_progress);
-        EventBus.listenFor(this, EventBus.Event.AUTHENTICATED, this::finish);
+        EventBus.listenFor(this, EventBus.Event.AUTHENTICATED, () -> {
+            startActivity(new Intent(this, ItemListActivity.class));
+            finish();
+        });
     }
 
 
@@ -222,7 +226,7 @@ public class LoginActivity extends BaseActivity implements AuthorizationService.
                     name = name.substring(0, index);
                     String accessToken = AuthenticationManager.getInstance().getAccessToken();
                     Model.shared().setAccessToken(accessToken);
-                    login(TYPE_LOGIN_MS, name, tid, accessToken);
+                    login(TYPE_LOGIN_MS, name, name, accessToken);
                     Model.shared().setTypeLogin(TYPE_LOGIN_MS);
                     Log.d(TAG, "onTokenRequestCompleted: " + accessToken);
                 } else {

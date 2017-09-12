@@ -58,6 +58,9 @@ public class VoipBackend {
                     break;
                 case CALL_QUALITY:
                     break;
+                case CALL_STOP:
+                    getsCallStop(voip);
+                    break;
                 default:
                     Log.e(TAG, "no handler for " + voip.which);
                     break;
@@ -79,12 +82,18 @@ public class VoipBackend {
 
     //accept in call
     private void getsCallAccept(Voip voip) {
-        NetworkCall.NetworkCallProposalController.getInstance().accept(callProposalInfo(voip));
+        NetworkCall.NetworkCallController.getInstance().start(new NetworkCall.NetworkCallInfo(callProposalInfo(voip)));
+        //NetworkCall.NetworkCallProposalController.getInstance().accept(callProposalInfo(voip));
 
     }
 
     private void getsCallDecline(Voip voip) {
         NetworkCall.NetworkCallProposalController.getInstance().decline(callProposalInfo(voip));
+        RxBus.getInstance().sendEvent(voip);
+    }
+
+    private void getsCallStop(Voip voip) {
+        NetworkCall.NetworkCallController.getInstance().stop(new NetworkCall.NetworkCallInfo(callProposalInfo(voip)));
         RxBus.getInstance().sendEvent(voip);
     }
 
@@ -101,7 +110,7 @@ public class VoipBackend {
     }
 
     // TODO: 9/5/17
-    private NetworkCall.NetworkCallInfo callInfo() {
+    public NetworkCall.NetworkCallInfo callInfo() {
         return new NetworkCall.NetworkCallInfo(callProposalInfo());
     }
 

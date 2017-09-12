@@ -28,6 +28,7 @@ import static red.tel.chat.ui.fragments.ItemDetailFragment.CALL_INFO;
 public class ItemDetailActivity extends BaseActivity {
 
     private Bundle arguments;
+    private boolean isVideo = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,10 +80,12 @@ public class ItemDetailActivity extends BaseActivity {
                 navigateUpTo(new Intent(this, ItemListActivity.class));
                 return true;
             case R.id.callAudio:
-                requestPermissions(false);
+                isVideo = false;
+                requestPermissions();
                 return true;
             case R.id.callVideo:
-                requestPermissions(true);
+                isVideo = true;
+                requestPermissions();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -90,7 +93,7 @@ public class ItemDetailActivity extends BaseActivity {
     }
 
     @AfterPermissionGranted(REQUEST_ALL)
-    public void requestPermissions(boolean isVideo) {
+    public void requestPermissions() {
         if (EasyPermissions.hasPermissions(this, PERMISSIONS_ALL)) {
             // Have permission, do the thing!
             if (arguments != null) {
@@ -107,7 +110,7 @@ public class ItemDetailActivity extends BaseActivity {
     @Override
     protected void onSubscribeEvent(Object object) {
         super.onSubscribeEvent(object);
-        if (object instanceof NetworkCall.NetworkCallProposalInfo) {
+        /*if (object instanceof NetworkCall.NetworkCallProposalInfo) {
             if (((NetworkCall.NetworkCallProposalInfo) object).getTo().equals(Model.shared().getUsername())) {
                 Bundle bundle = new Bundle();
                 bundle.putParcelable(CALL_INFO ,(NetworkCall.NetworkCallProposalInfo) object);
@@ -115,6 +118,6 @@ public class ItemDetailActivity extends BaseActivity {
                 bundle.putBoolean(IncomingCallActivity.TYPE_CALL, ((NetworkCall.NetworkCallProposalInfo) object).isVideo());
                 onStartCallIncoming(bundle);
             }
-        }
+        }*/
     }
 }

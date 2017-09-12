@@ -24,7 +24,12 @@ import io.reactivex.schedulers.Schedulers;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.AppSettingsDialog;
 import pub.devrel.easypermissions.EasyPermissions;
+import red.tel.chat.Model;
 import red.tel.chat.RxBus;
+import red.tel.chat.network.NetworkCall;
+import red.tel.chat.ui.fragments.ItemDetailFragment;
+
+import static red.tel.chat.ui.fragments.ItemDetailFragment.CALL_INFO;
 
 public abstract class BaseActivity extends AppCompatActivity implements EasyPermissions.PermissionCallbacks {
     private static final String TAG = BaseActivity.class.getSimpleName();
@@ -93,7 +98,17 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
                 }));
     }
 
-    protected void onSubscribeEvent(Object object) {}
+    protected void onSubscribeEvent(Object object) {
+        if (object instanceof NetworkCall.NetworkCallProposalInfo) {
+            if (((NetworkCall.NetworkCallProposalInfo) object).getTo().equals(Model.shared().getUsername())) {
+                Bundle bundle = new Bundle();
+                bundle.putParcelable(CALL_INFO ,(NetworkCall.NetworkCallProposalInfo) object);
+                bundle.putString(ItemDetailFragment.ARG_ITEM_ID, ((NetworkCall.NetworkCallProposalInfo) object).getFrom());
+                bundle.putBoolean(IncomingCallActivity.TYPE_CALL, ((NetworkCall.NetworkCallProposalInfo) object).isVideo());
+                onStartCallIncoming(bundle);
+            }
+        }
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -123,17 +138,16 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
     }
     //end callback permission
 
-    @AfterPermissionGranted(REQUEST_ALL)
+    /*@AfterPermissionGranted(REQUEST_ALL)
     public void requestPermissions() {
         if (EasyPermissions.hasPermissions(this, PERMISSIONS_ALL)) {
             // Have permission, do the thing!
-            Toast.makeText(this, "TODO: CameraAndroid things", Toast.LENGTH_LONG).show();
         } else {
             // Ask for one permission
             EasyPermissions.requestPermissions(this, "check",
                     REQUEST_ALL, PERMISSIONS_ALL);
         }
-    }
+    }*/
 
     /**
      * Check the device to make sure it has the Google Play Services APK. If

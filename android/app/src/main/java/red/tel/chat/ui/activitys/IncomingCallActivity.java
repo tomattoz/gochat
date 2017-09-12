@@ -1,23 +1,20 @@
 package red.tel.chat.ui.activitys;
 
 
-import android.media.AudioRecord;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import java.lang.reflect.Constructor;
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 
+import okio.ByteString;
 import red.tel.chat.R;
-import red.tel.chat.camera.CameraView;
 import red.tel.chat.generated_protobuf.Voip;
-import red.tel.chat.io.AudioRecorder;
 import red.tel.chat.network.NetworkCall;
+import red.tel.chat.network.NetworkIncomingCall;
 import red.tel.chat.ui.fragments.ItemDetailFragment;
 
 import static red.tel.chat.generated_protobuf.Voip.Which.CALL_CANCEL;
@@ -25,13 +22,14 @@ import static red.tel.chat.generated_protobuf.Voip.Which.CALL_STOP;
 import static red.tel.chat.ui.fragments.ItemDetailFragment.CALL_INFO;
 
 public class IncomingCallActivity extends BaseCall implements View.OnClickListener {
-    private static final String TAG = IncomingCallActivity.class.getSimpleName();
     public static final String TYPE_CALL = "type_call";
+    private static final String TAG = IncomingCallActivity.class.getSimpleName();
     private TextView from;
     private Button btnAccept;
     private Button btnDecline;
     private boolean isVideo = false;
     private NetworkCall.NetworkCallProposalInfo callInfo;
+    private boolean isAccept = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -62,12 +60,20 @@ public class IncomingCallActivity extends BaseCall implements View.OnClickListen
                     return;
                 }
                 NetworkCall.NetworkCallProposalController.getInstance().accept(callInfo);
+                btnAccept.setVisibility(View.GONE);
+                btnDecline.setText("Cancel");
+                isAccept = true;
                 break;
             case R.id.decline:
                 if (callInfo == null) {
                     return;
                 }
-                NetworkCall.NetworkCallProposalController.getInstance().decline(callInfo);
+                if (isAccept) {
+                    NetworkIncomingCall.getInstance().stop();
+                    isAccept = false;
+                } else {
+                    NetworkCall.NetworkCallProposalController.getInstance().decline(callInfo);
+                }
                 finish();
                 break;
             default:
@@ -77,7 +83,7 @@ public class IncomingCallActivity extends BaseCall implements View.OnClickListen
 
     @Override
     protected void onCallBackRecord(ByteBuffer buffer, ShortBuffer[] samples) {
-
+        ByteString.of(buffer);
     }
 
     @Override
@@ -87,7 +93,7 @@ public class IncomingCallActivity extends BaseCall implements View.OnClickListen
 
     @Override
     protected void onSubscribeEvent(Object object) {
-        super.onSubscribeEvent(object);
+        //super.onSubscribeEvent(object);
         if (object instanceof Voip) {
             if (((Voip) object).which == CALL_CANCEL || ((Voip) object).which == CALL_STOP)
                 finish();
