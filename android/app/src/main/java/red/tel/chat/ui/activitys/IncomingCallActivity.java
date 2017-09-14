@@ -13,8 +13,9 @@ import java.nio.ShortBuffer;
 import okio.ByteString;
 import red.tel.chat.R;
 import red.tel.chat.generated_protobuf.Voip;
-import red.tel.chat.network.NetworkCall;
 import red.tel.chat.network.NetworkIncomingCall;
+import red.tel.chat.network.IncomingCallProposalController;
+import red.tel.chat.network.NetworkCallProposalInfo;
 import red.tel.chat.ui.fragments.ItemDetailFragment;
 
 import static red.tel.chat.generated_protobuf.Voip.Which.CALL_CANCEL;
@@ -28,7 +29,7 @@ public class IncomingCallActivity extends BaseCall implements View.OnClickListen
     private Button btnAccept;
     private Button btnDecline;
     private boolean isVideo = false;
-    private NetworkCall.NetworkCallProposalInfo callInfo;
+    private NetworkCallProposalInfo callProposalInfo;
     private boolean isAccept = false;
 
     @Override
@@ -47,7 +48,7 @@ public class IncomingCallActivity extends BaseCall implements View.OnClickListen
             isVideo = bundle.getBoolean(TYPE_CALL);
             String whom = bundle.getString(ItemDetailFragment.ARG_ITEM_ID);
             from.setText(whom != null ? whom : "");
-            callInfo = bundle.getParcelable(CALL_INFO);
+            callProposalInfo = bundle.getParcelable(CALL_INFO);
         }
         cameraView.setVisibility(isVideo ? View.VISIBLE : View.GONE);
     }
@@ -56,23 +57,25 @@ public class IncomingCallActivity extends BaseCall implements View.OnClickListen
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.accept:
-                if (callInfo == null) {
+                if (callProposalInfo == null) {
                     return;
                 }
-                NetworkCall.NetworkCallProposalController.getInstance().accept(callInfo);
+                IncomingCallProposalController.getInstance().accept(callProposalInfo);
+
                 btnAccept.setVisibility(View.GONE);
                 btnDecline.setText("Cancel");
                 isAccept = true;
                 break;
             case R.id.decline:
-                if (callInfo == null) {
+                if (callProposalInfo == null) {
                     return;
                 }
                 if (isAccept) {
                     NetworkIncomingCall.getInstance().stop();
+                    //NetworkCallController.getInstance().stop(NetworkCallController.getInstance().callInfo);
                     isAccept = false;
                 } else {
-                    NetworkCall.NetworkCallProposalController.getInstance().decline(callInfo);
+                    IncomingCallProposalController.getInstance().decline(callProposalInfo);
                 }
                 finish();
                 break;

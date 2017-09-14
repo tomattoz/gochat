@@ -7,17 +7,11 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
-import red.tel.chat.Model;
 import red.tel.chat.R;
-import red.tel.chat.network.NetworkCall;
 import red.tel.chat.ui.fragments.ItemDetailFragment;
-
-import static red.tel.chat.generated_protobuf.Voip.Which.CALL_CANCEL;
-import static red.tel.chat.ui.fragments.ItemDetailFragment.CALL_INFO;
 
 /**
  * An activity representing a single Item detail screen. This
@@ -29,6 +23,7 @@ public class ItemDetailActivity extends BaseActivity {
 
     private Bundle arguments;
     private boolean isVideo = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -1,15 +1,14 @@
 package red.tel.chat.ui.activitys;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
-import android.content.Context;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -21,27 +20,34 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
-import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.AppSettingsDialog;
 import pub.devrel.easypermissions.EasyPermissions;
 import red.tel.chat.Model;
 import red.tel.chat.RxBus;
-import red.tel.chat.network.NetworkCall;
+import red.tel.chat.network.NetworkCallProposalInfo;
 import red.tel.chat.ui.fragments.ItemDetailFragment;
 
 import static red.tel.chat.ui.fragments.ItemDetailFragment.CALL_INFO;
 
 public abstract class BaseActivity extends AppCompatActivity implements EasyPermissions.PermissionCallbacks {
+    public static final int REQUEST_ALL = 123;
     private static final String TAG = BaseActivity.class.getSimpleName();
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-    private static BaseActivity current;
-    private CompositeDisposable disposable;
-
     public static String[] PERMISSIONS_ALL = {Manifest.permission.RECORD_AUDIO,
             Manifest.permission.WAKE_LOCK,
             Manifest.permission.CAMERA
     };
-    public static final int REQUEST_ALL = 123;
+    private static BaseActivity current;
+    private CompositeDisposable disposable;
+
+    public static void snackbar(String message) {
+        Snackbar snackbar = Snackbar.make(current.getView(), message, Snackbar.LENGTH_LONG);
+        snackbar.show();
+    }
+
+    public static Context getCurrentContext() {
+        return current;
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -60,11 +66,6 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
     protected void onPause() {
         super.onPause();
         current = null;
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
         if (disposable != null && !disposable.isDisposed()) {
             disposable.dispose();
             disposable.clear();
@@ -73,15 +74,6 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
 
     protected android.view.View getView() {
         return getWindow().getDecorView().getRootView();
-    }
-
-    public static void snackbar(String message) {
-        Snackbar snackbar = Snackbar.make(current.getView(), message, Snackbar.LENGTH_LONG);
-        snackbar.show();
-    }
-
-    public static Context getCurrentContext() {
-        return current;
     }
 
     private synchronized void onSubscribeEventRx() {
@@ -99,12 +91,12 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
     }
 
     protected void onSubscribeEvent(Object object) {
-        if (object instanceof NetworkCall.NetworkCallProposalInfo) {
-            if (((NetworkCall.NetworkCallProposalInfo) object).getTo().equals(Model.shared().getUsername())) {
+        if (object instanceof NetworkCallProposalInfo) {
+            if (((NetworkCallProposalInfo) object).getTo().equals(Model.shared().getUsername())) {
                 Bundle bundle = new Bundle();
-                bundle.putParcelable(CALL_INFO ,(NetworkCall.NetworkCallProposalInfo) object);
-                bundle.putString(ItemDetailFragment.ARG_ITEM_ID, ((NetworkCall.NetworkCallProposalInfo) object).getFrom());
-                bundle.putBoolean(IncomingCallActivity.TYPE_CALL, ((NetworkCall.NetworkCallProposalInfo) object).isVideo());
+                bundle.putParcelable(CALL_INFO, (NetworkCallProposalInfo) object);
+                bundle.putString(ItemDetailFragment.ARG_ITEM_ID, ((NetworkCallProposalInfo) object).getFrom());
+                bundle.putBoolean(IncomingCallActivity.TYPE_CALL, ((NetworkCallProposalInfo) object).isVideo());
                 onStartCallIncoming(bundle);
             }
         }

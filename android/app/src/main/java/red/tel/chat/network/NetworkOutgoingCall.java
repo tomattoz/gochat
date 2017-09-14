@@ -2,9 +2,6 @@ package red.tel.chat.network;
 
 import red.tel.chat.VoipBackend;
 
-/**
- * Created by vmodev on 9/11/17.
- */
 
 public class NetworkOutgoingCall extends NetworkCall {
     private NetworkOutgoingCall() {
@@ -17,7 +14,7 @@ public class NetworkOutgoingCall extends NetworkCall {
     @Override
     public void stop() {
         super.stop();
-        VoipBackend.getInstance().sendCallStop(info.to(), info);
+        VoipBackend.getInstance().sendCallStop(getNetworkCallInfo().to(), getNetworkCallInfo());
     }
 
     @Override

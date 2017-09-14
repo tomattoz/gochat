@@ -102,13 +102,20 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
   )
   public final ByteString payload;
 
+  @WireField(
+      tag = 107,
+      adapter = "red.tel.chat.generated_protobuf.PlainText#ADAPTER"
+  )
+  public final PlainText plainText;
+
   public Wire(Integer version, String sessionId, String from, String to, Which which, Login login,
-      List<Contact> contacts, Store store, ByteString payload) {
-    this(version, sessionId, from, to, which, login, contacts, store, payload, ByteString.EMPTY);
+      List<Contact> contacts, Store store, ByteString payload, PlainText plainText) {
+    this(version, sessionId, from, to, which, login, contacts, store, payload, plainText, ByteString.EMPTY);
   }
 
   public Wire(Integer version, String sessionId, String from, String to, Which which, Login login,
-      List<Contact> contacts, Store store, ByteString payload, ByteString unknownFields) {
+      List<Contact> contacts, Store store, ByteString payload, PlainText plainText,
+      ByteString unknownFields) {
     super(ADAPTER, unknownFields);
     this.version = version;
     this.sessionId = sessionId;
@@ -119,6 +126,7 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
     this.contacts = Internal.immutableCopyOf("contacts", contacts);
     this.store = store;
     this.payload = payload;
+    this.plainText = plainText;
   }
 
   @Override
@@ -133,6 +141,7 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
     builder.contacts = Internal.copyOf("contacts", contacts);
     builder.store = store;
     builder.payload = payload;
+    builder.plainText = plainText;
     builder.addUnknownFields(unknownFields());
     return builder;
   }
@@ -151,7 +160,8 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
         && Internal.equals(login, o.login)
         && contacts.equals(o.contacts)
         && Internal.equals(store, o.store)
-        && Internal.equals(payload, o.payload);
+        && Internal.equals(payload, o.payload)
+        && Internal.equals(plainText, o.plainText);
   }
 
   @Override
@@ -168,6 +178,7 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
       result = result * 37 + contacts.hashCode();
       result = result * 37 + (store != null ? store.hashCode() : 0);
       result = result * 37 + (payload != null ? payload.hashCode() : 0);
+      result = result * 37 + (plainText != null ? plainText.hashCode() : 0);
       super.hashCode = result;
     }
     return result;
@@ -185,6 +196,7 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
     if (!contacts.isEmpty()) builder.append(", contacts=").append(contacts);
     if (store != null) builder.append(", store=").append(store);
     if (payload != null) builder.append(", payload=").append(payload);
+    if (plainText != null) builder.append(", plainText=").append(plainText);
     return builder.replace(0, 2, "Wire{").append('}').toString();
   }
 
@@ -206,6 +218,8 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
     public Store store;
 
     public ByteString payload;
+
+    public PlainText plainText;
 
     public Builder() {
       contacts = Internal.newMutableList();
@@ -263,9 +277,14 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
       return this;
     }
 
+    public Builder plainText(PlainText plainText) {
+      this.plainText = plainText;
+      return this;
+    }
+
     @Override
     public Wire build() {
-      return new Wire(version, sessionId, from, to, which, login, contacts, store, payload, super.buildUnknownFields());
+      return new Wire(version, sessionId, from, to, which, login, contacts, store, payload, plainText, super.buildUnknownFields());
     }
   }
 
@@ -291,7 +310,9 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
 
     PAYLOAD(8),
 
-    LOGIN_RESPONSE(9);
+    LOGIN_RESPONSE(9),
+
+    PLAIN_TEXT(10);
 
     public static final ProtoAdapter<Which> ADAPTER = new ProtoAdapter_Which();
 
@@ -316,6 +337,7 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
         case 7: return HANDSHAKE;
         case 8: return PAYLOAD;
         case 9: return LOGIN_RESPONSE;
+        case 10: return PLAIN_TEXT;
         default: return null;
       }
     }
@@ -353,6 +375,7 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
           + Contact.ADAPTER.asRepeated().encodedSizeWithTag(102, value.contacts)
           + Store.ADAPTER.encodedSizeWithTag(104, value.store)
           + ProtoAdapter.BYTES.encodedSizeWithTag(106, value.payload)
+          + PlainText.ADAPTER.encodedSizeWithTag(107, value.plainText)
           + value.unknownFields().size();
     }
 
@@ -367,6 +390,7 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
       Contact.ADAPTER.asRepeated().encodeWithTag(writer, 102, value.contacts);
       Store.ADAPTER.encodeWithTag(writer, 104, value.store);
       ProtoAdapter.BYTES.encodeWithTag(writer, 106, value.payload);
+      PlainText.ADAPTER.encodeWithTag(writer, 107, value.plainText);
       writer.writeBytes(value.unknownFields());
     }
 
@@ -392,6 +416,7 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
           case 102: builder.contacts.add(Contact.ADAPTER.decode(reader)); break;
           case 104: builder.store(Store.ADAPTER.decode(reader)); break;
           case 106: builder.payload(ProtoAdapter.BYTES.decode(reader)); break;
+          case 107: builder.plainText(PlainText.ADAPTER.decode(reader)); break;
           default: {
             FieldEncoding fieldEncoding = reader.peekFieldEncoding();
             Object value = fieldEncoding.rawProtoAdapter().decode(reader);
@@ -409,6 +434,7 @@ public final class Wire extends AndroidMessage<Wire, Wire.Builder> {
       if (builder.login != null) builder.login = Login.ADAPTER.redact(builder.login);
       Internal.redactElements(builder.contacts, Contact.ADAPTER);
       if (builder.store != null) builder.store = Store.ADAPTER.redact(builder.store);
+      if (builder.plainText != null) builder.plainText = PlainText.ADAPTER.redact(builder.plainText);
       builder.clearUnknownFields();
       return builder.build();
     }

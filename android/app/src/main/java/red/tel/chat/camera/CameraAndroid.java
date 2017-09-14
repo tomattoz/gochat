@@ -260,6 +260,7 @@ public class CameraAndroid extends CameraController implements Camera.PreviewCal
     @Override
     public void onPreviewFrame(byte[] bytes, Camera camera) {
         // TODO: 9/11/17 callback preview camera
+        mCameraCallbacks.onPreviewFrame(bytes, camera);
     }
 
     /////=========================================================================================

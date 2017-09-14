@@ -20,6 +20,7 @@ import java.util.Objects;
 import okio.ByteString;
 import red.tel.chat.generated_protobuf.Contact;
 import red.tel.chat.generated_protobuf.Login;
+import red.tel.chat.generated_protobuf.PlainText;
 import red.tel.chat.generated_protobuf.Store;
 import red.tel.chat.generated_protobuf.Voip;
 import red.tel.chat.generated_protobuf.Wire;
@@ -29,6 +30,7 @@ import static red.tel.chat.generated_protobuf.Wire.Which.CONTACTS;
 import static red.tel.chat.generated_protobuf.Wire.Which.HANDSHAKE;
 import static red.tel.chat.generated_protobuf.Wire.Which.LOGIN;
 import static red.tel.chat.generated_protobuf.Wire.Which.PAYLOAD;
+import static red.tel.chat.generated_protobuf.Wire.Which.PLAIN_TEXT;
 import static red.tel.chat.generated_protobuf.Wire.Which.PUBLIC_KEY;
 import static red.tel.chat.generated_protobuf.Wire.Which.PUBLIC_KEY_RESPONSE;
 import static red.tel.chat.notification.NotificationUtils.ANDROID_CHANNEL_ID;
@@ -200,6 +202,30 @@ public class WireBackend extends IntentService {
         }
     }
 
+    public void sendMessage(byte[] data, String peerId) {
+        if (crypto.isSessionEstablishedFor(peerId)) {
+            try {
+                ByteString encrypted = ByteString.of(crypto.encrypt(data, peerId));
+                PlainText plainText = new PlainText.Builder()
+                        .type(1)
+                        .content("New message")
+                        .build();
+                Wire.Builder payloadBuilder = new Wire.Builder()
+                        .payload(encrypted)
+                        .which(PLAIN_TEXT)
+                        .to(peerId)
+                        .plainText(plainText);
+                buildAndSend(payloadBuilder);
+                Log.d(TAG, "encryptAndSend: ");
+            } catch (Exception exception) {
+                Log.e(TAG, exception.getMessage());
+            }
+        } else {
+            //
+            enqueue(data, peerId);
+        }
+    }
+
     private void encryptAndSend(byte[] data, String peerId) {
         try {
             ByteString encrypted = ByteString.of(crypto.encrypt(data, peerId));
@@ -246,7 +272,7 @@ public class WireBackend extends IntentService {
     public void sendText(String message, String peerId) {
         okio.ByteString text = okio.ByteString.encodeUtf8(message);
         byte[] data = new Voip.Builder().which(Voip.Which.TEXT).payload(text).build().encode();
-        send(data, peerId);
+        sendMessage(data, peerId);
     }
 
     void sendPublicKey(byte[] key, String recipient, Boolean isResponse) {

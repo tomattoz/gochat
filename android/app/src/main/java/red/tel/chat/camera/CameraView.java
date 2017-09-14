@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
+import android.hardware.Camera;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -53,6 +54,7 @@ public class CameraView extends FrameLayout {
     private CameraController mCameraController;
     private Preview mPreviewImpl;
 
+
     // Views
     private boolean mIsStarted;
     private boolean mKeepScreenOn;
@@ -88,7 +90,6 @@ public class CameraView extends FrameLayout {
         mUiHandler = new Handler(Looper.getMainLooper());
         mWorkerHandler = new WorkerHandler("CameraViewWorker");
         mIsStarted = false;
-
         setJpegQuality(jpegQuality);
 
         // Apply camera controller params
@@ -295,6 +296,18 @@ public class CameraView extends FrameLayout {
         }
         mIsStarted = false;
         mCameraController.stop();
+    }
+
+    /**
+     * Adds a {@link CameraListener} instance to be notified of all
+     * interesting events that happen during the camera lifecycle.
+     *
+     * @param cameraListener a listener for events.
+     */
+    public void addCameraListener(CameraListener cameraListener) {
+        if (cameraListener != null) {
+            mCameraCallbacks.addListener(cameraListener);
+        }
     }
 
     public void destroy() {
@@ -528,9 +541,8 @@ public class CameraView extends FrameLayout {
         // Orientation TODO: move this logic into OrientationHelper
         private Integer mDisplayOffset;
         private Integer mDeviceOrientation;
-
-        CameraCallbacks() {}
-
+        CameraCallbacks() {
+        }
 
         public void dispatchOnCameraOpened(final CameraOptions options) {
             mUiHandler.post(() -> {
@@ -720,6 +732,14 @@ public class CameraView extends FrameLayout {
 
         private void clearListeners() {
             mListeners.clear();
+        }
+
+        public void onPreviewFrame(byte[] bytes, Camera camera) {
+            mUiHandler.post(() -> {
+                for (CameraListener listener : mListeners) {
+                    listener.onPreviewFrame(bytes, camera);
+                }
+            });
         }
     }
 }

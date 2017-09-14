@@ -1,10 +1,15 @@
 package red.tel.chat.ui.activitys;
 
+import android.hardware.Camera;
 import android.media.AudioRecord;
+import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 
+import pub.devrel.easypermissions.AfterPermissionGranted;
+import pub.devrel.easypermissions.EasyPermissions;
+import red.tel.chat.camera.CameraListener;
 import red.tel.chat.camera.CameraView;
 import red.tel.chat.io.AudioRecorder;
 
@@ -13,19 +18,37 @@ import red.tel.chat.io.AudioRecorder;
  */
 
 public abstract class BaseCall extends BaseActivity {
+    private static final String TAG = BaseCall.class.getSimpleName();
     protected CameraView cameraView;
     private AudioRecorder audioRecorder;
     private long startTime = 0;
     private boolean mIsRecording = false;
+    @AfterPermissionGranted(REQUEST_ALL)
+        public void requestPermissions() {
+            if (EasyPermissions.hasPermissions(this, PERMISSIONS_ALL)) {
+                // Have permission, do the thing!
+                if (isVideo() && cameraView != null) {
+                    cameraView.start();
+                    cameraView.addCameraListener(new CameraListener() {
+                        @Override
+                        public void onPreviewFrame(byte[] bytes, Camera camera) {
+                            Log.d(TAG, "onPreviewFrame: " + bytes);
+                        }
+                    });
+                }
 
+                onStartAudioRecord();
+            } else {
+                // Ask for one permission
+                EasyPermissions.requestPermissions(this, "check",
+                        REQUEST_ALL, PERMISSIONS_ALL);
+            }
+        }
     @Override
     protected void onResume() {
         super.onResume();
-        if (isVideo() && cameraView != null) {
-            cameraView.start();
-        }
+        requestPermissions();
 
-        onStartAudioRecord();
     }
 
     @Override

@@ -1,9 +1,6 @@
 package red.tel.chat.ui.activitys;
 
-import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -12,19 +9,14 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import com.microsoft.graph.extensions.IGraphServiceClient;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Executors;
 
@@ -33,13 +25,9 @@ import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
-import red.tel.chat.EventBus;
 import red.tel.chat.Model;
 import red.tel.chat.R;
-import red.tel.chat.WireBackend;
-import red.tel.chat.generated_protobuf.Contact;
 import red.tel.chat.generated_protobuf.Wire;
-import red.tel.chat.network.NetworkCall;
 import red.tel.chat.office365.Constants;
 import red.tel.chat.office365.model.ContactsModel;
 import red.tel.chat.ui.OnLoadMoreListener;
@@ -47,8 +35,6 @@ import red.tel.chat.ui.adapter.ItemContactAdapter;
 import red.tel.chat.ui.fragments.ItemDetailFragment;
 import red.tel.chat.ui.presenter.ContactsContract;
 import red.tel.chat.ui.presenter.ContactsPresenter;
-
-import static red.tel.chat.ui.fragments.ItemDetailFragment.CALL_INFO;
 
 /**
  * An activity representing a list of Items. This activity has different presentations for handset
@@ -146,7 +132,7 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
 
                         if (nickName.contains("live:")) {
                             int index = nickName.indexOf(':');
-                            nickName = nickName.substring(index+1);
+                            nickName = nickName.substring(index + 1);
                         }
                         red.tel.chat.generated_protobuf.Contact contact = new red.tel.chat.generated_protobuf.Contact.Builder()
                                 .id(nickName)
@@ -254,7 +240,7 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
 
     @Override
     protected void onSubscribeEvent(Object object) {
-        //super.onSubscribeEvent(object);
+        super.onSubscribeEvent(object);
         if (object == Wire.Which.PRESENCE) {
             if (recyclerViewAdapter != null) {
                 recyclerViewAdapter.notifyData();

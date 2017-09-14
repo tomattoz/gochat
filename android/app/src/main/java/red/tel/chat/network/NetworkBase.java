@@ -69,7 +69,7 @@ public class NetworkBase {
             output.clear();
         }
 
-        public void process(String sid, byte[] data) {
+        public void process(String sid, ByteString data) {
 
         }
     }

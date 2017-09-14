@@ -7,9 +7,13 @@ import red.tel.chat.generated_protobuf.AVSession;
 import red.tel.chat.generated_protobuf.Call;
 import red.tel.chat.generated_protobuf.Voip;
 import red.tel.chat.io.IO;
+import red.tel.chat.network.IncomingCallProposalController;
 import red.tel.chat.network.NetworkAudio;
 import red.tel.chat.network.NetworkBase;
-import red.tel.chat.network.NetworkCall;
+import red.tel.chat.network.NetworkCallController;
+import red.tel.chat.network.NetworkCallInfo;
+import red.tel.chat.network.NetworkCallProposalInfo;
+import red.tel.chat.network.OutgoingCallProposalController;
 
 public class VoipBackend {
     private static final String TAG = VoipBackend.class.getSimpleName();
@@ -39,6 +43,11 @@ public class VoipBackend {
                     Model.shared().incomingFromPeer(voip, peerId);
                     break;
                 case AV:
+                    getAV(voip);
+                    break;
+                case AudioSession:
+                    break;
+                case VideoSession:
                     break;
                 case CALL_PROPOSAL:
                     getsCallProposal(voip);
@@ -53,8 +62,10 @@ public class VoipBackend {
                     getsCallDecline(voip);
                     break;
                 case CALL_START_OUTGOING:
+                    getsOutgoingCallStart(voip);
                     break;
                 case CALL_START_INCOMING:
+                    getsIncomingCallStart(voip);
                     break;
                 case CALL_QUALITY:
                     break;
@@ -70,39 +81,81 @@ public class VoipBackend {
         }
     }
 
+    /**
+     * @param voip
+     * @method nhan yeu cau mot cuoc goi den
+     */
     private void getsCallProposal(Voip voip) {
-        NetworkCall.NetworkCallProposalController.getInstance().start(callProposalInfo(voip));
+        IncomingCallProposalController.getInstance().start(callProposalInfo(voip));
         RxBus.getInstance().sendEvent(callProposalInfo(voip));
     }
 
+    /**
+     * @param voip
+     * @method nhan tin hieu huy cuoc goi den
+     */
     private void getsCallCancel(Voip voip) {
-        NetworkCall.NetworkCallProposalController.getInstance().stop(callProposalInfo(voip));
+        IncomingCallProposalController.getInstance().stop(callProposalInfo(voip));
+        OutgoingCallProposalController.getInstance().stop(callProposalInfo(voip));
         RxBus.getInstance().sendEvent(voip);
     }
 
-    //accept in call
+    /**
+     * @param voip
+     * @method nhan tin hieu dong y cuoc goi di
+     */
     private void getsCallAccept(Voip voip) {
-        NetworkCall.NetworkCallController.getInstance().start(new NetworkCall.NetworkCallInfo(callProposalInfo(voip)));
-        //NetworkCall.NetworkCallProposalController.getInstance().accept(callProposalInfo(voip));
-
+        OutgoingCallProposalController.getInstance().accept(callProposalInfo(voip));
+        //NetworkOutgoingCall.getInstance().start();
     }
 
+    /**
+     * @param voip
+     * @method nhan tin hieu tu choi cuoc goi di
+     */
     private void getsCallDecline(Voip voip) {
-        NetworkCall.NetworkCallProposalController.getInstance().decline(callProposalInfo(voip));
+        OutgoingCallProposalController.getInstance().decline(callProposalInfo(voip));
         RxBus.getInstance().sendEvent(voip);
     }
 
     private void getsCallStop(Voip voip) {
-        NetworkCall.NetworkCallController.getInstance().stop(new NetworkCall.NetworkCallInfo(callProposalInfo(voip)));
+        NetworkCallController.getInstance().stop(new NetworkCallInfo(callProposalInfo(voip)));
         RxBus.getInstance().sendEvent(voip);
     }
 
     private void getsOutgoingCallStart(Voip voip) {
-        NetworkCall.NetworkCallController.getInstance().start(callInfo());
+        NetworkCallController.getInstance().start(callInfo(voip));
+        startCallOutput(voip, NetworkCallController.getInstance(), audio, video);
     }
 
-    private NetworkCall.NetworkCallProposalInfo callProposalInfo(Voip voip) {
-        return new NetworkCall.NetworkCallProposalInfo(voip.call.key,
+    private void getsIncomingCallStart(Voip voip) {
+        startCallOutput(voip, NetworkCallController.getInstance(), audio, video);
+    }
+
+    private void getAV(Voip voip) {
+        if (voip.call.audio) {
+            audio.process(voip.audioSession.sid, voip.av.audio.image.data);
+        } else if (voip.call.video) {
+            video.process(voip.videoSession.sid, voip.av.video.image.data);
+        }
+    }
+
+    private void getsAudioSession(Voip voip) {
+        try {
+            if (voip.audioSession.active) {
+                audio.removeAll();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void getsVideoSession(Voip voip) {
+
+    }
+
+    private NetworkCallProposalInfo callProposalInfo(Voip voip) {
+        return new NetworkCallProposalInfo(voip.call.key,
                 voip.call.from,
                 voip.call.to,
                 voip.call.audio,
@@ -110,8 +163,8 @@ public class VoipBackend {
     }
 
     // TODO: 9/5/17
-    public NetworkCall.NetworkCallInfo callInfo() {
-        return new NetworkCall.NetworkCallInfo(callProposalInfo());
+    public NetworkCallInfo callInfo(Voip voip) {
+        return new NetworkCallInfo(callProposalInfo(voip));
     }
 
     private NetworkAudio.NetworkAudioSessionInfo audioSessionInfo() {
@@ -133,19 +186,9 @@ public class VoipBackend {
         return new IO.IOID(voip.call.from, voip.call.to, voip.videoSession.sid, voip.videoSession.gid);
     }
 
-    // TODO: 9/5/17  
-    private NetworkCall.NetworkCallProposalInfo callProposalInfo() {
-        Voip voip = new Voip.Builder().build();
-        return new NetworkCall.NetworkCallProposalInfo(voip.call.key,
-                voip.call.from,
-                voip.call.to,
-                voip.call.audio,
-                voip.call.video);
-    }
-
     // TODO: 9/5/17
     private void startCallOutput(Voip voip,
-                                 NetworkCall.NetworkCallController call,
+                                 NetworkCallController call,
                                  NetworkBase.NetworkInput audio,
                                  NetworkBase.NetworkInput video) {
         IO.IODataProtocol audio_ = data -> {
@@ -155,7 +198,7 @@ public class VoipBackend {
 
         };
         try {
-            call.startOutput(callInfo(), audio_, video_);
+            //call.startOutput(callInfo(), audio_, video_);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -170,7 +213,7 @@ public class VoipBackend {
     }
 
     //set up call out
-    public void sendCallProposal(String to, NetworkCall.NetworkCallProposalInfo info) {
+    public void sendCallProposal(String to, NetworkCallProposalInfo info) {
         Call call = new Call.Builder()
                 .key(info.getId())
                 .from(info.getFrom())
@@ -182,7 +225,7 @@ public class VoipBackend {
         WireBackend.shared().send(data, to);
     }
 
-    public void sendCallCancel(String to, NetworkCall.NetworkCallProposalInfo info) {
+    public void sendCallCancel(String to, NetworkCallProposalInfo info) {
         Call call = new Call.Builder()
                 .key(info.getId())
                 .from(info.getFrom())
@@ -195,7 +238,12 @@ public class VoipBackend {
         RxBus.getInstance().sendEvent(EventBus.Event.STOP_CALL);
     }
 
-    public void sendCallDecline(String to, NetworkCall.NetworkCallProposalInfo info) {
+    /**
+     * @param to
+     * @param info
+     * @method sendCallDecline
+     */
+    public void sendCallDecline(String to, NetworkCallProposalInfo info) {
         Call call = new Call.Builder()
                 .key(info.getId())
                 .from(info.getFrom())
@@ -208,11 +256,11 @@ public class VoipBackend {
     }
 
     /**
+     * @param to   String
+     * @param info {@link NetworkCallProposalInfo}
      * @method sendCallAccept
-     * @param to String
-     * @param info {@link NetworkCall.NetworkCallProposalInfo}
      */
-    public void sendCallAccept(String to, NetworkCall.NetworkCallProposalInfo info) {
+    public void sendCallAccept(String to, NetworkCallProposalInfo info) {
         Call call = new Call.Builder()
                 .key(info.getId())
                 .from(info.getFrom())
@@ -224,33 +272,13 @@ public class VoipBackend {
         WireBackend.shared().send(data, to);
     }
 
-    /**
-     * @method sendIncomingCallStart
-     * @param to String
-     * @param info {@link NetworkCall.NetworkCallInfo}
-     */
-    public void sendIncomingCallStart(String to, NetworkCall.NetworkCallInfo info) {
-        DataCall dataCall = new DataCall(info).invoke();
-        AVSession.Builder audioSession = dataCall.getAudioSession();
-        AVSession.Builder videoSession = dataCall.getVideoSession();
-        Call call = dataCall.getCall();
-
-        byte[] data = new Voip.Builder()
-                .which(Voip.Which.CALL_START_INCOMING)
-                .audioSession(audioSession.build())
-                .videoSession(videoSession.build())
-                .call(call)
-                .build()
-                .encode();
-        WireBackend.shared().send(data, to);
-    }
 
     /**
+     * @param to   String
+     * @param info {@link NetworkCallInfo}
      * @method sendCallStop
-     * @param to String
-     * @param info {@link NetworkCall.NetworkCallInfo}
      */
-    public void sendCallStop(String to, NetworkCall.NetworkCallInfo info) {
+    public void sendCallStop(String to, NetworkCallInfo info) {
         DataCall dataCall = new DataCall(info).invoke();
         AVSession.Builder audioSession = dataCall.getAudioSession();
         AVSession.Builder videoSession = dataCall.getVideoSession();
@@ -267,11 +295,32 @@ public class VoipBackend {
     }
 
     /**
-     * @method sendOutgoingCallStart
-     * @param to String
-     * @param info {@link NetworkCall.NetworkCallInfo}
+     * @param to   String
+     * @param info {@link NetworkCallInfo}
+     * @method sendIncomingCallStart
      */
-    public void sendOutgoingCallStart(String to, NetworkCall.NetworkCallInfo info) {
+    public void sendIncomingCallStart(String to, NetworkCallInfo info) {
+        DataCall dataCall = new DataCall(info).invoke();
+        AVSession.Builder audioSession = dataCall.getAudioSession();
+        AVSession.Builder videoSession = dataCall.getVideoSession();
+        Call call = dataCall.getCall();
+
+        byte[] data = new Voip.Builder()
+                .which(Voip.Which.CALL_START_INCOMING)
+                .audioSession(audioSession.build())
+                .videoSession(videoSession.build())
+                .call(call)
+                .build()
+                .encode();
+        WireBackend.shared().send(data, to);
+    }
+
+    /**
+     * @param to   String
+     * @param info {@link NetworkCallInfo}
+     * @method sendOutgoingCallStart
+     */
+    public void sendOutgoingCallStart(String to, NetworkCallInfo info) {
         DataCall dataCall = new DataCall(info).invoke();
         AVSession.Builder audioSession = dataCall.getAudioSession();
         AVSession.Builder videoSession = dataCall.getVideoSession();
@@ -292,12 +341,12 @@ public class VoipBackend {
      * return data info call, audio session/video session
      */
     private class DataCall {
-        private NetworkCall.NetworkCallInfo info;
+        private NetworkCallInfo info;
         private Call call;
         private AVSession.Builder audioSession;
         private AVSession.Builder videoSession;
 
-        public DataCall(NetworkCall.NetworkCallInfo info) {
+        public DataCall(NetworkCallInfo info) {
             this.info = info;
         }
 

@@ -1,7 +1,9 @@
 package red.tel.chat.camera;
 
 import android.graphics.PointF;
+import android.hardware.Camera;
 import android.support.annotation.UiThread;
+import android.util.Log;
 
 import java.io.File;
 
@@ -21,6 +23,11 @@ public abstract class CameraListener {
 
     }
 
+
+    @UiThread
+    public void onPreviewFrame(byte[] bytes, Camera camera) {
+
+    }
 
     /**
      * Notifies that the camera session was closed.

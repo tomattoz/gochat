@@ -35,7 +35,7 @@ public abstract class CameraController implements Preview.SurfaceCallback {
 
     // Starts the preview asynchronously.
     final void start() {
-        mHandler.post(() -> onStart());
+        mHandler.post(this::onStart);
     }
 
     // Stops the preview asynchronously.
