@@ -111,6 +111,7 @@ public class WireBackend extends IntentService {
                     break;
                 case HANDSHAKE:
                 case PAYLOAD:
+                case PLAIN_TEXT:
                     crypto.onReceivePayload(wire.payload.toByteArray(), wire.from);
                     break;
                 case PUBLIC_KEY:
@@ -179,18 +180,20 @@ public class WireBackend extends IntentService {
     private class Hold {
         byte[] data;
         String peerId;
+        boolean isPlainText;
 
-        Hold(byte[] data, String peerId) {
+        Hold(byte[] data, String peerId, boolean isPlainText) {
             this.data = data;
             this.peerId = peerId;
+            this.isPlainText = isPlainText;
         }
     }
 
-    private void enqueue(byte[] data, String peerId) {
+    private void enqueue(byte[] data, String peerId, boolean isPlainText) {
         if (!queue.containsKey(peerId)) {
             queue.put(peerId, new ArrayList<>());
         }
-        Hold hold = new Hold(data, peerId);
+        Hold hold = new Hold(data, peerId, isPlainText);
         queue.get(peerId).add(hold);
     }
 
@@ -198,7 +201,7 @@ public class WireBackend extends IntentService {
         if (crypto.isSessionEstablishedFor(peerId)) {
             encryptAndSend(data, peerId);
         } else {
-            enqueue(data, peerId);
+            enqueue(data, peerId, false);
         }
     }
 
@@ -222,7 +225,7 @@ public class WireBackend extends IntentService {
             }
         } else {
             //
-            enqueue(data, peerId);
+            enqueue(data, peerId, true);
         }
     }
 
@@ -258,6 +261,7 @@ public class WireBackend extends IntentService {
                 .userName(username)
                 .authenToken(authenToken)
                 .deviceToken(deviceToken)
+                .platform("android")
                 .build();
         Wire.Builder wire = new Wire.Builder().which(LOGIN).login(login);
         instance.buildAndSend(wire);
@@ -300,7 +304,11 @@ public class WireBackend extends IntentService {
             return;
         }
         for (Hold hold : list) {
-            encryptAndSend(hold.data, hold.peerId);
+            if (hold.isPlainText) {
+                sendMessage(hold.data, peerId);
+            } else {
+                encryptAndSend(hold.data, hold.peerId);
+            }
             Log.d(TAG, "handshook: " + hold.peerId);
         }
         queue.clear();//clear the hold list after sending

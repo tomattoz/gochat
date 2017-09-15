@@ -27,9 +27,9 @@ public class NetworkOutgoingCallProposal extends NetworkCallProposal {
      */
     @Override
     public void accept(NetworkCallProposalInfo info) {
-        NetworkCall.getInstance().setNetworkCallInfo(new NetworkCallInfo(info));
-
-        NetworkCallController.getInstance().start(NetworkCall.getInstance().getNetworkCallInfo());
+        NetworkOutgoingCall.getInstance().setNetworkCallInfo(new NetworkCallInfo(info));
+        NetworkOutgoingCall.getInstance().start();
+        //NetworkCallController.getInstance().start(NetworkCall.getInstance().getNetworkCallInfo());
         /*new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {

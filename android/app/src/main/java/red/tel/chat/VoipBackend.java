@@ -3,9 +3,18 @@ package red.tel.chat;
 
 import android.util.Log;
 
+import java.nio.ByteBuffer;
+import java.nio.ShortBuffer;
+
+import okio.ByteString;
 import red.tel.chat.generated_protobuf.AVSession;
+import red.tel.chat.generated_protobuf.AudioSample;
+import red.tel.chat.generated_protobuf.Av;
 import red.tel.chat.generated_protobuf.Call;
+import red.tel.chat.generated_protobuf.Image;
+import red.tel.chat.generated_protobuf.VideoSample;
 import red.tel.chat.generated_protobuf.Voip;
+import red.tel.chat.io.AudioRecorder;
 import red.tel.chat.io.IO;
 import red.tel.chat.network.IncomingCallProposalController;
 import red.tel.chat.network.NetworkAudio;
@@ -13,12 +22,17 @@ import red.tel.chat.network.NetworkBase;
 import red.tel.chat.network.NetworkCallController;
 import red.tel.chat.network.NetworkCallInfo;
 import red.tel.chat.network.NetworkCallProposalInfo;
+import red.tel.chat.network.NetworkVideo;
 import red.tel.chat.network.OutgoingCallProposalController;
 
-public class VoipBackend {
+import static red.tel.chat.generated_protobuf.Voip.Which.AV;
+
+public class VoipBackend implements IO.IODataProtocol{
     private static final String TAG = VoipBackend.class.getSimpleName();
     private static NetworkBase.NetworkInput audio;
     private static NetworkBase.NetworkInput video;
+    private boolean isStartCalling;
+    private IO.IOID ioid;
 
     private static volatile VoipBackend ourInstance = null;
 
@@ -43,11 +57,14 @@ public class VoipBackend {
                     Model.shared().incomingFromPeer(voip, peerId);
                     break;
                 case AV:
+                    Log.d(TAG, "onReceiveFromPeer: AV");
                     getAV(voip);
                     break;
                 case AudioSession:
+                    getsAudioSession(voip);
                     break;
                 case VideoSession:
+                    getsVideoSession(voip);
                     break;
                 case CALL_PROPOSAL:
                     getsCallProposal(voip);
@@ -57,6 +74,7 @@ public class VoipBackend {
                     break;
                 case CALL_ACCEPT:
                     getsCallAccept(voip);
+                    isStartCalling = true;
                     break;
                 case CALL_DECLINE:
                     getsCallDecline(voip);
@@ -87,7 +105,6 @@ public class VoipBackend {
      */
     private void getsCallProposal(Voip voip) {
         IncomingCallProposalController.getInstance().start(callProposalInfo(voip));
-        RxBus.getInstance().sendEvent(callProposalInfo(voip));
     }
 
     /**
@@ -106,6 +123,7 @@ public class VoipBackend {
      */
     private void getsCallAccept(Voip voip) {
         OutgoingCallProposalController.getInstance().accept(callProposalInfo(voip));
+        RxBus.getInstance().sendEvent("ACCEPT");
         //NetworkOutgoingCall.getInstance().start();
     }
 
@@ -121,6 +139,7 @@ public class VoipBackend {
     private void getsCallStop(Voip voip) {
         NetworkCallController.getInstance().stop(new NetworkCallInfo(callProposalInfo(voip)));
         RxBus.getInstance().sendEvent(voip);
+        isStartCalling = false;
     }
 
     private void getsOutgoingCallStart(Voip voip) {
@@ -129,6 +148,7 @@ public class VoipBackend {
     }
 
     private void getsIncomingCallStart(Voip voip) {
+        //NetworkCallController.getInstance().start(callInfo(voip));
         startCallOutput(voip, NetworkCallController.getInstance(), audio, video);
     }
 
@@ -144,6 +164,9 @@ public class VoipBackend {
         try {
             if (voip.audioSession.active) {
                 audio.removeAll();
+                audio.add(voip.audioSession.sid, this);
+            } else {
+                audio.remove(voip.audioSession.sid);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -162,27 +185,32 @@ public class VoipBackend {
                 voip.call.video);
     }
 
-    // TODO: 9/5/17
     public NetworkCallInfo callInfo(Voip voip) {
-        return new NetworkCallInfo(callProposalInfo(voip));
+        return new NetworkCallInfo(callProposalInfo(voip), audioSessionInfo(voip), videoSessionInfo(voip));
     }
 
-    private NetworkAudio.NetworkAudioSessionInfo audioSessionInfo() {
-        Voip voip = new Voip.Builder().build();
+    private NetworkAudio.NetworkAudioSessionInfo audioSessionInfo(Voip voip) {
+        /*if (voip.audioSession.active) {
+            return new NetworkAudio.NetworkAudioSessionInfo(audioSessionID(voip));
+        } else {
+            return null;
+        }*/
+        return new NetworkAudio.NetworkAudioSessionInfo(audioSessionID(voip));
+    }
+
+    private NetworkVideo.NetworkVideoSessionInfo videoSessionInfo(Voip voip) {
         if (voip.audioSession.active) {
-            return new NetworkAudio.NetworkAudioSessionInfo(audioSessionID());
+            return new NetworkVideo.NetworkVideoSessionInfo(videoSessionID(voip));
         } else {
             return null;
         }
     }
 
-    private IO.IOID audioSessionID() {
-        Voip voip = new Voip.Builder().build();
+    private IO.IOID audioSessionID(Voip voip) {
         return new IO.IOID(voip.call.from, voip.call.to, voip.audioSession.sid, voip.audioSession.gid);
     }
 
-    private IO.IOID videoSessionID() {
-        Voip voip = new Voip.Builder().build();
+    private IO.IOID videoSessionID(Voip voip) {
         return new IO.IOID(voip.call.from, voip.call.to, voip.videoSession.sid, voip.videoSession.gid);
     }
 
@@ -191,14 +219,14 @@ public class VoipBackend {
                                  NetworkCallController call,
                                  NetworkBase.NetworkInput audio,
                                  NetworkBase.NetworkInput video) {
-        IO.IODataProtocol audio_ = data -> {
-
-        };
-        IO.IODataProtocol video_ = data -> {
-
-        };
+        /*IO.IODataProtocol audio_ = this;
+        IO.IODataProtocol video_ = this;
+        if (call == null) {
+            Log.d(TAG, "NetworkCallController is null");
+            return;
+        }
         try {
-            //call.startOutput(callInfo(), audio_, video_);
+            call.startOutput(callInfo(voip), audio_, video_);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -209,7 +237,11 @@ public class VoipBackend {
 
         if (video_ != null) {
             video.add(voip.videoSession.sid, video_);
-        }
+        }*/
+        isStartCalling = true;
+        ioid = audioSessionID(voip);
+
+
     }
 
     //set up call out
@@ -270,6 +302,8 @@ public class VoipBackend {
 
         byte[] data = new Voip.Builder().which(Voip.Which.CALL_ACCEPT).call(call).build().encode();
         WireBackend.shared().send(data, to);
+        isStartCalling = true;
+        ioid = new IO.IOID(info.from, info.to, info.getId(), info.getId());
     }
 
 
@@ -336,6 +370,11 @@ public class VoipBackend {
         WireBackend.shared().send(data, to);
     }
 
+    @Override
+    public void process(byte[] data) {
+
+    }
+
     /**
      * class inner call data in/out
      * return data info call, audio session/video session
@@ -392,5 +431,94 @@ public class VoipBackend {
             }
             return this;
         }
+    }
+
+    public void sendVideoSession(NetworkVideo.NetworkVideoSessionInfo sessionInfo, boolean isActive) {
+        AVSession.Builder avSession = new AVSession.Builder()
+                .sid(sessionInfo.id.getSid())
+                .gid(sessionInfo.id.getGid())
+                .active(isActive);
+        if (sessionInfo.formatData != null) {
+            avSession.data(sessionInfo.formatData);
+        }
+
+        byte[] data = new Voip.Builder()
+                .which(Voip.Which.VideoSession)
+                .videoSession(avSession.build()).build().encode();
+        WireBackend.shared().send(data, sessionInfo.id.getTo());
+    }
+
+    public void sendAudioSession(NetworkAudio.NetworkAudioSessionInfo sessionInfo, boolean isActive) {
+        AVSession.Builder avSession = new AVSession.Builder()
+                .sid(sessionInfo.id.getSid())
+                .gid(sessionInfo.id.getGid())
+                .active(isActive);
+        if (sessionInfo.formatData != null) {
+            avSession.data(sessionInfo.formatData);
+        }
+
+        byte[] data = new Voip.Builder()
+                .which(Voip.Which.AudioSession)
+                .audioSession(avSession.build()).build().encode();
+        WireBackend.shared().send(data, sessionInfo.id.getTo());
+    }
+
+    public void sendAudio(IO.IOID ioid, ByteString data) {
+        try {
+            Call call = new Call.Builder()
+                    .video(false)
+                    .audio(true)
+                    .build();
+            Image image = new Image.Builder()
+                    .data(data)
+                    .build();
+            AudioSample media = new AudioSample.Builder()
+                    .image(image)
+                    .build();
+            Av av = new Av.Builder()
+                    .audio(media)
+                    .build();
+            byte[] dataByte = new Voip.Builder()
+                    .which(Voip.Which.AV)
+                    .av(av)
+                    .call(call)
+                    .audioSession(new AVSession.Builder().sid(ioid.getSid()).build())
+                    .build()
+                    .encode();
+            WireBackend.shared().send(dataByte, ioid.getTo());
+        }catch (Exception e) {
+            e.printStackTrace();
+            Log.d(TAG, "sendAudio: Exception ");
+        }
+    }
+
+    public void sendVideo(IO.IOID ioid, ByteString data) {
+        try {
+            Image image = new Image.Builder()
+                    .data(data)
+                    .build();
+            VideoSample media = new VideoSample.Builder()
+                    .image(image)
+                    .build();
+            Av av = new Av.Builder()
+                    .video(media)
+                    .build();
+            byte[] dataByte = new Voip.Builder()
+                    .which(Voip.Which.AV)
+                    .av(av)
+                    .videoSession(new AVSession.Builder().sid(ioid.getSid()).build())
+                    .build()
+                    .encode();
+            WireBackend.shared().send(dataByte, ioid.getTo());
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendDataToServerWhenAccept(ByteBuffer buffer, ShortBuffer[] samples){
+        if ( !isStartCalling ) {
+            return;
+        }
+        VoipBackend.getInstance().sendAudio(ioid, ByteString.of(buffer));
     }
 }

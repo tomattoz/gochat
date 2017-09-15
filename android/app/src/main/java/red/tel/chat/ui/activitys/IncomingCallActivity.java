@@ -12,6 +12,7 @@ import java.nio.ShortBuffer;
 
 import okio.ByteString;
 import red.tel.chat.R;
+import red.tel.chat.VoipBackend;
 import red.tel.chat.generated_protobuf.Voip;
 import red.tel.chat.network.NetworkIncomingCall;
 import red.tel.chat.network.IncomingCallProposalController;
@@ -60,6 +61,7 @@ public class IncomingCallActivity extends BaseCall implements View.OnClickListen
                 if (callProposalInfo == null) {
                     return;
                 }
+                requestPermissions();
                 IncomingCallProposalController.getInstance().accept(callProposalInfo);
 
                 btnAccept.setVisibility(View.GONE);
@@ -86,7 +88,8 @@ public class IncomingCallActivity extends BaseCall implements View.OnClickListen
 
     @Override
     protected void onCallBackRecord(ByteBuffer buffer, ShortBuffer[] samples) {
-        ByteString.of(buffer);
+        //VoipBackend.getInstance().sendAudio(null, ByteString.of(buffer));
+        VoipBackend.getInstance().sendDataToServerWhenAccept(buffer, samples);
     }
 
     @Override

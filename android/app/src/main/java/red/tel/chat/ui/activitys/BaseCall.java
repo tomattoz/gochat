@@ -47,7 +47,7 @@ public abstract class BaseCall extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        requestPermissions();
+        //requestPermissions();
 
     }
 

@@ -12,6 +12,7 @@ public class NetworkIncomingCallProposal extends NetworkCallProposal {
     public void accept(NetworkCallProposalInfo callProposalInfo) {
         super.accept(callProposalInfo);
         VoipBackend.getInstance().sendCallAccept(callProposalInfo.from, callProposalInfo);
+        NetworkIncomingCall.getInstance().setNetworkCallInfo(new NetworkCallInfo(callProposalInfo));
         NetworkIncomingCall.getInstance().start();
     }
 

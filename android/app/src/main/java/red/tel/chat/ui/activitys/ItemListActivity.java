@@ -28,6 +28,7 @@ import io.reactivex.schedulers.Schedulers;
 import red.tel.chat.Model;
 import red.tel.chat.R;
 import red.tel.chat.generated_protobuf.Wire;
+import red.tel.chat.network.NetworkCallProposalInfo;
 import red.tel.chat.office365.Constants;
 import red.tel.chat.office365.model.ContactsModel;
 import red.tel.chat.ui.OnLoadMoreListener;
@@ -35,6 +36,8 @@ import red.tel.chat.ui.adapter.ItemContactAdapter;
 import red.tel.chat.ui.fragments.ItemDetailFragment;
 import red.tel.chat.ui.presenter.ContactsContract;
 import red.tel.chat.ui.presenter.ContactsPresenter;
+
+import static red.tel.chat.ui.fragments.ItemDetailFragment.CALL_INFO;
 
 /**
  * An activity representing a list of Items. This activity has different presentations for handset
@@ -240,10 +243,19 @@ public class ItemListActivity extends BaseActivity implements ContactsContract.C
 
     @Override
     protected void onSubscribeEvent(Object object) {
-        super.onSubscribeEvent(object);
         if (object == Wire.Which.PRESENCE) {
             if (recyclerViewAdapter != null) {
                 recyclerViewAdapter.notifyData();
+            }
+        }
+
+        if (object instanceof NetworkCallProposalInfo) {
+            if (((NetworkCallProposalInfo) object).getTo().equals(Model.shared().getUsername())) {
+                Bundle bundle = new Bundle();
+                bundle.putParcelable(CALL_INFO, (NetworkCallProposalInfo) object);
+                bundle.putString(ItemDetailFragment.ARG_ITEM_ID, ((NetworkCallProposalInfo) object).getFrom());
+                bundle.putBoolean(IncomingCallActivity.TYPE_CALL, ((NetworkCallProposalInfo) object).isVideo());
+                onStartCallIncoming(bundle);
             }
         }
     }

@@ -7,11 +7,14 @@ import java.util.UUID;
 
 import red.tel.chat.Model;
 import red.tel.chat.Types;
+import red.tel.chat.io.IO;
 import red.tel.chat.office365.Constants;
 
-public class NetworkCall implements Types.SessionProtocol {
+public abstract class NetworkCall implements Types.SessionProtocol {
     private static final String TAG = NetworkCall.class.getSimpleName();
     private NetworkCallInfo networkCallInfo;
+    private IO.IOOutputContext audioOutputContext;
+    private IO.IOOutputContext outputContext;
 
     public NetworkCall(NetworkCallInfo networkCallInfo) {
         this.networkCallInfo = networkCallInfo;
@@ -21,6 +24,7 @@ public class NetworkCall implements Types.SessionProtocol {
     @Override
     public void start() {
         Log.d(TAG, "start: ");
+        outputContext = new IO.IOOutputContext();
         startCapture(getNetworkCallInfo().from(), getNetworkCallInfo().to());
     }
 
@@ -63,21 +67,7 @@ public class NetworkCall implements Types.SessionProtocol {
         return info;
     }
 
-    public NetworkCall() {
-    }
-
-    private static volatile NetworkCall ourInstance = null;
-
-    public static NetworkCall getInstance() {
-        if (ourInstance == null) {
-            synchronized (NetworkCall.class) {
-                if (ourInstance == null) {
-                    ourInstance = new NetworkCall();
-                }
-            }
-        }
-        return ourInstance;
-    }
+    public NetworkCall() {}
 
     public NetworkCallInfo getNetworkCallInfo() {
         return networkCallInfo;
@@ -85,5 +75,18 @@ public class NetworkCall implements Types.SessionProtocol {
 
     public void setNetworkCallInfo(NetworkCallInfo networkCallInfo) {
         this.networkCallInfo = networkCallInfo;
+    }
+
+    public IO.IODataProtocol startOutput(NetworkAudio.NetworkAudioSessionInfo info) {
+        audioOutputContext = audioOutput(info, outputContext);
+        return audioOutputContext.data;
+    }
+
+    public IO.IODataProtocol startOutput(NetworkVideo.NetworkVideoSessionInfo info) {
+        return null;
+    }
+
+    private IO.IOOutputContext audioOutput(NetworkAudio.NetworkAudioSessionInfo audioSessionInfo, IO.IOOutputContext context) {
+        return null;
     }
 }

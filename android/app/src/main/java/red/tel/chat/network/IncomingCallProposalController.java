@@ -1,5 +1,7 @@
 package red.tel.chat.network;
 
+import red.tel.chat.RxBus;
+
 public class IncomingCallProposalController extends BaseCallProposalController {
     //static nested class
     private IncomingCallProposalController() {
@@ -17,6 +19,12 @@ public class IncomingCallProposalController extends BaseCallProposalController {
     @Override
     protected NetworkCallProposal create(NetworkCallProposalInfo info) {
         return new NetworkIncomingCallProposal(info);
+    }
+
+    @Override
+    public void start(NetworkCallProposalInfo callProposalInfo) {
+        super.start(callProposalInfo);
+        RxBus.getInstance().sendEvent(callProposalInfo);
     }
 
     private static class SingletonHelper {

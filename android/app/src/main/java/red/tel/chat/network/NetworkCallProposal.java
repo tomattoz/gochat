@@ -3,7 +3,7 @@ package red.tel.chat.network;
 
 import android.util.Log;
 
-public class NetworkCallProposal implements NetworkCallProposalProtocol {
+public abstract class NetworkCallProposal implements NetworkCallProposalProtocol {
     private static final String TAG = NetworkCallProposal.class.getSimpleName();
     NetworkCallProposalInfo callProposalInfo;
 
@@ -30,7 +30,7 @@ public class NetworkCallProposal implements NetworkCallProposalProtocol {
      */
     @Override
     public void accept(NetworkCallProposalInfo info) {
-       NetworkCall.getInstance().setNetworkCallInfo(new NetworkCallInfo(info));
+       //NetworkCall.getInstance().setNetworkCallInfo(new NetworkCallInfo(info));
         Log.d(TAG, "accept: ");
     }
 

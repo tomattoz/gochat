@@ -1,6 +1,8 @@
 package red.tel.chat.network;
 
 
+import android.util.Log;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -11,6 +13,7 @@ import red.tel.chat.io.IO;
 import static red.tel.chat.utils.Log.logError;
 
 public class NetworkBase {
+    private static final String TAG = NetworkBase.class.getSimpleName();
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Logs
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -70,7 +73,7 @@ public class NetworkBase {
         }
 
         public void process(String sid, ByteString data) {
-
+            Log.d(TAG, "process: ");
         }
     }
 }

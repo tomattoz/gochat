@@ -2,6 +2,7 @@ package red.tel.chat.io;
 
 import java.util.UUID;
 
+import red.tel.chat.Types;
 import red.tel.chat.office365.Constants;
 
 /**
@@ -79,5 +80,28 @@ public class IO {
         public String id() {
             return data[0];
         }
+    }
+
+    public interface IOSessionProtocol extends Types.SessionProtocol {}
+
+    public static class IOOutputContext {
+        public IOID id;
+        public IOSessionProtocol session;
+        public IODataProtocol data;
+        public IOTimebase timebase;
+
+        public IOOutputContext(IOID id, IOSessionProtocol session, IODataProtocol data, IOTimebase timebase) {
+            this.id = id;
+            this.session = session;
+            this.data = data;
+            this.timebase = timebase;
+        }
+
+        public IOOutputContext() {
+        }
+    }
+
+    public static class IOTimebase {
+        double zero;
     }
 }

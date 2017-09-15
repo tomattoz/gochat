@@ -13,23 +13,23 @@ public class NetworkIncomingCall extends NetworkCall {
 
     @Override
     public String counterpart() {
-        return NetworkCall.getInstance().getNetworkCallInfo().to();
+        return getNetworkCallInfo().from();
     }
 
     @Override
     public NetworkCallInfo startCapture(String from, String to) {
-        if (!NetworkCall.getInstance().getNetworkCallInfo().from().equals(NetworkCall.getInstance().getNetworkCallInfo().to())) {
-            VoipBackend.getInstance().sendIncomingCallStart(NetworkCall.getInstance().getNetworkCallInfo().from(),
-                    NetworkCall.getInstance().getNetworkCallInfo());
+        if (!getNetworkCallInfo().from().equals(getNetworkCallInfo().to())) {
+            VoipBackend.getInstance().sendIncomingCallStart(getNetworkCallInfo().from(),
+                    getNetworkCallInfo());
         }
-        return NetworkCall.getInstance().getNetworkCallInfo();
+        return getNetworkCallInfo();
     }
 
     @Override
     public void stop() {
         super.stop();
-        VoipBackend.getInstance().sendCallStop(NetworkCall.getInstance().getNetworkCallInfo().from(),
-                NetworkCall.getInstance().getNetworkCallInfo());
+        VoipBackend.getInstance().sendCallStop(getNetworkCallInfo().from(),
+                getNetworkCallInfo());
     }
 
     private static class SingletonHelper {

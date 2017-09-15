@@ -34,6 +34,8 @@ public final class Login extends AndroidMessage<Login, Login.Builder> {
 
   public static final String DEFAULT_DEVICETOKEN = "";
 
+  public static final String DEFAULT_PLATFORM = "";
+
   @WireField(
       tag = 1,
       adapter = "com.squareup.wire.ProtoAdapter#UINT32"
@@ -58,17 +60,25 @@ public final class Login extends AndroidMessage<Login, Login.Builder> {
   )
   public final String deviceToken;
 
-  public Login(Integer type, String userName, String authenToken, String deviceToken) {
-    this(type, userName, authenToken, deviceToken, ByteString.EMPTY);
+  @WireField(
+      tag = 5,
+      adapter = "com.squareup.wire.ProtoAdapter#STRING"
+  )
+  public final String platform;
+
+  public Login(Integer type, String userName, String authenToken, String deviceToken,
+      String platform) {
+    this(type, userName, authenToken, deviceToken, platform, ByteString.EMPTY);
   }
 
   public Login(Integer type, String userName, String authenToken, String deviceToken,
-      ByteString unknownFields) {
+      String platform, ByteString unknownFields) {
     super(ADAPTER, unknownFields);
     this.type = type;
     this.userName = userName;
     this.authenToken = authenToken;
     this.deviceToken = deviceToken;
+    this.platform = platform;
   }
 
   @Override
@@ -78,6 +88,7 @@ public final class Login extends AndroidMessage<Login, Login.Builder> {
     builder.userName = userName;
     builder.authenToken = authenToken;
     builder.deviceToken = deviceToken;
+    builder.platform = platform;
     builder.addUnknownFields(unknownFields());
     return builder;
   }
@@ -91,7 +102,8 @@ public final class Login extends AndroidMessage<Login, Login.Builder> {
         && Internal.equals(type, o.type)
         && Internal.equals(userName, o.userName)
         && Internal.equals(authenToken, o.authenToken)
-        && Internal.equals(deviceToken, o.deviceToken);
+        && Internal.equals(deviceToken, o.deviceToken)
+        && Internal.equals(platform, o.platform);
   }
 
   @Override
@@ -103,6 +115,7 @@ public final class Login extends AndroidMessage<Login, Login.Builder> {
       result = result * 37 + (userName != null ? userName.hashCode() : 0);
       result = result * 37 + (authenToken != null ? authenToken.hashCode() : 0);
       result = result * 37 + (deviceToken != null ? deviceToken.hashCode() : 0);
+      result = result * 37 + (platform != null ? platform.hashCode() : 0);
       super.hashCode = result;
     }
     return result;
@@ -115,6 +128,7 @@ public final class Login extends AndroidMessage<Login, Login.Builder> {
     if (userName != null) builder.append(", userName=").append(userName);
     if (authenToken != null) builder.append(", authenToken=").append(authenToken);
     if (deviceToken != null) builder.append(", deviceToken=").append(deviceToken);
+    if (platform != null) builder.append(", platform=").append(platform);
     return builder.replace(0, 2, "Login{").append('}').toString();
   }
 
@@ -126,6 +140,8 @@ public final class Login extends AndroidMessage<Login, Login.Builder> {
     public String authenToken;
 
     public String deviceToken;
+
+    public String platform;
 
     public Builder() {
     }
@@ -150,9 +166,14 @@ public final class Login extends AndroidMessage<Login, Login.Builder> {
       return this;
     }
 
+    public Builder platform(String platform) {
+      this.platform = platform;
+      return this;
+    }
+
     @Override
     public Login build() {
-      return new Login(type, userName, authenToken, deviceToken, super.buildUnknownFields());
+      return new Login(type, userName, authenToken, deviceToken, platform, super.buildUnknownFields());
     }
   }
 
@@ -167,6 +188,7 @@ public final class Login extends AndroidMessage<Login, Login.Builder> {
           + ProtoAdapter.STRING.encodedSizeWithTag(2, value.userName)
           + ProtoAdapter.STRING.encodedSizeWithTag(3, value.authenToken)
           + ProtoAdapter.STRING.encodedSizeWithTag(4, value.deviceToken)
+          + ProtoAdapter.STRING.encodedSizeWithTag(5, value.platform)
           + value.unknownFields().size();
     }
 
@@ -176,6 +198,7 @@ public final class Login extends AndroidMessage<Login, Login.Builder> {
       ProtoAdapter.STRING.encodeWithTag(writer, 2, value.userName);
       ProtoAdapter.STRING.encodeWithTag(writer, 3, value.authenToken);
       ProtoAdapter.STRING.encodeWithTag(writer, 4, value.deviceToken);
+      ProtoAdapter.STRING.encodeWithTag(writer, 5, value.platform);
       writer.writeBytes(value.unknownFields());
     }
 
@@ -189,6 +212,7 @@ public final class Login extends AndroidMessage<Login, Login.Builder> {
           case 2: builder.userName(ProtoAdapter.STRING.decode(reader)); break;
           case 3: builder.authenToken(ProtoAdapter.STRING.decode(reader)); break;
           case 4: builder.deviceToken(ProtoAdapter.STRING.decode(reader)); break;
+          case 5: builder.platform(ProtoAdapter.STRING.decode(reader)); break;
           default: {
             FieldEncoding fieldEncoding = reader.peekFieldEncoding();
             Object value = fieldEncoding.rawProtoAdapter().decode(reader);

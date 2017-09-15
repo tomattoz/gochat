@@ -104,12 +104,12 @@ public class ChatApp extends MultiDexApplication implements IAuthenticationProvi
 
     @Override
     public void onActivityResumed(Activity activity) {
-        Log.d(TAG, "onActivityResumed: ");
+        Log.d(TAG, "onActivityResumed: " + activity.getLocalClassName());
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
-        Log.d(TAG, "onActivityPaused: ");
+        Log.d(TAG, "onActivityPaused: " + activity.getLocalClassName());
     }
 
     @Override

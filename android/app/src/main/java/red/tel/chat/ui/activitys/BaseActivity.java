@@ -27,6 +27,7 @@ import red.tel.chat.RxBus;
 import red.tel.chat.network.NetworkCallProposalInfo;
 import red.tel.chat.ui.fragments.ItemDetailFragment;
 
+import static android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP;
 import static red.tel.chat.ui.fragments.ItemDetailFragment.CALL_INFO;
 
 public abstract class BaseActivity extends AppCompatActivity implements EasyPermissions.PermissionCallbacks {
@@ -53,11 +54,12 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         disposable = new CompositeDisposable();
-        onSubscribeEventRx();
+        //onSubscribeEventRx();
     }
 
     @Override
     protected void onResume() {
+        onSubscribeEventRx();
         super.onResume();
         current = this;
     }
@@ -67,9 +69,16 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
         super.onPause();
         current = null;
         if (disposable != null && !disposable.isDisposed()) {
-            disposable.dispose();
             disposable.clear();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (disposable != null && !disposable.isDisposed()) {
+            disposable.dispose();
+        }
+        super.onDestroy();
     }
 
     protected android.view.View getView() {
@@ -90,17 +99,7 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
                 }));
     }
 
-    protected void onSubscribeEvent(Object object) {
-        if (object instanceof NetworkCallProposalInfo) {
-            if (((NetworkCallProposalInfo) object).getTo().equals(Model.shared().getUsername())) {
-                Bundle bundle = new Bundle();
-                bundle.putParcelable(CALL_INFO, (NetworkCallProposalInfo) object);
-                bundle.putString(ItemDetailFragment.ARG_ITEM_ID, ((NetworkCallProposalInfo) object).getFrom());
-                bundle.putBoolean(IncomingCallActivity.TYPE_CALL, ((NetworkCallProposalInfo) object).isVideo());
-                onStartCallIncoming(bundle);
-            }
-        }
-    }
+    protected void onSubscribeEvent(Object object) {}
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -164,6 +163,7 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
 
     public void onStartCallIncoming(Bundle bundle) {
         Intent intent = new Intent(this, IncomingCallActivity.class);
+        intent.addFlags(FLAG_ACTIVITY_SINGLE_TOP);
         intent.putExtras(bundle);
         startActivity(intent);
     }

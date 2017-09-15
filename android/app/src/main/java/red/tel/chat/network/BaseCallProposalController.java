@@ -7,7 +7,7 @@ import android.os.Looper;
  * Created by vmodev on 9/13/17.
  */
 
-public class BaseCallProposalController extends
+public abstract class BaseCallProposalController extends
         NetworkSingleCallSessionController<NetworkCallProposal, NetworkCallProposalInfo> {
     private Handler handler;
     private Runnable finalizer;
