@@ -62,7 +62,9 @@ public class IO {
     }
 
     public interface IODataProtocol {
-        void process(byte[] data);
+        void startOut();
+        void processAudio(byte[] data);
+        void processVideo(byte[] data);
     }
 
     public static class IOFormat {

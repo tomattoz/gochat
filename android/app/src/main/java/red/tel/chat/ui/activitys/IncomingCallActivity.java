@@ -1,19 +1,23 @@
 package red.tel.chat.ui.activitys;
 
 
+import android.media.AudioTrack;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
+import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
+import java.util.Arrays;
 
-import okio.ByteString;
 import red.tel.chat.R;
 import red.tel.chat.VoipBackend;
 import red.tel.chat.generated_protobuf.Voip;
+import red.tel.chat.io.IO;
 import red.tel.chat.network.NetworkIncomingCall;
 import red.tel.chat.network.IncomingCallProposalController;
 import red.tel.chat.network.NetworkCallProposalInfo;
@@ -23,24 +27,28 @@ import static red.tel.chat.generated_protobuf.Voip.Which.CALL_CANCEL;
 import static red.tel.chat.generated_protobuf.Voip.Which.CALL_STOP;
 import static red.tel.chat.ui.fragments.ItemDetailFragment.CALL_INFO;
 
-public class IncomingCallActivity extends BaseCall implements View.OnClickListener {
+public class IncomingCallActivity extends BaseCall implements View.OnClickListener, IO.IODataProtocol {
     public static final String TYPE_CALL = "type_call";
     private static final String TAG = IncomingCallActivity.class.getSimpleName();
     private TextView from;
     private Button btnAccept;
     private Button btnDecline;
+    private View viewRoot;
     private boolean isVideo = false;
     private NetworkCallProposalInfo callProposalInfo;
     private boolean isAccept = false;
+    private IO.IOID ioid;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_incoming_call);
         from = findViewById(R.id.from);
-        cameraView = findViewById(R.id.camera);
+        mCameraTextureView = findViewById(R.id.camera);
         btnAccept = findViewById(R.id.accept);
         btnDecline = findViewById(R.id.decline);
+        viewRoot = findViewById(R.id.root);
         btnAccept.setOnClickListener(this);
         btnDecline.setOnClickListener(this);
 
@@ -51,7 +59,9 @@ public class IncomingCallActivity extends BaseCall implements View.OnClickListen
             from.setText(whom != null ? whom : "");
             callProposalInfo = bundle.getParcelable(CALL_INFO);
         }
-        cameraView.setVisibility(isVideo ? View.VISIBLE : View.GONE);
+        mCameraTextureView.setVisibility(isVideo ? View.VISIBLE : View.GONE);
+        VoipBackend.getInstance().setIoDataProtocol(this);
+        ioid = new IO.IOID(callProposalInfo.to, callProposalInfo.from, callProposalInfo.getId(), callProposalInfo.getId());
     }
 
     @Override
@@ -61,7 +71,6 @@ public class IncomingCallActivity extends BaseCall implements View.OnClickListen
                 if (callProposalInfo == null) {
                     return;
                 }
-                requestPermissions();
                 IncomingCallProposalController.getInstance().accept(callProposalInfo);
 
                 btnAccept.setVisibility(View.GONE);
@@ -87,9 +96,13 @@ public class IncomingCallActivity extends BaseCall implements View.OnClickListen
     }
 
     @Override
-    protected void onCallBackRecord(ByteBuffer buffer, ShortBuffer[] samples) {
-        //VoipBackend.getInstance().sendAudio(null, ByteString.of(buffer));
-        VoipBackend.getInstance().sendDataToServerWhenAccept(buffer, samples);
+    protected void onCallBackRecord(ByteBuffer buffer, ShortBuffer[] samples, byte[] data) {
+        VoipBackend.getInstance().sendDataAudioToServerWhenAccept(data, ioid);
+    }
+
+    @Override
+    protected void onCallVideoData(byte[] data) {
+       VoipBackend.getInstance().sendDataVideoToServerWhenAccept(data, ioid);
     }
 
     @Override
@@ -104,5 +117,65 @@ public class IncomingCallActivity extends BaseCall implements View.OnClickListen
             if (((Voip) object).which == CALL_CANCEL || ((Voip) object).which == CALL_STOP)
                 finish();
         }
+    }
+
+    /**
+     * @method startOut {@link VoipBackend#startCallOutput}
+     */
+    @Override
+    public void startOut() {
+        requestPermissions();
+    }
+
+    /**
+     * @method processAudio {@link VoipBackend#getAV(Voip)}
+     * @param data
+     */
+    @Override
+    public void processAudio(byte[] data) {
+        Log.d(TAG, "processAudio: " + Arrays.toString(data));
+        if (audioTrack != null) {
+            if (AudioTrack.PLAYSTATE_PLAYING != audioTrack.getPlayState()) {
+                audioTrack.play();
+                Log.d(TAG, "Play audio: ");
+            }
+            int size = audioTrack.write(data, 0, data.length);
+            if (data.length != size) {
+                Log.i(TAG, "Failed to send all data to audio output, expected size: " +
+                        data.length + ", actual size: " + size);
+            }
+        }
+    }
+
+    @Override
+    public void processVideo(byte[] data) {
+
+    }
+
+    @Override
+    public void setSurfaceTextureListener(TextureView.SurfaceTextureListener listener) {
+        if (mCameraTextureView != null) {
+            mCameraTextureView.setSurfaceTextureListener(listener);
+        }
+    }
+
+    @Override
+    public TextureView getTextureView() {
+        return mCameraTextureView;
+    }
+
+    @Override
+    public int getUploadPanelParentWidth() {
+        return viewRoot != null ? viewRoot.getWidth() : 0;
+    }
+
+    @Override
+    public int getUploadPanelParentHeight() {
+        return viewRoot != null ? viewRoot.getHeight() : 0;
+    }
+
+    @Override
+    public void getDataVideo(byte[] bytes) {
+        onCallVideoData(bytes);
     }
 }

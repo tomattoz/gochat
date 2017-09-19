@@ -48,7 +48,7 @@ public class ChatGcmListenerService extends GcmListenerService {
 
         // [START_EXCLUDE]
         /**
-         * Production applications would usually process the message here.
+         * Production applications would usually processAudio the message here.
          * Eg: - Syncing with server.
          *     - Store message in local database.
          *     - Update UI.

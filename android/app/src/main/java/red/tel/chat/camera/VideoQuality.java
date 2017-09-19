@@ -1,69 +1,105 @@
 package red.tel.chat.camera;
 
-/**
- * Created by vmodev on 9/6/17.
- */
 
-public enum VideoQuality {
-    /**
-     * Quality level corresponding to the lowest available resolution.
-     */
-    LOWEST(0),
+public class VideoQuality {
+    private String mX264Profile = "superfast";
+    private int mVideoWidth = 240;
+    private int mVideoHeight = 320;
+    private int mFrameRate = 30;
+    private int mSampleAudioRateInHz = 22050;
+    private int mVideoBitrate = 100000;
+    private int mAudioBitrate = 16000;
 
-    /**
-     * Quality level corresponding to the highest available resolution.
-     */
-    HIGHEST(1),
+    public VideoQuality(int videoWidth, int videoHeight, int frameRate, int audioSampleRate,
+                        int videoBitrate, int audioBitrate, String x264Profile) {
+        mX264Profile = x264Profile;
+        mVideoWidth = videoWidth;
+        mVideoHeight = videoHeight;
+        mFrameRate = frameRate;
+        mSampleAudioRateInHz = audioSampleRate;
+        mVideoBitrate = videoBitrate;
+        mAudioBitrate = audioBitrate;
 
-    /**
-     * Quality level corresponding to the QVGA (320x240) resolution.
-     */
-    MAX_QVGA(2),
-
-    /**
-     * Quality level corresponding to the 480p (720 x 480) resolution.
-     * Note that the horizontal resolution for 480p can also be other
-     * values, such as 640 or 704, instead of 720.
-     */
-    MAX_480P(3),
-
-    /**
-     * Quality level corresponding to the 720p (1280 x 720) resolution.
-     */
-    MAX_720P(4),
-
-    /**
-     * Quality level corresponding to the 1080p (1920 x 1080) resolution.
-     * Note that the vertical resolution for 1080p can also be 1088,
-     * instead of 1080 (used by some vendors to avoid cropping during
-     * video playback).
-     */
-    MAX_1080P(5),
-
-    /**
-     * Quality level corresponding to the 2160p (3840x2160) resolution.
-     */
-    MAX_2160P(6);
-
-    static final VideoQuality DEFAULT = MAX_480P;
-
-    private int value;
-
-    VideoQuality(int value) {
-        this.value = value;
     }
 
-    int value() {
-        return value;
+    /**
+     * change video size, keep BPP to update the videBitrate
+     *
+     * @param w
+     * @param h
+     */
+    public void changeVideSize(int w, int h) {
+        double bpp = mVideoWidth * mVideoHeight * mFrameRate / (double) mVideoBitrate;
+        mVideoWidth = w;
+        mVideoHeight = h;
+        mVideoBitrate = (int) (w * h * mFrameRate / bpp);
     }
 
-    static VideoQuality fromValue(int value) {
-        VideoQuality[] list = VideoQuality.values();
-        for (VideoQuality action : list) {
-            if (action.value() == value) {
-                return action;
-            }
+    public String getX264Profile() {
+        return mX264Profile;
+    }
+
+    public int getVideoWidth() {
+        return mVideoWidth;
+    }
+
+    public int getVideoHeight() {
+        return mVideoHeight;
+    }
+
+    public int getFrameRate() {
+        return mFrameRate;
+    }
+
+    public int getSampleAudioRateInHz() {
+        return mSampleAudioRateInHz;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof VideoQuality)) {
+            return false;
         }
-        return null;
+
+        VideoQuality quality = (VideoQuality) o;
+
+        return (quality.mX264Profile.equals(this.mX264Profile) && quality.mVideoWidth == this.mVideoWidth && quality.mVideoHeight == this.mVideoHeight && quality.mFrameRate == this.mFrameRate && quality.mSampleAudioRateInHz == this.mSampleAudioRateInHz);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 17;
+        result = 31 * result + mVideoWidth;
+        result = 31 * result + mVideoHeight;
+        result = 31 * result + mFrameRate;
+        result = 31 * result + mSampleAudioRateInHz;
+        result += mX264Profile.hashCode();
+        return result;
+    }
+
+    @Override
+    public VideoQuality clone() {
+        return new VideoQuality(mVideoWidth, mVideoHeight, mFrameRate, mSampleAudioRateInHz, mVideoBitrate, mAudioBitrate, mX264Profile);
+    }
+
+    public int getAudioBitrate() {
+        return mAudioBitrate;
+    }
+
+    public int getVideoBitrate() {
+        return mVideoBitrate;
+    }
+
+    @Override
+    public String toString() {
+        return "x264Profile = " + mX264Profile
+                + "videoWidth = " + mVideoWidth
+                + "; videoHeight = " + mVideoHeight
+                + "; frameRate = " + mFrameRate
+                + "; audioSampleRate = " + mSampleAudioRateInHz
+                + "; videoBitrate = " + mVideoBitrate
+                + "; audioBitrate = " + mAudioBitrate
+                ;
     }
 }

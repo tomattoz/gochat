@@ -158,7 +158,7 @@ class Crypto {
             switch (result.getDataType()) {
                 case USER_DATA:
                     // this is the actual data that was encrypted by your peer using SecureSession.wrap
-                    // process the data according to your application's flow for incoming data
+                    // processAudio the data according to your application's flow for incoming data
                     VoipBackend.getInstance().onReceiveFromPeer(result.getData(), peerId);
                     break;
                 case PROTOCOL_DATA:

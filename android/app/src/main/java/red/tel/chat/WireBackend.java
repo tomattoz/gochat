@@ -277,6 +277,7 @@ public class WireBackend extends IntentService {
         okio.ByteString text = okio.ByteString.encodeUtf8(message);
         byte[] data = new Voip.Builder().which(Voip.Which.TEXT).payload(text).build().encode();
         sendMessage(data, peerId);
+        Log.d(TAG, "sendText: " + text);
     }
 
     void sendPublicKey(byte[] key, String recipient, Boolean isResponse) {

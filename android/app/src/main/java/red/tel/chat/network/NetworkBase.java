@@ -73,7 +73,7 @@ public class NetworkBase {
         }
 
         public void process(String sid, ByteString data) {
-            Log.d(TAG, "process: ");
+            Log.d(TAG, "processAudio: ");
         }
     }
 }

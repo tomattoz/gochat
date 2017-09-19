@@ -23,7 +23,6 @@ public class AudioRecorder {
 
     }
 
-    private int mSampleRate = 44100;
     private Thread mAudioThread;
     private AudioRecordRunnable mAudioRecordRunnable;
     private boolean runAudioThread = false;
@@ -31,9 +30,16 @@ public class AudioRecorder {
     private int mFrameSize;
     private int mFilterLength;
     private int mBufferSize;
+    public static final int AUDIO_SOURCE = MediaRecorder.AudioSource.MIC;
+    public static final int SAMPLE_RATE = 44100; // Hz
+    public static final int ENCODING = android.media.AudioFormat.ENCODING_PCM_16BIT;
+    public static final int CHANNEL_MASK = android.media.AudioFormat.CHANNEL_IN_MONO;
+    //
+
+    public static final int BUFFER_SIZE = 2 * AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_MASK, ENCODING);
 
     public interface AudioRecorderListener {
-        void onAudioDataUpdate(ByteBuffer buffer, ShortBuffer[] samples);
+        void onAudioDataUpdate(ByteBuffer buffer, ShortBuffer[] samples, byte[] data);
 
         void onFail();
     }
@@ -43,12 +49,12 @@ public class AudioRecorder {
     }
 
     public AudioRecorder() {
-        float samplesPerMilli = (float) mSampleRate / 1000.0f;
+        float samplesPerMilli = (float) SAMPLE_RATE / 1000.0f;
 
         int minBufferSize = AudioRecord.getMinBufferSize(
-                mSampleRate,
-                android.media.AudioFormat.CHANNEL_IN_MONO,
-                android.media.AudioFormat.ENCODING_PCM_16BIT);
+                SAMPLE_RATE,
+                CHANNEL_MASK,
+                ENCODING);
 
         mFrameSize = (int) (40.0f * samplesPerMilli);
         if (mFrameSize * 2 > minBufferSize) {
@@ -58,6 +64,7 @@ public class AudioRecorder {
             mFrameSize = minBufferSize / 2;
         }
         mFilterLength = (int) (200.0f * samplesPerMilli);
+
     }
 
     public void startRecorder(AudioRecorderListener audioRecorderListener) {
@@ -89,33 +96,36 @@ public class AudioRecorder {
                 mAudioRecord = null;
             }
             mAudioRecord = new AudioRecord(
-                    MediaRecorder.AudioSource.MIC,
-                    mSampleRate,
-                    android.media.AudioFormat.CHANNEL_IN_MONO,
-                    android.media.AudioFormat.ENCODING_PCM_16BIT,
-                    mBufferSize);
+                    AUDIO_SOURCE,
+                    SAMPLE_RATE,
+                    CHANNEL_MASK,
+                    ENCODING,
+                    BUFFER_SIZE);
         }
 
         @Override
         public void run() {
             android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
             // Audio
+            byte[] byteAudioData = new byte[BUFFER_SIZE];
             ByteBuffer audioData;
             int bufferReadResult;
+            int read;
             audioData = ByteBuffer.allocateDirect(mBufferSize);
             mAudioRecord.startRecording();
-            ShortBuffer[] samples = new ShortBuffer[10 * mSampleRate * 2 / mBufferSize + 1];
+            ShortBuffer[] samples = new ShortBuffer[10 * SAMPLE_RATE * 2 / mBufferSize + 1];
             for (int i = 0; i < samples.length; i++) {
                 samples[i] = ShortBuffer.allocate(mBufferSize);
             }
             while (runAudioThread) {
                 if (mAudioRecord != null) {
                     bufferReadResult = mAudioRecord.read(audioData, mBufferSize);
+                    read = mAudioRecord.read(byteAudioData, 0, byteAudioData.length);
                     if (bufferReadResult == AudioRecord.ERROR_INVALID_OPERATION || bufferReadResult == AudioRecord.ERROR_BAD_VALUE) {
                         mAudioRecorderListener.onFail();
                     } else {
                         if (bufferReadResult > 0) {
-                            mAudioRecorderListener.onAudioDataUpdate(audioData, samples);
+                            mAudioRecorderListener.onAudioDataUpdate(audioData, samples, byteAudioData);
                         }
                     }
                 }
