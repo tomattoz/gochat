@@ -97,7 +97,7 @@ public class Network {
         }
     }
 
-    void send(byte[] bytes) {
+    synchronized void send(byte[] bytes) {
         webSocket.sendBinary(bytes);
     }
 }

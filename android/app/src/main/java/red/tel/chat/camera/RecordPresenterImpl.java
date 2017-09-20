@@ -16,9 +16,9 @@ public class RecordPresenterImpl implements RecordContact.Presenter {
     //audio
     private static final int SAMPLE_RATE = 44100;
     private static final VideoQuality VIDEO_QUALITY = new VideoQuality(
-            640, 480, 15,
+            240, 320, 15,
             SAMPLE_RATE,
-            460800,// 640*480*15*0.1
+            100000,// 640*480*15*0.1 460800
             16000,
             "superfast"
     );

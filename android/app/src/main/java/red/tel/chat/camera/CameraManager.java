@@ -21,7 +21,6 @@ public class CameraManager {
     private static CameraManager gCameraManager = null;
     private Camera mCameraDevice;
     private CameraThreadHandler mCameraThreadHandler = null;
-    //private UIThreadHandler mUIThreadHandler = null;
     private static final int MSG_ON_OPEN_AND_PREVIEW = 0x2000;
 
     public interface OpenCameraListener {
@@ -41,7 +40,6 @@ public class CameraManager {
         HandlerThread handlerThread = new HandlerThread("CameraManager");
         handlerThread.start();
         mCameraThreadHandler = new CameraThreadHandler(handlerThread.getLooper());
-        //mUIThreadHandler = new UIThreadHandler(Looper.getMainLooper());
     }
 
     public void releaseCamera() {
@@ -228,22 +226,6 @@ public class CameraManager {
                 }
                 break;
             }
-        }
-    }
-
-    private class UIThreadHandler extends Handler {
-
-        public UIThreadHandler(Looper looper) {
-            super(looper);
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-
-            }
-
         }
     }
 

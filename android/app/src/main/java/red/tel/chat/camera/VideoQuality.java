@@ -5,7 +5,7 @@ public class VideoQuality {
     private String mX264Profile = "superfast";
     private int mVideoWidth = 240;
     private int mVideoHeight = 320;
-    private int mFrameRate = 30;
+    private int mFrameRate = 24;
     private int mSampleAudioRateInHz = 22050;
     private int mVideoBitrate = 100000;
     private int mAudioBitrate = 16000;

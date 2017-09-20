@@ -4,6 +4,7 @@ import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 import red.tel.chat.office365.model.ContactsModel;
 import red.tel.chat.office365.services.ContactsService;

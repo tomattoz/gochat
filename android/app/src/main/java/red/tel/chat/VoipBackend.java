@@ -142,7 +142,7 @@ public class VoipBackend{
         startCallOutput(voip, NetworkCallController.getInstance());
     }
 
-    private void getAV(Voip voip) {
+    private synchronized void getAV(Voip voip) {
         if (voip.call.audio) {
             ioDataProtocol.processAudio(voip.av.audio.image.data.toByteArray());
         }
@@ -471,7 +471,11 @@ public class VoipBackend{
     }
 
     public synchronized void sendDataVideoToServerWhenAccept(byte[] buffer, IO.IOID ioid) {
-        okio.ByteString av = okio.ByteString.of(buffer);
-        VoipBackend.getInstance().sendVideo(ioid, av);
+        try {
+            okio.ByteString av = okio.ByteString.of(buffer);
+            VoipBackend.getInstance().sendVideo(ioid, av);
+        }catch (OutOfMemoryError error) {
+            error.printStackTrace();
+        }
     }
 }

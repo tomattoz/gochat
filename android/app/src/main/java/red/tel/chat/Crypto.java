@@ -70,7 +70,7 @@ class Crypto {
         getPeer(peerId).onReceive(payload);
     }
 
-    byte[] encrypt(byte[] data, String peerId) throws Exception {
+    synchronized byte[] encrypt(byte[] data, String peerId) throws Exception {
         return getPeer(peerId).encrypt(data);
     }
 
@@ -149,7 +149,7 @@ class Crypto {
             }
         }
 
-        void onReceive(byte[] receiveBuffer) throws Exception {
+        synchronized void onReceive(byte[] receiveBuffer) throws Exception {
             SecureSession.UnwrapResult result = session.unwrap(receiveBuffer);
             if (session.isEstablished()) {
                 status = Status.SESSION_ESTABLISHED;
@@ -173,7 +173,7 @@ class Crypto {
             }
         }
 
-        byte[] encrypt(byte[] data) throws Exception {
+        synchronized byte[] encrypt(byte[] data) throws Exception {
             return session.wrap(data);
         }
     }

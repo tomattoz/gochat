@@ -40,15 +40,13 @@ public class WireBackend extends IntentService {
 
     private static final String TAG = "WireBackend";
     private static WireBackend instance;
-
-    public WireBackend() {
-        super(TAG);
-    }
-
     private Network network;
     private String sessionId;
     private Crypto crypto;
     private Map<String, ArrayList<Hold>> queue = new HashMap<>();
+    public WireBackend() {
+        super(TAG);
+    }
 
     public static WireBackend shared() {
         return instance;
@@ -177,19 +175,7 @@ public class WireBackend extends IntentService {
         Log.d(TAG, "authenticated: ");
     }
 
-    private class Hold {
-        byte[] data;
-        String peerId;
-        boolean isPlainText;
-
-        Hold(byte[] data, String peerId, boolean isPlainText) {
-            this.data = data;
-            this.peerId = peerId;
-            this.isPlainText = isPlainText;
-        }
-    }
-
-    private void enqueue(byte[] data, String peerId, boolean isPlainText) {
+    private synchronized void enqueue(byte[] data, String peerId, boolean isPlainText) {
         if (!queue.containsKey(peerId)) {
             queue.put(peerId, new ArrayList<>());
         }
@@ -197,11 +183,15 @@ public class WireBackend extends IntentService {
         queue.get(peerId).add(hold);
     }
 
-    public void send(byte[] data, String peerId) {
-        if (crypto.isSessionEstablishedFor(peerId)) {
-            encryptAndSend(data, peerId);
-        } else {
-            enqueue(data, peerId, false);
+    public synchronized void send(byte[] data, String peerId) {
+        try {
+            if (crypto.isSessionEstablishedFor(peerId)) {
+                encryptAndSend(data, peerId);
+            } else {
+                enqueue(data, peerId, false);
+            }
+        }catch (OutOfMemoryError error) {
+            error.printStackTrace();
         }
     }
 
@@ -219,17 +209,15 @@ public class WireBackend extends IntentService {
                         .to(peerId)
                         .plainText(plainText);
                 buildAndSend(payloadBuilder);
-                Log.d(TAG, "encryptAndSend: ");
             } catch (Exception exception) {
                 Log.e(TAG, exception.getMessage());
             }
         } else {
-            //
             enqueue(data, peerId, true);
         }
     }
 
-    private void encryptAndSend(byte[] data, String peerId) {
+    private synchronized void encryptAndSend(byte[] data, String peerId) {
         try {
             ByteString encrypted = ByteString.of(crypto.encrypt(data, peerId));
             Wire.Builder payloadBuilder = new Wire.Builder().payload(encrypted).which(PAYLOAD).to(peerId);
@@ -245,12 +233,17 @@ public class WireBackend extends IntentService {
         send(wireBuilder.build());
     }
 
-    private void send(Wire wire) {
-        if (network.getWebSocket() != null && network.getWebSocket().getState() == WebSocketState.OPEN) {
-            network.send(wire.encode());
-        } else {
-            EventBus.announce(EventBus.Event.DISCONNECTED);
+    private synchronized void send(Wire wire) {
+        try {
+            if (network.getWebSocket() != null && network.getWebSocket().getState() == WebSocketState.OPEN) {
+                network.send(wire.encode());
+            } else {
+                EventBus.announce(EventBus.Event.DISCONNECTED);
+            }
+        } catch (OutOfMemoryError e) {
+            e.printStackTrace();
         }
+
     }
 
     // send to Network
@@ -296,7 +289,6 @@ public class WireBackend extends IntentService {
     }
 
     /**
-     *
      * @param peerId
      */
     void handshook(String peerId) {
@@ -313,6 +305,18 @@ public class WireBackend extends IntentService {
             Log.d(TAG, "handshook: " + hold.peerId);
         }
         queue.clear();//clear the hold list after sending
+    }
+
+    private class Hold {
+        byte[] data;
+        String peerId;
+        boolean isPlainText;
+
+        Hold(byte[] data, String peerId, boolean isPlainText) {
+            this.data = data;
+            this.peerId = peerId;
+            this.isPlainText = isPlainText;
+        }
     }
 
 
