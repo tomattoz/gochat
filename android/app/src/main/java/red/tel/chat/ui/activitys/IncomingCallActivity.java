@@ -1,6 +1,7 @@
 package red.tel.chat.ui.activitys;
 
 
+import android.hardware.Camera;
 import android.media.AudioTrack;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -16,6 +17,7 @@ import java.util.Arrays;
 
 import red.tel.chat.R;
 import red.tel.chat.VoipBackend;
+import red.tel.chat.generated_protobuf.Image;
 import red.tel.chat.generated_protobuf.Voip;
 import red.tel.chat.io.IO;
 import red.tel.chat.network.NetworkIncomingCall;
@@ -101,8 +103,8 @@ public class IncomingCallActivity extends BaseCall implements View.OnClickListen
     }
 
     @Override
-    protected void onCallVideoData(byte[] data) {
-       VoipBackend.getInstance().sendDataVideoToServerWhenAccept(data, ioid);
+    protected void onCallVideoData(byte[] data, Camera.Size size) {
+       VoipBackend.getInstance().sendDataVideoToServerWhenAccept(data, size, ioid);
     }
 
     @Override
@@ -148,8 +150,8 @@ public class IncomingCallActivity extends BaseCall implements View.OnClickListen
     }
 
     @Override
-    public void processVideo(byte[] data) {
-
+    public void processVideo(Image data) {
+        Log.d(TAG, "processVideo: "+ Arrays.toString(data.data.toByteArray()) + " " + data.height + " " + data.width);
     }
 
     @Override
@@ -175,7 +177,7 @@ public class IncomingCallActivity extends BaseCall implements View.OnClickListen
     }
 
     @Override
-    public void getDataVideo(byte[] bytes) {
-        onCallVideoData(bytes);
+    public void getDataVideo(byte[] bytes, Camera.Size size) {
+        onCallVideoData(bytes, size);
     }
 }

@@ -27,9 +27,9 @@ public class NetworkIncomingCall extends NetworkCall {
 
     @Override
     public void stop() {
-        super.stop();
         VoipBackend.getInstance().sendCallStop(getNetworkCallInfo().from(),
                 getNetworkCallInfo());
+        super.stop();
     }
 
     private static class SingletonHelper {

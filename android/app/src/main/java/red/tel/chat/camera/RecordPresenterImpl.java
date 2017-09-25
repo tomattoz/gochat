@@ -61,9 +61,11 @@ public class RecordPresenterImpl implements RecordContact.Presenter {
     private Camera.PreviewCallback mPreviewCallback = new Camera.PreviewCallback() {
         @Override
         public void onPreviewFrame(byte[] bytes, Camera camera) {
+            Camera.Size size = camera.getParameters().getPreviewSize();
 
+            mView.getDataVideo(bytes, size);
+            Log.d(TAG, "onPreviewFrame: ");
             CameraManager.getInstance().addBuffer(bytes);
-            mView.getDataVideo(bytes);
         }
     };
     private CameraManager.OpenCameraListener mOpenCameraListener = new CameraManager.OpenCameraListener() {

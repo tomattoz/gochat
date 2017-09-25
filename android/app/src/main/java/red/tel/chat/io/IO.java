@@ -3,6 +3,7 @@ package red.tel.chat.io;
 import java.util.UUID;
 
 import red.tel.chat.Types;
+import red.tel.chat.generated_protobuf.Image;
 import red.tel.chat.office365.Constants;
 
 /**
@@ -64,7 +65,7 @@ public class IO {
     public interface IODataProtocol {
         void startOut();
         void processAudio(byte[] data);
-        void processVideo(byte[] data);
+        void processVideo(Image data);
     }
 
     public static class IOFormat {

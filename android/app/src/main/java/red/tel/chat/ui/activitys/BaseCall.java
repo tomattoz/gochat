@@ -1,5 +1,6 @@
 package red.tel.chat.ui.activitys;
 
+import android.hardware.Camera;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
@@ -102,14 +103,20 @@ public abstract class BaseCall extends BaseActivity implements RecordContact.Vie
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onStop() {
+        super.onStop();
         if (isVideo() && mCameraTextureView != null) {
             //cameraView.destroy();
             if (mRecordPresenter != null) {
                 mRecordPresenter.stopUpload();
             }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
     }
 
     private void onStartAudioRecord() {
@@ -135,7 +142,7 @@ public abstract class BaseCall extends BaseActivity implements RecordContact.Vie
 
     protected abstract void onCallBackRecord(ByteBuffer buffer, ShortBuffer[] samples, byte[] data);
 
-    protected abstract void onCallVideoData(byte[] data);
+    protected abstract void onCallVideoData(byte[] data, Camera.Size size);
 
     protected abstract boolean isVideo();
 }

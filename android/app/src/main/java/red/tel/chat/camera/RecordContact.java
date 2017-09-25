@@ -1,6 +1,7 @@
 package red.tel.chat.camera;
 
 
+import android.hardware.Camera;
 import android.view.TextureView;
 
 public interface RecordContact {
@@ -14,7 +15,7 @@ public interface RecordContact {
 
         int getUploadPanelParentHeight();
 
-        void getDataVideo(byte[] bytes);
+        void getDataVideo(byte[] bytes, Camera.Size size);
     }
 
     interface Presenter {

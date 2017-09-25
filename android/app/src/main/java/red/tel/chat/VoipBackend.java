@@ -1,6 +1,7 @@
 package red.tel.chat;
 
 
+import android.hardware.Camera;
 import android.util.Log;
 
 import java.nio.ShortBuffer;
@@ -147,8 +148,10 @@ public class VoipBackend{
             ioDataProtocol.processAudio(voip.av.audio.image.data.toByteArray());
         }
         if (voip.call.video) {
-            ioDataProtocol.processVideo(voip.av.video.image.data.toByteArray());
+            ioDataProtocol.processVideo(voip.av.video.image);
+            Log.d(TAG, "getAV: " + voip.av.video.image.data);
         }
+
     }
 
 
@@ -437,7 +440,7 @@ public class VoipBackend{
         }
     }
 
-    private synchronized void sendVideo(IO.IOID ioid, ByteString data) {
+    private synchronized void sendVideo(IO.IOID ioid, Camera.Size size, ByteString data) {
         try {
             Call call = new Call.Builder()
                     .video(true)
@@ -445,6 +448,8 @@ public class VoipBackend{
                     .build();
             Image image = new Image.Builder()
                     .data(data)
+                    .height((long) size.height)
+                    .width((long) size.width)
                     .build();
             VideoSample media = new VideoSample.Builder()
                     .image(image)
@@ -460,8 +465,9 @@ public class VoipBackend{
                     .build()
                     .encode();
             WireBackend.shared().send(dataByte, ioid.getTo());
+            Log.d(TAG, "sendVideo: ");
         }catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "sendVideo: ", e );
         }
     }
 
@@ -470,10 +476,10 @@ public class VoipBackend{
         VoipBackend.getInstance().sendAudio(ioid, av);
     }
 
-    public synchronized void sendDataVideoToServerWhenAccept(byte[] buffer, IO.IOID ioid) {
+    public synchronized void sendDataVideoToServerWhenAccept(byte[] buffer, Camera.Size size, IO.IOID ioid) {
         try {
             okio.ByteString av = okio.ByteString.of(buffer);
-            VoipBackend.getInstance().sendVideo(ioid, av);
+            VoipBackend.getInstance().sendVideo(ioid, size, av);
         }catch (OutOfMemoryError error) {
             error.printStackTrace();
         }
