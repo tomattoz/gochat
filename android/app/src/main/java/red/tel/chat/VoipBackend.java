@@ -143,7 +143,7 @@ public class VoipBackend{
         startCallOutput(voip, NetworkCallController.getInstance());
     }
 
-    private synchronized void getAV(Voip voip) {
+    private void getAV(final Voip voip) {
         if (voip.call.audio) {
             ioDataProtocol.processAudio(voip.av.audio.image.data.toByteArray());
         }

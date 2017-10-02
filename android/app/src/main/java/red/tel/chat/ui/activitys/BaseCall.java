@@ -46,6 +46,13 @@ public abstract class BaseCall extends BaseActivity implements RecordContact.Vie
         }
 
         @Override
+        public void onAudioDataUpdate(byte[] data) {
+            if (mIsRecording) {
+                onCallBackRecord(data);
+            }
+        }
+
+        @Override
         public void onFail() {
 
         }
@@ -80,7 +87,6 @@ public abstract class BaseCall extends BaseActivity implements RecordContact.Vie
                     }
                 });*/
             }
-
             onStartAudioRecord();
         } else {
             // Ask for one permission
@@ -141,7 +147,7 @@ public abstract class BaseCall extends BaseActivity implements RecordContact.Vie
     }
 
     protected abstract void onCallBackRecord(ByteBuffer buffer, ShortBuffer[] samples, byte[] data);
-
+    protected abstract void onCallBackRecord(byte[] data);
     protected abstract void onCallVideoData(byte[] data, Camera.Size size);
 
     protected abstract boolean isVideo();

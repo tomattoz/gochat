@@ -1,7 +1,6 @@
 package red.tel.chat.io;
 
 
-import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 
@@ -30,18 +29,32 @@ public class AudioRecorder {
     private int mFrameSize;
     private int mFilterLength;
     private int mBufferSize;
-    public static final int AUDIO_SOURCE = MediaRecorder.AudioSource.MIC;
+    public static final int AUDIO_SOURCE = MediaRecorder.AudioSource.VOICE_RECOGNITION;
     public static final int SAMPLE_RATE = 44100; // Hz
     public static final int ENCODING = android.media.AudioFormat.ENCODING_PCM_16BIT;
     public static final int CHANNEL_MASK = android.media.AudioFormat.CHANNEL_IN_MONO;
-    //
+
 
     public static final int BUFFER_SIZE = 2 * AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_MASK, ENCODING);
+
+    public static final  int BufferElements2Rec = 1024 * 2; //want to play 2048 (2K) since 2 bytes we use only 1024
+
+    private AudioRecord createAudioRecorder() {
+
+       /* int BytesPerElement = 2; // 2 bytes in 16bit format*/
+
+        AudioRecord record = new AudioRecord(AUDIO_SOURCE,
+                SAMPLE_RATE, CHANNEL_MASK,
+                ENCODING, BUFFER_SIZE);
+        return record;
+    }
+
 
     public interface AudioRecorderListener {
         void onAudioDataUpdate(ByteBuffer buffer, ShortBuffer[] samples, byte[] data);
 
         void onFail();
+        void onAudioDataUpdate(byte[] data);
     }
 
     public AudioRecord getAudioRecord() {
@@ -49,7 +62,7 @@ public class AudioRecorder {
     }
 
     public AudioRecorder() {
-        float samplesPerMilli = (float) SAMPLE_RATE / 1000.0f;
+      /*  float samplesPerMilli = (float) SAMPLE_RATE / 1000.0f;
 
         int minBufferSize = AudioRecord.getMinBufferSize(
                 SAMPLE_RATE,
@@ -63,7 +76,7 @@ public class AudioRecorder {
             mBufferSize = minBufferSize;
             mFrameSize = minBufferSize / 2;
         }
-        mFilterLength = (int) (200.0f * samplesPerMilli);
+        mFilterLength = (int) (200.0f * samplesPerMilli);*/
 
     }
 
@@ -95,15 +108,19 @@ public class AudioRecorder {
                 mAudioRecord.release();
                 mAudioRecord = null;
             }
-            mAudioRecord = new AudioRecord(
+           /* mAudioRecord = new AudioRecord(
                     AUDIO_SOURCE,
                     SAMPLE_RATE,
                     CHANNEL_MASK,
                     ENCODING,
-                    BUFFER_SIZE);
+                    BUFFER_SIZE);*/
+
+           mAudioRecord = createAudioRecorder();
+
+
         }
 
-        @Override
+/*        @Override
         public void run() {
             android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
             // Audio
@@ -135,6 +152,26 @@ public class AudioRecorder {
                 mAudioRecord.release();
                 mAudioRecord = null;
             }
+        }*/
+
+        @Override
+        public void run() {
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+            // Audio
+           mAudioRecord.startRecording();
+           byte data[] = new byte[BUFFER_SIZE];
+            while (runAudioThread) {
+                if (mAudioRecord != null) {
+                    mAudioRecord.read(data, 0, BUFFER_SIZE);
+                    mAudioRecorderListener.onAudioDataUpdate(data);
+                }
+            }
+            if (mAudioRecord != null) {
+                mAudioRecord.stop();
+                mAudioRecord.release();
+                mAudioRecord = null;
+            }
         }
     }
+
 }

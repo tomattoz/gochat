@@ -135,7 +135,7 @@ public class IncomingCallActivity extends BaseCall implements View.OnClickListen
      */
     @Override
     public void processAudio(byte[] data) {
-        Log.d(TAG, "processAudio: " + Arrays.toString(data));
+        Log.d(TAG, "processAudio: ");
         if (audioTrack != null) {
             if (AudioTrack.PLAYSTATE_PLAYING != audioTrack.getPlayState()) {
                 audioTrack.play();
@@ -179,5 +179,10 @@ public class IncomingCallActivity extends BaseCall implements View.OnClickListen
     @Override
     public void getDataVideo(byte[] bytes, Camera.Size size) {
         onCallVideoData(bytes, size);
+    }
+
+    @Override
+    protected void onCallBackRecord(byte[] data) {
+        VoipBackend.getInstance().sendDataAudioToServerWhenAccept(data, ioid);
     }
 }
