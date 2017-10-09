@@ -6,6 +6,7 @@ import android.util.Log;
 import java.util.UUID;
 
 import red.tel.chat.Model;
+import red.tel.chat.Network;
 import red.tel.chat.Types;
 import red.tel.chat.io.IO;
 import red.tel.chat.office365.Constants;
@@ -15,6 +16,8 @@ public abstract class NetworkCall implements Types.SessionProtocol {
     private NetworkCallInfo networkCallInfo;
     private IO.IOOutputContext audioOutputContext;
     private IO.IOOutputContext outputContext;
+    private IO.IOSessionProtocol audioInputSession;
+    private IO.IOSessionProtocol videoInputSession;
 
     public NetworkCall(NetworkCallInfo networkCallInfo) {
         this.networkCallInfo = networkCallInfo;
@@ -43,6 +46,9 @@ public abstract class NetworkCall implements Types.SessionProtocol {
         return new NetworkCallInfo(getNetworkCallInfo().proposal, null, null);
     }
 
+    public NetworkAudio.NetworkAudioSessionInfo startAudioCapture(IO.IOID id) {
+        return null;
+    }
     /*private NetworkAudio.NetworkAudioSessionInfo startAudioCapture(IO.IOID id) {
         NetworkAudio.NetworkAudioSessionInfo audioSessionInfo = new NetworkAudio.NetworkAudioSessionInfo()
     }*/

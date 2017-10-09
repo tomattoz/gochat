@@ -4,13 +4,13 @@ package red.tel.chat.io;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 
+import org.json.JSONObject;
+
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 
 public class AudioRecorder {
     public static class AudioFormat {
-        public AudioFormat() {
-        }
 
         private static String kFormatID = "kFormatID";
         private static String kFlags = "kFlags";
@@ -20,6 +20,70 @@ public class AudioRecorder {
 
         private IO.IOFormat format;
 
+        public  AudioFormat() {
+            format = new IO.IOFormat();
+        }
+
+        public Integer getFormatID() {
+            return (Integer)format.getData().get(kFormatID);
+        }
+
+        public void setFormatID(Integer formatID) {
+            format.getData().put(kFormatID, formatID);
+        }
+
+        public Integer getFlags() {
+            return (Integer)format.getData().get(kFormatID);
+        }
+
+        public void setFlags(Integer flags) {
+            format.getData().put(kFlags, flags);
+        }
+
+        public Double getSampleRate() {
+            return (Double)format.getData().get(kFormatID);
+        }
+
+        public void setSampleRate(Double sampleRate) {
+            format.getData().put(kSampleRate, sampleRate);
+        }
+
+        public Integer getChannelCount() {
+            return (Integer) format.getData().get(kChannelCount);
+        }
+
+        public void setChannelCount(Integer channelCount) {
+            format.getData().put(kChannelCount, channelCount);
+        }
+
+        public Integer getFramesPerPacket() {
+            return (Integer) format.getData().get(kFramesPerPacket);
+        }
+
+        public void setFramesPerPacket(Integer framesPerPacket) {
+            format.getData().put(kFramesPerPacket, framesPerPacket);
+        }
+
+        public byte[] toNetwork() {
+            JSONObject json = new JSONObject(format.getData());
+            return  json.toString().getBytes();
+        }
+
+        public void fromNetwork(byte[] remoteData) {
+            String str = new String(remoteData);
+
+            try {
+                JSONObject jObject = new JSONObject(str);
+                this.setFormatID((Integer)jObject.get(kFormatID));
+                this.setFlags((Integer)jObject.get(kFlags));
+                this.setSampleRate((Double) jObject.get(kSampleRate));
+                this.setChannelCount((Integer)jObject.get(kChannelCount));
+                this.setFramesPerPacket((Integer)jObject.get(kFramesPerPacket));
+            } catch (Exception e) {
+
+            }
+
+        }
     }
 
     private Thread mAudioThread;

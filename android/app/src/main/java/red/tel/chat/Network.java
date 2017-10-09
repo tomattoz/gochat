@@ -18,7 +18,7 @@ import red.tel.chat.EventBus.Event;
 // websocket façade
 public class Network {
 
-    private static final String serverUrl = "ws://192.168.0.191:8000/ws";
+    private static final String serverUrl = "ws://192.168.2.135:8000/ws";
     private static final String TAG = "Network";
     private static final int CONNECTION_TIMEOUT = 1000;
     private WebSocket webSocket;

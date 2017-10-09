@@ -1,5 +1,7 @@
 package red.tel.chat.io;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import red.tel.chat.Types;
@@ -70,19 +72,22 @@ public class IO {
 
     public static class IOFormat {
         private static String kID = "kID";
-        private String[] data;
 
-        public IOFormat() {
-            data = new String[]{UUID.fromString(Constants.CLIENT_ID).toString()};
+        public Map<String, Object> getData() {
+            return data;
         }
 
-        public IOFormat(String[] data) {
-            this.data = data;
-        }
+        private Map<String, Object> data;
 
         public String id() {
-            return data[0];
+            return (String)data.get(kID);
         }
+
+        public IOFormat() {
+            data = new HashMap<String, Object>();
+            data.put(kID, UUID.fromString(Constants.CLIENT_ID).toString());
+        }
+
     }
 
     public interface IOSessionProtocol extends Types.SessionProtocol {}
