@@ -13,6 +13,16 @@ android {
         multiDexEnabled true
         android.compileOptions.sourceCompatibility 1.8
         android.compileOptions.targetCompatibility 1.8
+
+        externalNativeBuild {
+            cmake {
+                cppFlags ""
+            }
+        }
+
+        ndk {
+            abiFilters 'armeabi'
+        }
     }
     buildTypes {
         release {
@@ -37,6 +47,16 @@ android {
     }
     testOptions {
         unitTests.returnDefaultValues = true
+    }
+    externalNativeBuild {
+        cmake {
+            path 'CMakeLists.txt'
+        }
+    }
+    sourceSets {
+        main {
+            jniLibs.srcDirs 'libs/fdk-aac/src/'
+        }
     }
 }
 
