@@ -17,8 +17,10 @@ import java.util.Arrays;
 
 import red.tel.chat.R;
 import red.tel.chat.VoipBackend;
+import red.tel.chat.avcodecs.FdkAAC;
 import red.tel.chat.generated_protobuf.Image;
 import red.tel.chat.generated_protobuf.Voip;
+import red.tel.chat.io.AudioRecorder;
 import red.tel.chat.io.IO;
 import red.tel.chat.network.NetworkIncomingCall;
 import red.tel.chat.network.IncomingCallProposalController;
@@ -135,13 +137,20 @@ public class IncomingCallActivity extends BaseCall implements View.OnClickListen
      */
     @Override
     public void processAudio(byte[] data) {
+
+        int bz = AudioRecorder.BUFFER_SIZE / 2;
+        short[] decoded = new  short[bz];
+
+        FdkAAC.shared().decode(data, decoded, data.length);
+
         Log.d(TAG, "processAudio: ");
         if (audioTrack != null) {
             if (AudioTrack.PLAYSTATE_PLAYING != audioTrack.getPlayState()) {
                 audioTrack.play();
                 Log.d(TAG, "Play audio: ");
             }
-            int size = audioTrack.write(data, 0, data.length);
+            //int size = audioTrack.write(data, 0, data.length);
+            int size = audioTrack.write(decoded, 0, decoded.length);
             if (data.length != size) {
                 Log.i(TAG, "Failed to send all data to audio output, expected size: " +
                         data.length + ", actual size: " + size);

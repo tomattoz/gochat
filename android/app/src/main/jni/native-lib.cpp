@@ -73,7 +73,7 @@ UCHAR dec_au_header[AU_HDR_SIZE];
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_red_tel_chat_avcodecs_FdkAAC_open(JNIEnv *env, jclass type, jint brate, jint sample_rate,
+Java_red_tel_chat_avcodecs_FdkAAC_open(JNIEnv *env, jobject instance, jint brate, jint sample_rate,
                                        jint aot, jbyteArray codec_config_, jint codec_config_length,
                                        jboolean eldSBR) {
 
@@ -124,11 +124,11 @@ Java_red_tel_chat_avcodecs_FdkAAC_open(JNIEnv *env, jclass type, jint brate, jin
     // set SBR separately for AAC-ELD
     if (codec_aot == 39 && codec_eld_sbr) {
         if (aacEncoder_SetParam(enc_handle, AACENC_SBR_MODE, 1) != AACENC_OK) {
-            __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG_ENCODER, "unable to set SBR for ELD",
-                                aot);
+            __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG_ENCODER, "unable to set SBR for ELD"
+            );
             return -1;
         }
-        __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG_ENCODER, "AOT is 39, SBR is enabled", aot);
+        __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG_ENCODER, "AOT is 39, SBR is enabled");
     }
 
     // set AOT (HE-AACv1, HE-AACv2, AAC-LC, AAC-LD or AAC-ELD)
@@ -318,6 +318,9 @@ Java_red_tel_chat_avcodecs_FdkAAC_encode(JNIEnv *env, jobject instance, jshortAr
 
             out_bytes = AU_HDR_SIZE + au_size;
         }
+
+        enc_in_ptr = NULL;
+        enc_out_ptr = NULL;
     }
 
     pthread_mutex_unlock(&enc_lock);
