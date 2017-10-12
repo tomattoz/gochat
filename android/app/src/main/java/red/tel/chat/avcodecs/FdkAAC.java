@@ -170,6 +170,22 @@ public class FdkAAC {
     }
 
     /**
+     * The expected size of buffer to encode output
+     */
+    public int expectedEncodingOutBufferSize() {
+        return  this.frame_size() + this.getAUHeaderSize();
+    }
+
+    /**
+     *
+     * @return The expected size of buffer to encode input
+     */
+    public int expectedEncodingInBufferSize() {
+        int elmz = this.getEncodingBufferElementSize();
+        return  (elmz > 0 ? this.getEncodingBufferSize() / elmz : 0);
+    }
+
+    /**
      * Used to initiallize the default codec before any
      * encoding or decoding
      */
@@ -220,4 +236,23 @@ public class FdkAAC {
      * after encoding or decoding is complete
      */
     public native void close();
+
+    /**
+     *
+     * @return The size of buffer that expect to input to encoder
+     */
+    public native int getEncodingBufferSize();
+
+
+    /**
+     *
+     * @return The size of element in buffer
+     */
+    public native int getEncodingBufferElementSize();
+
+    /**
+     *
+     * @return AU Header size
+     */
+    public native int getAUHeaderSize();
 }

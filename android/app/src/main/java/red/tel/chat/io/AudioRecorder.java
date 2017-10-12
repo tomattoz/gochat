@@ -1,15 +1,20 @@
 package red.tel.chat.io;
 
-
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
+import java.util.Arrays;
+
+import red.tel.chat.avcodecs.FdkAAC;
 
 public class AudioRecorder {
+
+    // Internal class
     public static class AudioFormat {
 
         private static String kFormatID = "kFormatID";
@@ -20,12 +25,12 @@ public class AudioRecorder {
 
         private IO.IOFormat format;
 
-        public  AudioFormat() {
+        public AudioFormat() {
             format = new IO.IOFormat();
         }
 
         public Integer getFormatID() {
-            return (Integer)format.getData().get(kFormatID);
+            return (Integer) format.getData().get(kFormatID);
         }
 
         public void setFormatID(Integer formatID) {
@@ -33,7 +38,7 @@ public class AudioRecorder {
         }
 
         public Integer getFlags() {
-            return (Integer)format.getData().get(kFormatID);
+            return (Integer) format.getData().get(kFormatID);
         }
 
         public void setFlags(Integer flags) {
@@ -41,7 +46,7 @@ public class AudioRecorder {
         }
 
         public Double getSampleRate() {
-            return (Double)format.getData().get(kFormatID);
+            return (Double) format.getData().get(kFormatID);
         }
 
         public void setSampleRate(Double sampleRate) {
@@ -66,7 +71,7 @@ public class AudioRecorder {
 
         public byte[] toNetwork() {
             JSONObject json = new JSONObject(format.getData());
-            return  json.toString().getBytes();
+            return json.toString().getBytes();
         }
 
         public void fromNetwork(byte[] remoteData) {
@@ -74,11 +79,11 @@ public class AudioRecorder {
 
             try {
                 JSONObject jObject = new JSONObject(str);
-                this.setFormatID((Integer)jObject.get(kFormatID));
-                this.setFlags((Integer)jObject.get(kFlags));
+                this.setFormatID((Integer) jObject.get(kFormatID));
+                this.setFlags((Integer) jObject.get(kFlags));
                 this.setSampleRate((Double) jObject.get(kSampleRate));
-                this.setChannelCount((Integer)jObject.get(kChannelCount));
-                this.setFramesPerPacket((Integer)jObject.get(kFramesPerPacket));
+                this.setChannelCount((Integer) jObject.get(kChannelCount));
+                this.setFramesPerPacket((Integer) jObject.get(kFramesPerPacket));
             } catch (Exception e) {
 
             }
@@ -93,23 +98,23 @@ public class AudioRecorder {
     private int mFrameSize;
     private int mFilterLength;
     private int mBufferSize;
+
     public static final int AUDIO_SOURCE = MediaRecorder.AudioSource.VOICE_RECOGNITION;
     public static final int SAMPLE_RATE = 44100; // Hz
     public static final int ENCODING = android.media.AudioFormat.ENCODING_PCM_16BIT;
     public static final int CHANNEL_MASK = android.media.AudioFormat.CHANNEL_IN_MONO;
-
-
     public static final int BUFFER_SIZE = 2 * AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_MASK, ENCODING);
 
-    public static final  int BufferElements2Rec = 1024 * 2; //want to play 2048 (2K) since 2 bytes we use only 1024
 
     private AudioRecord createAudioRecorder() {
 
        /* int BytesPerElement = 2; // 2 bytes in 16bit format*/
 
+        FdkAAC.shared().defaultOpen();
         AudioRecord record = new AudioRecord(AUDIO_SOURCE,
                 SAMPLE_RATE, CHANNEL_MASK,
-                ENCODING, BUFFER_SIZE);
+                ENCODING, FdkAAC.shared().expectedEncodingInBufferSize());
+
         return record;
     }
 
@@ -118,6 +123,7 @@ public class AudioRecorder {
         void onAudioDataUpdate(ByteBuffer buffer, ShortBuffer[] samples, byte[] data);
 
         void onFail();
+
         void onAudioDataUpdate(byte[] data);
     }
 
@@ -126,22 +132,7 @@ public class AudioRecorder {
     }
 
     public AudioRecorder() {
-      /*  float samplesPerMilli = (float) SAMPLE_RATE / 1000.0f;
-
-        int minBufferSize = AudioRecord.getMinBufferSize(
-                SAMPLE_RATE,
-                CHANNEL_MASK,
-                ENCODING);
-
-        mFrameSize = (int) (40.0f * samplesPerMilli);
-        if (mFrameSize * 2 > minBufferSize) {
-            mBufferSize = mFrameSize * 2;
-        } else {
-            mBufferSize = minBufferSize;
-            mFrameSize = minBufferSize / 2;
-        }
-        mFilterLength = (int) (200.0f * samplesPerMilli);*/
-
+        // TODO
     }
 
     public void startRecorder(AudioRecorderListener audioRecorderListener) {
@@ -172,64 +163,50 @@ public class AudioRecorder {
                 mAudioRecord.release();
                 mAudioRecord = null;
             }
-           /* mAudioRecord = new AudioRecord(
-                    AUDIO_SOURCE,
-                    SAMPLE_RATE,
-                    CHANNEL_MASK,
-                    ENCODING,
-                    BUFFER_SIZE);*/
-
-           mAudioRecord = createAudioRecorder();
+            mAudioRecord = createAudioRecorder();
 
 
         }
 
-/*        @Override
-        public void run() {
-            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
-            // Audio
-            byte[] byteAudioData = new byte[BUFFER_SIZE];
-            ByteBuffer audioData;
-            int bufferReadResult;
-            int read;
-            audioData = ByteBuffer.allocateDirect(mBufferSize);
-            mAudioRecord.startRecording();
-            ShortBuffer[] samples = new ShortBuffer[10 * SAMPLE_RATE * 2 / mBufferSize + 1];
-            for (int i = 0; i < samples.length; i++) {
-                samples[i] = ShortBuffer.allocate(mBufferSize);
-            }
-            while (runAudioThread) {
-                if (mAudioRecord != null) {
-                    bufferReadResult = mAudioRecord.read(audioData, mBufferSize);
-                    read = mAudioRecord.read(byteAudioData, 0, byteAudioData.length);
-                    if (bufferReadResult == AudioRecord.ERROR_INVALID_OPERATION || bufferReadResult == AudioRecord.ERROR_BAD_VALUE) {
-                        mAudioRecorderListener.onFail();
-                    } else {
-                        if (bufferReadResult > 0) {
-                            mAudioRecorderListener.onAudioDataUpdate(audioData, samples, byteAudioData);
-                        }
-                    }
-                }
-            }
-            if (mAudioRecord != null) {
-                mAudioRecord.stop();
-                mAudioRecord.release();
-                mAudioRecord = null;
-            }
-        }*/
 
         @Override
         public void run() {
+
+            // Thread priority
             android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
-            // Audio
-           mAudioRecord.startRecording();
-           byte data[] = new byte[BUFFER_SIZE];
+
+            // Record starting
+            mAudioRecord.startRecording();
+
+            // Sizes of buffers
+            int sizeBufferIN = FdkAAC.shared().expectedEncodingInBufferSize();
+            int sizeBufferOUT = FdkAAC.shared().expectedEncodingOutBufferSize();
+
+            // Buffer to read
+            short data[] = new short[sizeBufferIN];
+
+            // Buffer to encode
+            byte encodedBuffer[] = new byte[sizeBufferOUT];
+
+            // Loop to read
             while (runAudioThread) {
+
+                // Sure available recording
                 if (mAudioRecord != null) {
-                    mAudioRecord.read(data, 0, BUFFER_SIZE);
-                    mAudioRecorderListener.onAudioDataUpdate(data);
+
+                    // Read audio buffer in short
+                    int read = mAudioRecord.read(data, 0, sizeBufferIN);
+
+                    // AAC encode
+                    int encodedLen = FdkAAC.shared().encode(data, 0, encodedBuffer, read);
+                    byte encoded[] = Arrays.copyOfRange(encodedBuffer,0, encodedLen);
+
+                    // Fallback encoded data to listener
+                    mAudioRecorderListener.onAudioDataUpdate(encoded);
                 }
             }
+
+            // End recording
             if (mAudioRecord != null) {
                 mAudioRecord.stop();
                 mAudioRecord.release();

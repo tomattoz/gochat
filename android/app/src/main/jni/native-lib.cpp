@@ -16,9 +16,15 @@ pthread_mutex_t enc_lock;
 pthread_mutex_t dec_lock;
 bool mutexes_initialized = false;
 
-#define     RTP_HDR_SIZE    12
-#define AU_HDR_SIZE    4
+#ifdef UNUSE_AU_HDR
+    #define     RTP_HDR_SIZE    12
+    #define AU_HDR_SIZE    4
 #define TOTAL_HDR_SIZE    RTP_HDR_SIZE + AU_HDR_SIZE
+#else
+    #define     RTP_HDR_SIZE    0
+    #define AU_HDR_SIZE    0
+    #define TOTAL_HDR_SIZE    RTP_HDR_SIZE + AU_HDR_SIZE
+#endif
 
 bool open_error = true;
 int codec_samplerate = -1;
@@ -63,8 +69,10 @@ int enc_out_buf_identifier = OUT_BITSTREAM_DATA;
 int enc_out_buf_size;
 int enc_out_buf_elem_size = 1;
 
-// AU header template for encoded frames
-jbyte enc_au_header[AU_HDR_SIZE] = {0, 16, 0, 0};
+#ifdef UNUSE_AU_HDR
+    // AU header template for encoded frames
+    jbyte enc_au_header[AU_HDR_SIZE] = {0, 16, 0, 0};
+#endif
 
 HANDLE_AACDECODER dec_handle;
 AAC_DECODER_ERROR dec_err;
@@ -224,6 +232,8 @@ Java_red_tel_chat_avcodecs_FdkAAC_open(JNIEnv *env, jobject instance, jint brate
     dec_handle = aacDecoder_Open(TT_MP4_RAW, 1);
     __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG_DECODER, "decoder opened");
 
+#ifndef USE_ADTS
+
     // ASC data for decoder
     UINT asc_buf_size = (UINT) codec_config_length;
     UCHAR asc_buf[asc_buf_size];
@@ -236,6 +246,8 @@ Java_red_tel_chat_avcodecs_FdkAAC_open(JNIEnv *env, jobject instance, jint brate
                             "error writing ASC. AAC_DECODER_ERROR %x", dec_err);
         return -1;
     }
+#endif
+
     __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG_DECODER, "decoder sampleRate: %d",
                         aacDecoder_GetStreamInfo(dec_handle)->aacSampleRate);
     __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG_DECODER, "decoder extSamplingRate: %d",
@@ -255,9 +267,9 @@ Java_red_tel_chat_avcodecs_FdkAAC_open(JNIEnv *env, jobject instance, jint brate
 
     dec_out_buf_size = enc_info.frameLength;
 
-    if (aacDecoder_SetParam(dec_handle, AAC_PCM_MIN_OUTPUT_CHANNELS, 1) != AAC_DEC_OK) {
+    if (aacDecoder_SetParam(dec_handle, AAC_CONCEAL_METHOD, 0) != AAC_DEC_OK) {
         __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG_DECODER,
-                            "unable to set min number of pcm output channels");
+                            "unable to set AAC_CONCEAL_METHOD");
         return -1;
     }
 
@@ -272,6 +284,7 @@ Java_red_tel_chat_avcodecs_FdkAAC_open(JNIEnv *env, jobject instance, jint brate
                             "unable to set number of interleaving to 0");
         return -1;
     }
+
 
     open_error = false;
     return 0;
@@ -302,6 +315,8 @@ Java_red_tel_chat_avcodecs_FdkAAC_encode(JNIEnv *env, jobject instance, jshortAr
         } else {
             // set AU header
             uint16_t au_size = (uint16_t) enc_out_args.numOutBytes;
+
+#ifdef UNUSE_AU_HDR
             // first 8 of 13 bits for AU-size
             enc_au_header[2] = (jbyte) ((au_size << 3) >> 8);
             // last 5 of 13 bits for AU-size + 3 bits for AU-Index (always 0, see RFC 3640)
@@ -315,8 +330,11 @@ Java_red_tel_chat_avcodecs_FdkAAC_encode(JNIEnv *env, jobject instance, jshortAr
             env->SetByteArrayRegion(encoded_, RTP_HDR_SIZE, AU_HDR_SIZE, enc_au_header);
             // write AU (frame)
             env->SetByteArrayRegion(encoded_, TOTAL_HDR_SIZE, au_size, enc_out_buf);
-
             out_bytes = AU_HDR_SIZE + au_size;
+#else
+            env->SetByteArrayRegion(encoded_, 0, au_size, enc_out_buf);
+            out_bytes = au_size;
+#endif
         }
 
         enc_in_ptr = NULL;
@@ -334,6 +352,8 @@ Java_red_tel_chat_avcodecs_FdkAAC_decode(JNIEnv *env, jobject instance, jbyteArr
     int out_samples = 0;
     pthread_mutex_lock(&dec_lock);
     if (dec_handle != NULL) {
+
+#ifdef UNUSE_AU_HDR
         // get AU size
         env->GetByteArrayRegion(encoded_, RTP_HDR_SIZE, AU_HDR_SIZE, (jbyte *) dec_au_header);
         UINT au_size = 0;
@@ -357,9 +377,26 @@ Java_red_tel_chat_avcodecs_FdkAAC_decode(JNIEnv *env, jobject instance, jbyteArr
                 return 0;
             }
         }
+#else
+        UINT au_size = (UINT) size;
+        UCHAR dec_in_buf[au_size];
+        UCHAR *dec_in_buf_pt = dec_in_buf;
+        env->GetByteArrayRegion(encoded_, 0, au_size, (jbyte *) dec_in_buf);
 
+        // fill internal input buffer
+        UINT bytes_valid = au_size;
+        while (bytes_valid != 0) {
+            if ((dec_err = aacDecoder_Fill(dec_handle, &dec_in_buf_pt, &au_size, &bytes_valid)) !=
+                AAC_DEC_OK) {
+                __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG_DECODER,
+                                    "error filling decoder buffer. AAC_DECODER_ERROR %x", dec_err);
+                pthread_mutex_unlock(&dec_lock);
+                return 0;
+            }
+        }
+#endif
         // decode frame
-        INT_PCM dec_out_buf[sizeof(INT_PCM) * dec_out_buf_size];
+        INT_PCM dec_out_buf[dec_out_buf_size * sizeof(INT_PCM)];
         if ((dec_err = aacDecoder_DecodeFrame(dec_handle, dec_out_buf, dec_out_buf_size, 0)) !=
             AAC_DEC_OK) {
             __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG_DECODER,
@@ -393,4 +430,22 @@ Java_red_tel_chat_avcodecs_FdkAAC_close(JNIEnv *env, jobject instance) {
         }
         __android_log_print(ANDROID_LOG_DEBUG, DEBUG_TAG_DECODER, "cleanup complete");
     }
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_red_tel_chat_avcodecs_FdkAAC_getEncodingBufferSize(JNIEnv *env, jobject instance) {
+    return enc_in_buf_size;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_red_tel_chat_avcodecs_FdkAAC_getEncodingBufferElementSize(JNIEnv *env, jobject instance) {
+    return enc_in_buf_elem_size;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_red_tel_chat_avcodecs_FdkAAC_getAUHeaderSize(JNIEnv *env, jobject instance) {
+    return AU_HDR_SIZE;
 }
