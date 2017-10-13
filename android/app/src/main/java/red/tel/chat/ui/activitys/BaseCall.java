@@ -23,11 +23,15 @@ import static red.tel.chat.io.AudioRecorder.BUFFER_SIZE;
 import static red.tel.chat.io.AudioRecorder.ENCODING;
 import static red.tel.chat.io.AudioRecorder.SAMPLE_RATE;
 
-/**
- * Created by vmodev on 9/11/17.
- */
 
+/**
+ * Abstract class for calling
+ */
 public abstract class BaseCall extends BaseActivity implements RecordContact.View {
+
+    /**
+     * prvs
+     */
     private static final String TAG = BaseCall.class.getSimpleName();
     private AudioRecorder audioRecorder;
     private long startTime = 0;
@@ -37,24 +41,12 @@ public abstract class BaseCall extends BaseActivity implements RecordContact.Vie
     RecordContact.Presenter mRecordPresenter;
     private int cameraId = Constant.CAMERA_FACING_BACK;
 
-    private AudioRecorder.AudioRecorderListener mAudioRecorderListener = new AudioRecorder.AudioRecorderListener() {
-        @Override
-        public void onAudioDataUpdate(ByteBuffer buffer, ShortBuffer[] samples, byte[] data) {
-            if (mIsRecording) {
-                onCallBackRecord(buffer, samples, data);
-            }
-        }
-
-        @Override
-        public void onAudioDataUpdate(byte[] data) {
-            if (mIsRecording) {
-                onCallBackRecord(data);
-            }
-        }
-
-        @Override
-        public void onFail() {
-
+    /**
+     * Lambda listener
+     */
+    private AudioRecorder.AudioRecorderListener mAudioRecorderListener = data -> {
+        if (mIsRecording) {
+            onCallBackRecord(data);
         }
     };
 

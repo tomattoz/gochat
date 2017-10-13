@@ -2,6 +2,7 @@ package red.tel.chat;
 
 
 import android.hardware.Camera;
+import android.media.AudioFormat;
 import android.util.Log;
 
 import java.nio.ShortBuffer;
@@ -285,15 +286,32 @@ public class VoipBackend{
      * @method sendIncomingCallStart
      */
     public void sendIncomingCallStart(String to, NetworkCallInfo info) {
+
+        // init
         DataCall dataCall = new DataCall(info).invoke();
-        AVSession.Builder audioSession = dataCall.getAudioSession();
-        AVSession.Builder videoSession = dataCall.getVideoSession();
+        AVSession.Builder asBuilder = dataCall.getAudioSession();
+        AVSession.Builder vsBuilder = dataCall.getVideoSession();
         Call call = dataCall.getCall();
+
+        // make voip
+        Voip.Builder voipBuilder = new Voip.Builder().which(Voip.Which.CALL_START_INCOMING);
+        voipBuilder.call = call;
+
+        // TODO
+        asBuilder.active = true;
+        asBuilder.data = ByteString.of(IO.IOFormatFactory.shared().createAudioFormat().toNetwork());
+        asBuilder.sid = "AUDIO-SID 1234";
+        asBuilder.gid = "AUDIO-GID 5678";
+
+        vsBuilder.active = true;
+        vsBuilder.data = null;
+        vsBuilder.sid = "VIDEO-SID 1234";
+        vsBuilder.gid = "VIDEO-GID 5678";
 
         byte[] data = new Voip.Builder()
                 .which(Voip.Which.CALL_START_INCOMING)
-                .audioSession(audioSession.build())
-                .videoSession(videoSession.build())
+                .audioSession(asBuilder.build())
+                .videoSession(vsBuilder.build())
                 .call(call)
                 .build()
                 .encode();

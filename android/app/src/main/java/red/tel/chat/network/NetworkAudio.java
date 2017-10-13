@@ -4,21 +4,49 @@ import okio.ByteString;
 import red.tel.chat.io.AudioRecorder;
 import red.tel.chat.io.IO;
 
+/**
+ * NetworkAudio class
+ */
 public class NetworkAudio {
+
+    /**
+     *
+     */
     public static class NetworkAudioSessionInfo extends NetworkBase.NetworkIOSessionInfo {
-        private AudioRecorder.AudioFormat audioFormat = new AudioRecorder.AudioFormat();
+
+        /**
+         * prvs
+         */
+        private IO.AudioFormat audioFormat = new IO.AudioFormat();
+
+        /**
+         * ctor
+         *
+         * @param id An identifier
+         */
         public NetworkAudioSessionInfo(IO.IOID id) {
             super(id);
         }
 
+        /**
+         * ctor
+         *
+         * @param id         An identifier
+         * @param formatData format of data
+         */
         public NetworkAudioSessionInfo(IO.IOID id, ByteString formatData) {
-            /*if (formatData != null) {
-                this.audioFormat = audioFormat
-            }*/
+
+            // TODO
             super(id, formatData);
         }
 
-        public NetworkAudioSessionInfo(IO.IOID id, AudioRecorder.AudioFormat audioFormat) {
+        /**
+         * ctor
+         *
+         * @param id          An identifier
+         * @param audioFormat The audio format
+         */
+        public NetworkAudioSessionInfo(IO.IOID id, IO.AudioFormat audioFormat) {
             super(id);
             this.audioFormat = audioFormat;
         }
