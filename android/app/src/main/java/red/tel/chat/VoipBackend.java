@@ -28,6 +28,7 @@ import red.tel.chat.network.OutgoingCallProposalController;
 public class VoipBackend{
     private static final String TAG = VoipBackend.class.getSimpleName();
     private IO.IODataProtocol ioDataProtocol;
+    private IO.IOID currentIOID;
 
     public void setIoDataProtocol(IO.IODataProtocol ioDataProtocol) {
         this.ioDataProtocol = ioDataProtocol;
@@ -135,12 +136,10 @@ public class VoipBackend{
     }
 
     private void getsOutgoingCallStart(Voip voip) {
-        //NetworkCallController.getInstance().start(callInfo(voip));
         startCallOutput(voip, NetworkCallController.getInstance());
     }
 
     private void getsIncomingCallStart(Voip voip) {
-        //NetworkCallController.getInstance().start(callInfo(voip));
         startCallOutput(voip, NetworkCallController.getInstance());
     }
 
@@ -293,10 +292,6 @@ public class VoipBackend{
         AVSession.Builder vsBuilder = dataCall.getVideoSession();
         Call call = dataCall.getCall();
 
-        // make voip
-        Voip.Builder voipBuilder = new Voip.Builder().which(Voip.Which.CALL_START_INCOMING);
-        voipBuilder.call = call;
-
         // TODO
         asBuilder.active = true;
         asBuilder.data = ByteString.of(IO.IOFormatFactory.shared().createAudioFormat().toNetwork());
@@ -307,6 +302,8 @@ public class VoipBackend{
         vsBuilder.data = null;
         vsBuilder.sid = "VIDEO-SID 1234";
         vsBuilder.gid = "VIDEO-GID 5678";
+
+        this.currentIOID =  new IO.IOID(call.from, to, asBuilder.sid, asBuilder.gid);
 
         byte[] data = new Voip.Builder()
                 .which(Voip.Which.CALL_START_INCOMING)
@@ -325,14 +322,27 @@ public class VoipBackend{
      */
     public void sendOutgoingCallStart(String to, NetworkCallInfo info) {
         DataCall dataCall = new DataCall(info).invoke();
-        AVSession.Builder audioSession = dataCall.getAudioSession();
-        AVSession.Builder videoSession = dataCall.getVideoSession();
+        AVSession.Builder asBuilder = dataCall.getAudioSession();
+        AVSession.Builder vsBuilder = dataCall.getVideoSession();
         Call call = dataCall.getCall();
+
+        // TODO
+        asBuilder.active = true;
+        asBuilder.data = ByteString.of(IO.IOFormatFactory.shared().createAudioFormat().toNetwork());
+        asBuilder.sid = "AUDIO-SID O_1234";
+        asBuilder.gid = "AUDIO-GID OU_5678";
+
+        vsBuilder.active = true;
+        vsBuilder.data = null;
+        vsBuilder.sid = "VIDEO-SID O_1234";
+        vsBuilder.gid = "VIDEO-GID 5O_678";
+
+        this.currentIOID =  new IO.IOID(call.from, to, asBuilder.sid, asBuilder.gid);
 
         byte[] data = new Voip.Builder()
                 .which(Voip.Which.CALL_START_OUTGOING)
-                .audioSession(audioSession.build())
-                .videoSession(videoSession.build())
+                .audioSession(asBuilder.build())
+                .videoSession(vsBuilder.build())
                 .call(call)
                 .build()
                 .encode();
@@ -429,6 +439,9 @@ public class VoipBackend{
 
     private synchronized void sendAudio(IO.IOID ioid, ByteString data) {
         Log.d(TAG, "sendAudio: " + data.asByteBuffer());
+
+        ioid = this.currentIOID;
+
         try {
             Call call = new Call.Builder()
                     .video(false)

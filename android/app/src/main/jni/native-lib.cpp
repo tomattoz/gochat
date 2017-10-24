@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <android/log.h>
+#include <time.h>
 
 #include <aacenc_lib.h>
 #include <aacdecoder_lib.h>
@@ -448,4 +449,24 @@ extern "C"
 JNIEXPORT jint JNICALL
 Java_red_tel_chat_avcodecs_FdkAAC_getAUHeaderSize(JNIEnv *env, jobject instance) {
     return AU_HDR_SIZE;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_red_tel_chat_utils_HostTimeInfo_clockGettimeTS(JNIEnv *env, jobject instance, jobject ts) {
+
+    struct timespec res;
+    clock_gettime(CLOCK_MONOTONIC, &res);
+
+    jclass jcls = env->FindClass("red/tel/chat/utils/HostTimeInfo$Timespec");
+
+    if (jcls != NULL) {
+        jfieldID secId = env->GetFieldID(jcls, "sec", "I");
+        jfieldID usecId = env->GetFieldID(jcls, "nsec", "J");
+
+        if (secId != NULL && usecId != NULL) {
+            env->SetIntField(ts, secId, res.tv_sec);
+            env->SetLongField(ts, usecId, res.tv_nsec);
+        }
+    }
 }

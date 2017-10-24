@@ -27,7 +27,7 @@ public class AudioRecorder {
      */
     public static final int AUDIO_SOURCE = MediaRecorder.AudioSource.VOICE_RECOGNITION;
     public static final int SAMPLE_RATE = 44100; // Hz
-    public static final int ENCODING = android.media.AudioFormat.ENCODING_PCM_16BIT;
+    public static final int ENCODING = android.media.AudioFormat.ENCODING_PCM_FLOAT;
     public static final int CHANNEL_MASK = android.media.AudioFormat.CHANNEL_IN_MONO;
     public static final int BUFFER_SIZE = 2 * AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_MASK, ENCODING);
 

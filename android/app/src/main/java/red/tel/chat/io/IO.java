@@ -399,8 +399,9 @@ public class IO {
             AudioFormat audioFmt = new AudioFormat();
             audioFmt.setSampleRate((double) 44100);
             audioFmt.setChannelCount(1);
-            audioFmt.setFramesPerPacket(1);
-            audioFmt.setFlags(1);
+            audioFmt.setFramesPerPacket(1024);
+            audioFmt.setFlags(0);
+            audioFmt.setFormatID(1633772320);
 
             return audioFmt;
         }

@@ -12,6 +12,7 @@ import red.tel.chat.EventBus;
 import red.tel.chat.EventBus.Event;
 import red.tel.chat.R;
 import red.tel.chat.notification.RegistrationIntentService;
+import red.tel.chat.utils.HostTimeInfo;
 
 public class SplashActivity extends BaseActivity {
     private static final String TAG = SplashActivity.class.getSimpleName();
@@ -20,6 +21,10 @@ public class SplashActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // init host time
+        new HostTimeInfo();
+
         setContentView(R.layout.activity_splash);
         if (checkPlayServices()) {
             // Start IntentService to register this application with GCM.
