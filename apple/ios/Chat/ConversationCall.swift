@@ -52,6 +52,8 @@ fileprivate func videoCapture(_ id: IOID,
                               _ context: IOInputContext,
                               _ vc: VideoViewController,
                               _ info: inout NetworkVideoSessionInfo?) -> IOSessionProtocol? {
+    return nil
+    
     var videoSession: AVCaptureSession.Accessor? = nil
     let orientation = AVCaptureVideoOrientation.Create(UIApplication.shared.statusBarOrientation)
     let rotated = orientation != nil ? orientation!.isPortrait : false
@@ -79,6 +81,8 @@ fileprivate func videoCapture(_ id: IOID,
 fileprivate func videoOutput(_ info: NetworkVideoSessionInfo,
                              _ vc: VideoViewController,
                              _ context: IOOutputContext) -> IOOutputContext? {
+    return nil
+    
     return AV.shared.defaultNetworkVideoOutput(info.id,
                                                context,
                                                VideoOutput(vc.networkView.sampleLayer))
@@ -100,7 +104,7 @@ fileprivate func startCall(_ to: String,
             _ = video!.view
             video!.callInfo = info
         }
-        
+
         else if info.proposal.audio {
             details = ui?.showDetailsIfNeeded()
             _ = details!.view

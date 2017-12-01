@@ -8,6 +8,8 @@
 #import <NXOAuth2Client/NXOAuth2.h>
 #endif
 
+#import <WebRTC/WebRTC.h>
+
 @import MSAL;
 
 #endif /* Bridging_Header_h */

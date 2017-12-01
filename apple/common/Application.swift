@@ -59,5 +59,9 @@ class Application : AppleApplicationDelegate {
         }
         
         self.playback = playback
+        
+        // WebRTC
+        
+        RTCInitializeSSL();
     }
 }

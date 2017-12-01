@@ -1,5 +1,7 @@
 import UIKit
 
+let chatRoomID = "111333"
+
 class SplitViewController : UISplitViewController {
 
     private static let usernameKey = "username"
@@ -39,14 +41,20 @@ class SplitViewController : UISplitViewController {
     override func viewDidLoad() {
         SplitViewController.shared = self
 
-        Auth.shared.clearUser()
+//        Auth.shared.clearUser()
 //        OfficeAuthentication.shared.signout()
         
         WireBackend.shared.connect()
-        
+        DispatchQueue.main.asyncAfter0_5 {
+            self.showVideoIfNeeded(forRoom: chatRoomID)
+        }
+
         EventBus.addListener(about: .connected, didReceive: { notification in
+
             if !Auth.shared.login() {
-                self.askAuthentication()
+//                self.askAuthentication()
+            }
+            else {
             }
         })
 
@@ -81,6 +89,16 @@ class SplitViewController : UISplitViewController {
         }
         
         return detailViewController!
+    }
+    
+    func showVideoIfNeeded(forRoom: String) -> ARDVideoCallViewController? {
+        guard
+            let result = ARDVideoCallViewController(forRoom: forRoom, isLoopback: false, delegate: nil)
+            else { return nil }
+        
+        self.showDetailsIfNeeded().navigationController?.pushViewController(result, animated: true)
+        
+        return result
     }
     
     func showVideoIfNeeded() -> VideoViewController {

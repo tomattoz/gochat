@@ -1,6 +1,7 @@
-#ifndef Bridging_Header_h
-#define Bridging_Header_h
+#ifndef Chat_Bridging_Header_h
+#define Chat_Bridging_Header_h
 
-#import <objcthemis/objcthemis.h>
+#import "../../Common/BridgingHeader.h"
+#import "ARDVideoCallViewController.h"
 
 #endif /* Bridging_Header_h */
